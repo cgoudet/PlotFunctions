@@ -1,0 +1,27 @@
+# inputType :
+#0 : histograms
+#1 : TTree
+inputType = 0
+
+rootFileName = /sps/atlas/c/cgoudet/Calibration/Bias/TreeToyTemplates_6583675_hist.root
+objName = BiasBin_6_1000000_7000_1
+legend = Bin 1, C=0.007
+
+rootFileName = /sps/atlas/c/cgoudet/Calibration/Bias/TreeToyTemplates_6768898_hist.root
+objName = BiasBin_6_1000000_10000_1
+legend = Bin 1, C=0.01
+
+doRatio = 1
+normalize = 1
+doChi2 = 0
+centerZoom = 1
+legendPos = 
+rangeUser = 
+drawStyle = 0
+
+latex = C fit inversion 
+latexOpt = 0.15 0.9 
+latex = fullData : 1M evts
+latexOpt = 0.15 0.87 
+latex = Crack
+latexOpt = 0.15 0.84 

@@ -1,0 +1,22 @@
+outName = CompareTree13TeV
+inputType = 1
+
+rootFileName = /sps/atlas/c/cgoudet/Calibration/MC_13TeV_Zee_Lkh1_0.root /sps/atlas/c/cgoudet/Calibration/MC_13TeV_Zee_Lkh1_1.root
+objName = MC_13TeV_Zee_Lkh1_0_selectionTree MC_13TeV_Zee_Lkh1_1_selectionTree
+legend = MC 13TeV
+
+rootFileName = /sps/atlas/c/cgoudet/Calibration/DataxAOD/EGAM1_DATA15/Data_13TeV_Zee_Lkh1.root
+objName = Analysis_selectionTree
+legend = Data 13TeV
+
+
+varName =  pt_1   pt_2   eta_1  eta_2  phi_1  phi_2  eta_cl_1  eta_cl_2  eta_calo_1  eta_calo_2  m12  energy_1  energy_2
+varMin  =  27000  27000  -2.47  -2.47  -3.15  -3.15  -2.47     -2.47     -2.47       -2.47        70  25000     25000
+varMax  =  100000 100000  2.47   2.47   3.15   3.15   2.47      2.47      2.47        2.47       110  100000    100000
+
+doRatio = 1
+normalize = 0
+doChi2 = 0
+centerZoom = 0
+legendPos = 
+rangeUser = 

@@ -1,0 +1,30 @@
+# inputType :
+#0 : histograms
+#1 : TTree
+inputType = 2
+
+rootFileName = /sps/atlas/c/cgoudet/Calibration/MC_13TeV_Zee_Lkh1_scaled_0.root
+objName = MC_13TeV_Zee_Lkh1_scaled_0_selectionTree
+legend = Test1
+#selectionCut = fabs(eta_1) < 1.37
+
+rootFileName = /sps/atlas/c/cgoudet/Calibration/MC_13TeV_Zee_Lkh1_scaled_0.root
+objName = MC_13TeV_Zee_Lkh1_scaled_0_selectionTree
+legend = Test2
+#selectionCut = fabs(eta_1) < 1.37
+
+varName = pt_1 pt_2 eta_1 eta_2 
+varMin = 27000 27000 -2.47 -2.47
+varMax = 200000 200000 2.47 2.47
+eventID = eventNumber runNumber
+
+nComparedEvents = 10
+
+doRatio = 1
+normalize = 1
+doChi2 = 0
+centerZoom = 1
+legendPos = 
+rangeUser = 
+drawStyle = 0
+

@@ -17,8 +17,8 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
 
 
 
-  string legendPos, rangeUser, inLatexPos, varName, varMin, varMax, eventID;
-  vector< string > rootFileName, objName, latexOpt;
+  string legendPos, rangeUser, inLatexPos, varMin, varMax, eventID;
+  vector< string > rootFileName, objName, latexOpt, varName;
 
   po::options_description configOptions("configOptions");
   configOptions.add_options()
@@ -27,12 +27,12 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
     ( "legend", po::value< vector< string > >( &m_legend )->multitoken(), "" )
     ( "legendPos", po::value<string>( &legendPos ), "" )
     ( "rangeUser", po::value<string>( &rangeUser ), "" )
-    ( "inputType", po::value<unsigned int>( &m_inputType ), "" )
+    ( "inputType", po::value<unsigned int>( &m_inputType ),"" )
     ( "doRatio", po::value<unsigned int>( &m_doRatio ), "" )
     ( "normalize", po::value<unsigned int>( &m_normalize ), "" )
     ( "doChi2", po::value<unsigned int>( &m_doChi2 ), "" )
     ( "centerZoom", po::value<unsigned int>( &m_centerZoom ), "" )
-    ( "varName", po::value< string >( &varName ), "" )
+    ( "varName", po::value< vector<string> >( &varName )->multitoken(), "" )
     ( "varMin", po::value< string >( &varMin ), "" )
     ( "varMax", po::value< string >( &varMax ), "" )
     ( "latex", po::value< vector< string > >( &m_latex )->multitoken(), "" )
@@ -66,9 +66,26 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
   }
 
   ParseVector( eventID, m_eventID );
-  ParseVector( varName, m_varName );
   ParseVector( varMax, m_varMax );
   ParseVector( varMin, m_varMin );
+
+  if ( varName.size() != rootFileName.size() && varName.size() != 1 ) {
+    cout << "varName does not have right size. It must be either 1 (if all trees have same branch name) or equal to number of input trees." << endl;
+    exit(1);
+  }
+  unsigned int nVariables = 0;
+  for ( unsigned int iName = 0; iName < rootFileName.size(); iName++ ) {
+    if ( iName < varName.size() ) {
+      m_varName.push_back( vector<string>() );
+      ParseVector( varName[iName], m_varName.back() );
+      if ( !nVariables ) nVariables = m_varName.back().size();
+      if ( m_varName.back().size() != nVariables || !nVariables ) {
+	cout << "number of variable in each tree do not match or no variable at all" << endl;
+	exit(2);
+      }
+    }
+    else m_varName.push_back( m_varName.front() );
+  }
 
   ParseVector( legendPos, m_legendPos );
   if ( m_legendPos.size() && m_legendPos.size() != 4 ) {

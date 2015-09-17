@@ -44,7 +44,7 @@ int main( int argc, char* argv[] ) {
   
   if (vm.count("help")) {cout << desc; return 0;}
   //=============================================
-  string plotPath = "/afs/in2p3.fr/home/c/cgoudet/private/Template/PlotFunctions/Plots/";
+  string plotPath = "/afs/in2p3.fr/home/c/cgoudet/private/Codes/PlotFunctions/Plots/";
 
   for ( unsigned int iFile = 0; iFile < inFiles.size(); iFile++ ) {
     cout << "iFile : " << iFile << " " << inFiles[iFile] << endl;
@@ -80,10 +80,10 @@ int main( int argc, char* argv[] ) {
 	  break;
 
 	case 1 : {//TTree plotting
-	  vector< string > varName = input.GetVarName();
+	  vector< vector<string> > varName = input.GetVarName();
 	  vector< double > varMin  = input.GetVarMin();
 	  vector< double > varMax  = input.GetVarMax();
-	  vector< double > varVal( varName.size(), 0 );
+	  vector< double > varVal( varName[iPlot].size(), 0 );
 	  cout << inFile.GetName() << endl;
 	  TTree *inTree = (TTree*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
 	  inTree->SetDirectory( 0 );
@@ -98,11 +98,11 @@ int main( int argc, char* argv[] ) {
 	  unsigned int nEntries = (unsigned int) inTree->GetEntries();
 	  
 	  for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {
-	    for ( unsigned int iHist = 0; iHist < varName.size(); iHist++ ) {
+	    for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
 
 	      if ( !iEvent ) {
 		//Link tree branches to local variables
-		inTree->SetBranchAddress( varName[iHist].c_str(), &varVal[iHist] );
+		inTree->SetBranchAddress( varName[iPlot][iHist].c_str(), &varVal[iHist] );
 		if ( !iPlot && !iAdd )  vectHist.push_back( vector<TH1*>() );
 		if ( !iAdd )  vectHist[iHist].push_back( 0 );
 	      }
@@ -112,9 +112,9 @@ int main( int argc, char* argv[] ) {
 
 	      if ( !vectHist[iHist][iPlot] ) {
 		//Create correspondig histogram
-		string dumName = string( TString::Format( "%s_%s_%d", input.GetObjName()[iPlot][iAdd].c_str(), varName[iHist].c_str(), iPlot ) );
+		string dumName = string( TString::Format( "%s_%s_%d", input.GetObjName()[iPlot][iAdd].c_str(), varName[iPlot][iHist].c_str(), iPlot ) );
 		vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), 100, varMin[iHist], varMax[iHist] );
-		vectHist[iHist][iPlot]->GetXaxis()->SetTitle( varName[iHist].c_str() );
+		vectHist[iHist][iPlot]->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
 		vectHist[iHist][iPlot]->GetYaxis()->SetTitle( TString::Format( "# Events / %2.2f", (varMax[iHist]-varMin[iHist])/vectHist[iHist][iPlot]->GetNbinsX()) );
 		vectHist[iHist][iPlot]->SetDirectory( 0 );
 	      }
@@ -142,12 +142,12 @@ int main( int argc, char* argv[] ) {
 	  vector< long long int > eventIDVal( eventID.size(), 0 );
 	  for ( unsigned int i = 0; i<eventID.size(); i++ ) inTree->SetBranchAddress( eventID[i].c_str(), &eventIDVal[i] );
 
-	  vector< string > eventVar = input.GetVarName();
-	  vector< double > eventVarVal(eventVar.size(), 0 );
-	  for ( unsigned int i = 0; i<eventVar.size(); i++ ) inTree->SetBranchAddress( eventVar[i].c_str(), &eventVarVal[i] );
+	  vector< vector<string> > eventVar = input.GetVarName();
+	  vector< double > eventVarVal(eventVar[iPlot].size(), 0 );
+	  for ( unsigned int i = 0; i<eventVar[iPlot].size(); i++ ) inTree->SetBranchAddress( eventVar[iPlot][i].c_str(), &eventVarVal[i] );
 	  //resize the 2D vector
 	  if ( !iPlot && !iAdd ) {
-	    eventVarVect.resize( extents[eventVar.size()*inputRootFile.size()][0] );
+	    eventVarVect.resize( extents[eventVar[iPlot].size()*inputRootFile.size()][0] );
 	    eventIDVect.resize( extents[eventID.size()][0] );
 	  }
 
@@ -158,14 +158,14 @@ int main( int argc, char* argv[] ) {
 	  vector< double > varVal( eventVar.size(), 0 );
 
 	  //Create the histograms for all plotted variables
-	  for ( unsigned int iVar = 0; iVar < eventVar.size(); iVar++ ) {
+	  for ( unsigned int iVar = 0; iVar < eventVar[iPlot].size(); iVar++ ) {
 	    if ( !iAdd && !iPlot ) vectHist.push_back( vector<TH1*>() );
 	    if ( !iAdd ) {
-	      string dumString = input.GetOutName() + string( TString::Format( "_%s_%d", eventVar[iVar].c_str(), iPlot ));
+	      string dumString = input.GetOutName() + string( TString::Format( "_%s_%d", eventVar[iPlot][iVar].c_str(), iPlot ));
 	      vectHist[iVar].push_back(0);
 	      vectHist[iVar].back() = new TH1D( dumString.c_str(), dumString.c_str(), 100, varMin[iVar], varMax[iVar] );
 	      vectHist[iVar].back()->SetDirectory(0);
-	      vectHist[iVar].back()->GetXaxis()->SetTitle( eventVar[iVar].c_str() );
+	      vectHist[iVar].back()->GetXaxis()->SetTitle( eventVar[iPlot][iVar].c_str() );
 	      vectHist[iVar].back()->GetYaxis()->SetTitle( "#events" );
 	    }
 	  }
@@ -204,7 +204,7 @@ int main( int argc, char* argv[] ) {
 
 	      // get to the next event if not found in selected events
 	      if ( index == iEvent+1 ) continue;
-	      for ( unsigned int i = 0; i<eventVar.size(); i++ ) {
+	      for ( unsigned int i = 0; i<eventVar[iPlot].size(); i++ ) {
 		eventVarVect[i*inputRootFile.size()+iPlot][index] = eventVarVal[i];  
 		vectHist[i][iPlot]->Fill( eventVarVal[i] );
 		//		if ( !i ) cout << iPlot << " " << iAdd << " " << i << " " << eventVarVal[i] << endl;
@@ -227,7 +227,7 @@ int main( int argc, char* argv[] ) {
     for ( unsigned int iHist = 0; iHist < vectHist.size(); iHist++ ) {
       cout << "drawing : " << iHist << endl;
       DrawPlot( vectHist[iHist], 
-		plotPath + input.GetOutName()+ ( input.GetVarName().size() ? "_" + input.GetVarName()[iHist] : "" ),
+		plotPath + input.GetOutName()+ ( input.GetVarName().front().size() ? "_" + input.GetVarName().front()[iHist] : "" ),
 		input.GetLegend(),
 		input.GetDoRatio(),
 		input.GetNormalize(),
@@ -246,13 +246,13 @@ int main( int argc, char* argv[] ) {
       cout << string( plotPath+input.GetOutName() + ".csv" ).c_str() << endl;
       csvStream.open( string( plotPath+input.GetOutName() + ".csv" ).c_str(), fstream::out | fstream::trunc );
       vector< string > eventID = input.GetEventID();
-      vector< string > eventVar = input.GetVarName();      
+      vector< vector<string> > eventVar = input.GetVarName();      
       for ( unsigned int iVar = 0; iVar < eventIDVect.size(); iVar++ ) csvStream << eventID[iVar] << ",";
-      for ( unsigned int iVar = 0; iVar < eventVar.size(); iVar++ ) csvStream << eventVar[iVar/inputRootFile.size()] << ",";
+      for ( unsigned int iVar = 0; iVar < eventVar.front().size()*eventVar.size(); iVar++ ) csvStream << eventVar[iVar%inputRootFile.size()][iVar/inputRootFile.size()] << ",";
       csvStream << endl;
       for ( unsigned int iEvent = 0; iEvent< eventIDVect[0].size(); iEvent++ ) {
 	for ( unsigned int iVar = 0; iVar < eventIDVect.size(); iVar++ ) csvStream << eventIDVect[iVar][iEvent] << ",";
-	for ( unsigned int iVar = 0; iVar < eventVarVect.size(); iVar++ ) csvStream << eventVarVect[iVar][iEvent] << ",";
+	for ( unsigned int iVar = 0; iVar < eventVar.front().size()*eventVar.size(); iVar++ ) csvStream << eventVarVect[iVar%inputRootFile.size()][iVar/inputRootFile.size()] << ",";
 	csvStream << endl;
       }
       csvStream.close();

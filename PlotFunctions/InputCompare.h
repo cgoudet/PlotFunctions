@@ -17,7 +17,7 @@ class InputCompare
   vector< vector< string > > &GetRootFileName() { return m_rootFileName; }
   vector< vector< string > > &GetObjName() { return m_objName; }
   vector< string > &GetLegend() { return m_legend; }
-  vector< string > &GetVarName() { return m_varName; }
+  vector< vector<string> > &GetVarName() { return m_varName; }
   vector< double > &GetLegendPos() { return m_legendPos; }
   vector< double > &GetRangeUser() { return m_rangeUser; }
   vector< double > &GetVarMin() { return m_varMin; }
@@ -59,7 +59,7 @@ class InputCompare
 
   /**\brief List of branches to print in a TTree
    */
-  vector< string > m_varName;
+  vector< vector<string> > m_varName;
 
   /**\brief Vector of latex texts to print
    */

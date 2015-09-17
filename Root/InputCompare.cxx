@@ -1,6 +1,6 @@
 #include <iostream>
-#include "SideFunctions/SideFunctions.h"
-#include "SideFunctions/InputCompare.h"
+#include "PlotFunctions/SideFunctions.h"
+#include "PlotFunctions/InputCompare.h"
 #include <fstream>
 #include <boost/program_options.hpp>
 

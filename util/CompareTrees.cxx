@@ -7,7 +7,7 @@
 #include "TString.h"
 #include "TCanvas.h"
 #include "TLegend.h"
-#include "SideFunctions/DrawPlot.h"
+#include "PlotFunctions/DrawPlot.h"
 #include <vector>
 #include <string>
 #include "boost/multi_array.hpp"

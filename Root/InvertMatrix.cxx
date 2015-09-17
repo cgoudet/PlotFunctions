@@ -1,5 +1,5 @@
 #include <iostream>
-#include "SideFunctions/InvertMatrix.h"
+#include "PlotFunctions/InvertMatrix.h"
 #include "TMath.h"
 #include "boost/multi_array.hpp"
 #include "RooRealVar.h"
@@ -14,7 +14,7 @@
 #include "RooDataSet.h"
 #include <string>
 #include "RooConstVar.h"
-#include "SideFunctions/SideFunctions.h"
+#include "PlotFunctions/SideFunctions.h"
 #include "Math/MinimizerOptions.h"
 
 using std::copysign;

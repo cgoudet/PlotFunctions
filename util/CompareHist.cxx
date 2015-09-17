@@ -6,15 +6,15 @@
 #include <fstream>
 #include <math.h>
 #include "TTree.h"
-#include "SideFunctions/InputCompare.h"
-#include "SideFunctions/SideFunctions.h"
+#include "PlotFunctions/InputCompare.h"
+#include "PlotFunctions/SideFunctions.h"
 #include <TROOT.h>
 using std::string;
 using std::cout;
 using std::endl;
 using std::vector;
 
-#include "SideFunctions/DrawPlot.h"
+#include "PlotFunctions/DrawPlot.h"
 #include <boost/program_options.hpp>
 #include <boost/multi_array.hpp>
 using boost::multi_array;
@@ -44,7 +44,7 @@ int main( int argc, char* argv[] ) {
   
   if (vm.count("help")) {cout << desc; return 0;}
   //=============================================
-  string plotPath = "/afs/in2p3.fr/home/c/cgoudet/private/Template/SideFunctions/Plots/";
+  string plotPath = "/afs/in2p3.fr/home/c/cgoudet/private/Template/PlotFunctions/Plots/";
 
   for ( unsigned int iFile = 0; iFile < inFiles.size(); iFile++ ) {
     cout << "iFile : " << iFile << " " << inFiles[iFile] << endl;

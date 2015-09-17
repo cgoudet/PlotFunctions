@@ -7,7 +7,7 @@
 #include <string>
 #include "TH1D.h"
 #include "TString.h"
-#include "SideFunctions/DrawPlot.h"
+#include "PlotFunctions/DrawPlot.h"
 
 
 using std::iostream;

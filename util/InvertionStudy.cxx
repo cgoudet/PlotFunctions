@@ -6,8 +6,8 @@
 #include "TString.h"
 #include "TCanvas.h"
 #include "TLegend.h"
-#include "SideFunctions/DrawPlot.h"
-#include "SideFunctions/InvertMatrix.h"
+#include "PlotFunctions/DrawPlot.h"
+#include "PlotFunctions/InvertMatrix.h"
 #include <vector>
 #include <string>
 
@@ -100,7 +100,7 @@ int main( ) {
   }
 
   cout << histVect.size() << " " << legend.size() << endl;
-  DrawPlot( histVect, "/afs/in2p3.fr/home/c/cgoudet/private/Template/SideFunctions/Plots/InversionStudy"
+  DrawPlot( histVect, "/afs/in2p3.fr/home/c/cgoudet/private/Template/PlotFunctions/Plots/InversionStudy"
 	    , legend
 	    , 0, 0, 0, 0
 	    , vector<double>()

@@ -10,7 +10,7 @@
 #include "boost/multi_array.hpp"
 using boost::multi_array;
 using boost::extents;
-#include "SideFunctions/SideFunctionsTpp.h"
+#include "PlotFunctions/SideFunctionsTpp.h"
 
 using std::fstream;
 using std::string;

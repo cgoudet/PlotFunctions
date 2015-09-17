@@ -26,7 +26,7 @@ int main() {
 
   //Prepare the outputfile
   std::fstream outStream;
-  outStream.open( "/afs/in2p3.fr/home/c/cgoudet/private/Template/SideFunctions/csv/" + TString( name )  + ".csv" , std::fstream::out );
+  outStream.open( "/afs/in2p3.fr/home/c/cgoudet/private/Template/PlotFunctions/csv/" + TString( name )  + ".csv" , std::fstream::out );
 
 
   unsigned int Nrow = matrix->GetNrows();

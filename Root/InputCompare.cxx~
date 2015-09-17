@@ -1,5 +1,5 @@
 #include <iostream>
-#include "SideFunctions/InputCompare.h"
+#include "PlotFunctions/InputCompare.h"
 #include <ifstream>
 
 using std::ifstream;

@@ -3,14 +3,14 @@
 #include "TLegend.h"
 #include "TLine.h"
 #include "TLatex.h"
-#include "SideFunctions/SideFunctions.h"
+#include "PlotFunctions/SideFunctions.h"
 
 using std::cout;
 using std::endl;
 using std::min;
 using std::max;
 
-#include "SideFunctions/DrawPlot.h"
+#include "PlotFunctions/DrawPlot.h"
 
 void Style_Christophe();
 int colors[] = {1, 2, 4, 6, 8, 28, 46};

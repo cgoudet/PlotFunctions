@@ -30,7 +30,7 @@ void Read4DTree(vector< vector< vector< vector< double > > > > &inVect, TTree* i
 int FindFitBestRange( TH1D *hist, int &binMin, int &binMax, double chiMinLow=9, double chiMinUp=25);
 void WriteLatexMinipage( fstream &latexStream, vector<string> vect, unsigned int nPlotPerWidth=0 );
 void WriteLatexHeader( fstream &latexStream, string author );
-#include "Template/SideFunctionsTpp.h"
+#include "Template/PlotFunctionsTpp.h"
 string StripString( string &inString, bool doPrefix=1, bool doSuffix=1 );
 void RemoveExtremalEmptyBins( TH1 *hist );
 

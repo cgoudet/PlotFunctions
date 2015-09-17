@@ -1,4 +1,4 @@
-#include "SideFunctions/SideFunctions.h"
+#include "PlotFunctions/SideFunctions.h"
 #include <iostream>
 #include "TF1.h"
 #include "TCanvas.h"

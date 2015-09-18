@@ -69,13 +69,14 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
   ParseVector( varMax, m_varMax );
   ParseVector( varMin, m_varMin );
 
-  if ( varName.size() != rootFileName.size() && varName.size() != 1 ) {
+  if ( m_inputType && varName.size() != rootFileName.size() && varName.size() != 1 ) {
     cout << "varName does not have right size. It must be either 1 (if all trees have same branch name) or equal to number of input trees." << endl;
     exit(1);
   }
+  cout << "m_inputType : " << m_inputType << endl;
   unsigned int nVariables = 0;
-  for ( unsigned int iName = 0; iName < rootFileName.size(); iName++ ) {
-    if ( iName < varName.size() ) {
+  for ( unsigned int iName = 0; iName < ( varName.size() ? rootFileName.size() : 0 ); iName++ ) {
+    if ( iName <= varName.size() ) {
       m_varName.push_back( vector<string>() );
       ParseVector( varName[iName], m_varName.back() );
       if ( !nVariables ) nVariables = m_varName.back().size();

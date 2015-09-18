@@ -28,7 +28,7 @@ int DrawPlot( vector< TH1* > inHist,
 	      vector< vector< double > > latexPos,
 	      unsigned int drawStyle
 	       ) {
-
+  cout << "DrawPlot" << endl;
   //================ SOME CHECKS
   if ( inLegend.size() && inLegend.size()!=inHist.size() ) {
     cout << "Legend do not match input" << endl;
@@ -43,7 +43,6 @@ int DrawPlot( vector< TH1* > inHist,
   if ( inHist.size() == 1 ) drawStyle = 0;
 
   Style_Christophe();
-
 
 
   if ( inHist.size() < 2 ) doRatio = 0;

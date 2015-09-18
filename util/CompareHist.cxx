@@ -49,18 +49,17 @@ int main( int argc, char* argv[] ) {
   for ( unsigned int iFile = 0; iFile < inFiles.size(); iFile++ ) {
     cout << "iFile : " << iFile << " " << inFiles[iFile] << endl;
     InputCompare input( inFiles[iFile] );
-
     vector< vector< TH1* > > vectHist;
     multi_array< double, 2 > eventVarVect;
     multi_array< long long int, 2> eventIDVect;
     
     vector< vector< string > > inputRootFile = input.GetRootFileName();
     vector< vector< string > > inputObjName = input.GetObjName();
-    cout << "inputType : " << input.GetInputType() << endl;
 
     for ( unsigned int iPlot = 0; iPlot < inputRootFile.size(); iPlot++ ) {
       for ( unsigned int iAdd = 0; iAdd < inputRootFile[iPlot].size(); iAdd ++ ) {
 	TFile inFile( inputRootFile[iPlot][iAdd].c_str() );	
+
 	switch( input.GetInputType() ) {
 	case 0 : //histograms
 	  if ( !iPlot && !iAdd ) vectHist.push_back( vector< TH1* >() );
@@ -227,7 +226,7 @@ int main( int argc, char* argv[] ) {
     for ( unsigned int iHist = 0; iHist < vectHist.size(); iHist++ ) {
       cout << "drawing : " << iHist << endl;
       DrawPlot( vectHist[iHist], 
-		plotPath + input.GetOutName()+ ( input.GetVarName().front().size() ? "_" + input.GetVarName().front()[iHist] : "" ),
+		plotPath + input.GetOutName()+ ( input.GetVarName().size() && input.GetVarName().front().size() ? "_" + input.GetVarName().front()[iHist] : "" ),
 		input.GetLegend(),
 		input.GetDoRatio(),
 		input.GetNormalize(),
@@ -239,6 +238,7 @@ int main( int argc, char* argv[] ) {
 		input.GetLatexOpt(),
 		input.GetDrawStyle()
 		);
+      cout << "drawn : " << iHist << endl;
     }
 
     if ( input.GetInputType() == 2 ) { //print csvFile

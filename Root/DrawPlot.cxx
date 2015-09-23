@@ -86,10 +86,10 @@ int DrawPlot( vector< TH1* > inHist,
   //============ LOOP OTHER INPUT HIST
   //Find the extremum of the histograms to choose rangeUser if not given
   double minVal=0, maxVal=0, minX=0, maxX=0;
+  bool isNegativeValue = false;
   for ( unsigned int iHist = 0; iHist < inHist.size(); iHist++ ) {
 
-    if ( normalize && inHist[iHist]->Integral() ) inHist[iHist]->Scale( 1./inHist[iHist]->Integral() );
-
+    if ( normalize && inHist[iHist]->Integral() )  inHist[iHist]->Scale( 1./inHist[iHist]->Integral() );
 
     //============ LOOK FOR Y EXTREMAL VALUES AND DEFINE Y RANGE
     if( !iHist ) {
@@ -100,6 +100,7 @@ int DrawPlot( vector< TH1* > inHist,
     for ( int bin = 1; bin <= inHist[iHist]->GetNbinsX(); bin++ ) {
       minVal = min( inHist[iHist]->GetBinContent( bin ) - inHist[iHist]->GetBinError( bin ), minVal );
       maxVal = max( inHist[iHist]->GetBinContent( bin ) + inHist[iHist]->GetBinError( bin ), maxVal );
+      if ( inHist[iHist]->GetBinContent( bin ) < 0 ) isNegativeValue = true;
     }
 
     //========== LOOK FOR X EXTREMAL VALUES AND DEFINE X RANGE
@@ -143,10 +144,10 @@ int DrawPlot( vector< TH1* > inHist,
   //Plotting histograms
   for ( unsigned int iHist = 0; iHist < inHist.size(); iHist++ ) {
     if ( !iHist ) {
-      inHist.front()->GetYaxis()->SetTitleOffset( 0.6 );
+      inHist.front()->GetYaxis()->SetTitleOffset( 0.82 );
       inHist.front()->GetYaxis()->SetTitleSize( 0.06 );
       if ( rangeUser.size() == 2 ) inHist.front()->GetYaxis()->SetRangeUser( rangeUser[0], rangeUser[1] );
-      else inHist.front()->GetYaxis()->SetRangeUser( minVal - ( maxVal - minVal ) *0.05 , maxVal + ( maxVal - minVal ) *0.05 );
+      else inHist.front()->GetYaxis()->SetRangeUser( isNegativeValue ? minVal - ( maxVal - minVal ) *0.05 : 0 , maxVal + ( maxVal - minVal ) *0.05 );
       if ( centerZoom ) inHist.front()->GetXaxis()->SetRangeUser( minX, maxX );    
     }
     inHist[iHist]->Draw( (iHist) ? "e,same" : "e" );

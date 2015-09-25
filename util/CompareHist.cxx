@@ -49,15 +49,16 @@ int main( int argc, char* argv[] ) {
   for ( unsigned int iFile = 0; iFile < inFiles.size(); iFile++ ) {
     cout << "iFile : " << iFile << " " << inFiles[iFile] << endl;
     InputCompare input( inFiles[iFile] );
+    cout << "config file loaded" << endl;
     vector< vector< TH1* > > vectHist;
     multi_array< double, 2 > eventVarVect;
     multi_array< long long int, 2> eventIDVect;
     
     vector< vector< string > > inputRootFile = input.GetRootFileName();
     vector< vector< string > > inputObjName = input.GetObjName();
-
     for ( unsigned int iPlot = 0; iPlot < inputRootFile.size(); iPlot++ ) {
       for ( unsigned int iAdd = 0; iAdd < inputRootFile[iPlot].size(); iAdd ++ ) {
+	cout << iPlot << " " << iAdd << endl;
 	TFile inFile( inputRootFile[iPlot][iAdd].c_str() );	
 
 	switch( input.GetInputType() ) {

@@ -49,7 +49,7 @@ int DrawPlot( vector< TH1* > inHist,
   vector< TH1D* > ratio;
 
   //================ PAD DEFINITION
-  TCanvas canvas( "canvas", "canvas", 1600, 1200);
+  TCanvas canvas;
 
   if ( inHist.size()==1 && TString(inHist.front()->ClassName()).Contains("TH2") ) {
     canvas.SetRightMargin( 0.1 );
@@ -73,7 +73,7 @@ int DrawPlot( vector< TH1* > inHist,
     padUp.cd();
   }
 
-  if ( !legendCoord.size() ) legendCoord={ 0.7, 0.7, 0.99, 0.95  };
+  if ( !legendCoord.size() ) legendCoord={ 0.7, 0.95-inLegend.size()*0.03, 0.99, 0.95  };
   TLegend *legend = new TLegend( legendCoord[0], legendCoord[1], legendCoord[2], legendCoord[3]);
   legend->SetFillColorAlpha( 0, 0 );
   legend->SetLineColorAlpha( 0, 0 );
@@ -144,8 +144,10 @@ int DrawPlot( vector< TH1* > inHist,
   //Plotting histograms
   for ( unsigned int iHist = 0; iHist < inHist.size(); iHist++ ) {
     if ( !iHist ) {
-      inHist.front()->GetYaxis()->SetTitleOffset( 0.82 );
-      inHist.front()->GetYaxis()->SetTitleSize( 0.06 );
+      if (doRatio) {
+	inHist.front()->GetYaxis()->SetTitleOffset( 0.6 );
+	inHist.front()->GetYaxis()->SetTitleSize( 0.06 );
+      }
       if ( rangeUser.size() == 2 ) inHist.front()->GetYaxis()->SetRangeUser( rangeUser[0], rangeUser[1] );
       else inHist.front()->GetYaxis()->SetRangeUser( isNegativeValue ? minVal - ( maxVal - minVal ) *0.05 : 0 , maxVal + ( maxVal - minVal ) *0.05 );
       if ( centerZoom ) inHist.front()->GetXaxis()->SetRangeUser( minX, maxX );    
@@ -226,7 +228,7 @@ int DrawPlot( vector< TH1* > inHist,
     line->DrawLine( centerZoom ? minX : ratio.front()->GetXaxis()->GetXmin(), 0, centerZoom ? maxX :ratio.front()->GetXaxis()->GetXmax(), 0);
   }//end doRatio
 
-  canvas.SaveAs( TString(outName) + ".png" );
+  canvas.SaveAs( TString(outName) + ".pdf" );
   
 
   //========== CLEANING 

@@ -63,7 +63,7 @@ void WriteLatexMinipage( fstream &latexStream, vector<string> vect, unsigned int
 
   for ( unsigned int iPlot = 0; iPlot < vect.size(); iPlot++ ) {
     vect[iPlot]+=".pdf";
-    latexStream << "\\begin{minipage}{" << 0.99/nPlotPerWidth << "\\linewidth} " << endl;
+    latexStream << "\\begin{minipage}{" << 1./nPlotPerWidth -0.01 << "\\linewidth} " << endl;
     latexStream << "\\includegraphics[width=\\linewidth]{" << vect[iPlot] << "}\\\\" << endl;
     TString dum = StripString( vect[iPlot] );
     dum.ReplaceAll( "_", "\\_" );

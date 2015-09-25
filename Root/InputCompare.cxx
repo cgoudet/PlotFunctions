@@ -51,18 +51,25 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
   m_outName = StripString( fileName );
 
   //Some checks
-  if ( rootFileName.size() != objName.size() 
+  if ( rootFileName.size() != objName.size()
        || ( m_legend.size() && rootFileName.size() != m_legend.size() )
        ) {
     cout << "Wrong vector sizes" << endl;
     exit( 0 );
   }
 
+
   for ( unsigned int iHist = 0; iHist < rootFileName.size(); iHist++ ) {
     m_rootFileName.push_back( vector< string >() );
     ParseVector( rootFileName[iHist], m_rootFileName[iHist] );
     m_objName.push_back( vector< string >() );
     ParseVector( objName[iHist], m_objName[iHist] );
+    //    cout << iHist << " " << m_objName[iHist].size() << endl;
+    if ( m_objName[iHist].size() !=1 && m_objName[iHist].size()!=m_rootFileName[iHist].size() ) {
+      cout << "objName size for iHist=" << iHist << " do not have the right amount of names" << endl;
+      exit(0);
+    }
+    if ( m_objName[iHist].size() == 1 ) m_objName[iHist] = vector<string>( m_rootFileName[iHist].size(), m_objName[iHist].front() );
   }
 
   ParseVector( eventID, m_eventID );

@@ -7,6 +7,7 @@
 namespace po = boost::program_options;
 using std::ifstream;
 
+
 InputCompare::InputCompare() : m_inputType( 0 ), m_doRatio( 0 ), m_normalize(0), m_doChi2( 0 ), m_centerZoom( 0 ),
 			       m_drawStyle(0)
 {}
@@ -18,7 +19,7 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
 
 
   string legendPos, rangeUser, inLatexPos, varMin, varMax, eventID;
-  vector< string > rootFileName, objName, latexOpt, varName;
+  vector< string > rootFileName, objName, latexOpt, varName, varWeight;
 
   po::options_description configOptions("configOptions");
   configOptions.add_options()
@@ -41,6 +42,7 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
     ( "selectionCut", po::value< vector< string > >( & m_selectionCut ), "TFormula to select tree events" )
     ( "eventID", po::value< string >( &eventID ), "" )
     ( "nComparedEvents", po::value< unsigned int >( &m_nComparedEvents ), "" )
+    ( "varWeight", po::value< vector<string> >(&m_varWeight)->multitoken(), "" )
     ;
   
   po::variables_map vm;
@@ -51,25 +53,27 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
   m_outName = StripString( fileName );
 
   //Some checks
-  if ( rootFileName.size() != objName.size()
-       || ( m_legend.size() && rootFileName.size() != m_legend.size() )
+  if ( m_inputType!=3  && (rootFileName.size() != objName.size()
+	|| ( m_legend.size() && rootFileName.size() != m_legend.size() ) )
        ) {
     cout << "Wrong vector sizes" << endl;
     exit( 0 );
   }
 
 
+
   for ( unsigned int iHist = 0; iHist < rootFileName.size(); iHist++ ) {
     m_rootFileName.push_back( vector< string >() );
     ParseVector( rootFileName[iHist], m_rootFileName[iHist] );
-    m_objName.push_back( vector< string >() );
-    ParseVector( objName[iHist], m_objName[iHist] );
-    //    cout << iHist << " " << m_objName[iHist].size() << endl;
-    if ( m_objName[iHist].size() !=1 && m_objName[iHist].size()!=m_rootFileName[iHist].size() ) {
-      cout << "objName size for iHist=" << iHist << " do not have the right amount of names" << endl;
-      exit(0);
+    if ( m_inputType != 3 ) {
+      m_objName.push_back( vector< string >() );
+      ParseVector( objName[iHist], m_objName[iHist] );
+      if ( m_objName[iHist].size() !=1 && m_objName[iHist].size()!=m_rootFileName[iHist].size() ) {
+	cout << "objName size for iHist=" << iHist << " do not have the right amount of names" << endl;
+	exit(0);
+      }
+      if ( m_objName[iHist].size() == 1 ) m_objName[iHist] = vector<string>( m_rootFileName[iHist].size(), m_objName[iHist].front() );
     }
-    if ( m_objName[iHist].size() == 1 ) m_objName[iHist] = vector<string>( m_rootFileName[iHist].size(), m_objName[iHist].front() );
   }
 
   ParseVector( eventID, m_eventID );
@@ -87,6 +91,7 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
       m_varName.push_back( vector<string>() );
       ParseVector( varName[iName], m_varName.back() );
       if ( !nVariables ) nVariables = m_varName.back().size();
+      cout << nVariables << " " << m_varName.back().size() << endl;
       if ( m_varName.back().size() != nVariables || !nVariables ) {
 	cout << "number of variable in each tree do not match or no variable at all" << endl;
 	exit(2);

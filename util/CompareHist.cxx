@@ -19,6 +19,7 @@ using std::vector;
 #include <boost/multi_array.hpp>
 using boost::multi_array;
 using boost::extents;
+
 namespace po = boost::program_options;
 
 
@@ -58,7 +59,6 @@ int main( int argc, char* argv[] ) {
     vector< vector< string > > inputObjName = input.GetObjName();
     for ( unsigned int iPlot = 0; iPlot < inputRootFile.size(); iPlot++ ) {
       for ( unsigned int iAdd = 0; iAdd < inputRootFile[iPlot].size(); iAdd ++ ) {
-	cout << iPlot << " " << iAdd << endl;
 	TFile inFile( inputRootFile[iPlot][iAdd].c_str() );	
 
 	switch( input.GetInputType() ) {
@@ -84,10 +84,12 @@ int main( int argc, char* argv[] ) {
 	  vector< double > varMin  = input.GetVarMin();
 	  vector< double > varMax  = input.GetVarMax();
 	  vector< double > varVal( varName[iPlot].size(), 0 );
-	  cout << inFile.GetName() << endl;
+	  vector< string > varWeight = input.GetVarWeight();
+	  double weight = 1;
+
 	  TTree *inTree = (TTree*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
-	  inTree->SetDirectory( 0 );
 	  cout << "inTree : " << inTree << endl;
+	  inTree->SetDirectory( 0 );
 
 	  if ( input.GetSelectionCut().size() ){
 	    TTree *dumTree = inTree;
@@ -96,12 +98,16 @@ int main( int argc, char* argv[] ) {
 	    delete dumTree;
 	  }
 	  unsigned int nEntries = (unsigned int) inTree->GetEntries();
-	  
+	  cout << varWeight[iPlot] << endl;
+
+	  if ( varWeight[iPlot] != "X" ) inTree->SetBranchAddress( varWeight[iPlot].c_str(), &weight );
+		
 	  for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {
 	    for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
 
 	      if ( !iEvent ) {
 		//Link tree branches to local variables
+		cout << varName[iPlot][iHist] << endl;
 		inTree->SetBranchAddress( varName[iPlot][iHist].c_str(), &varVal[iHist] );
 		if ( !iPlot && !iAdd )  vectHist.push_back( vector<TH1*>() );
 		if ( !iAdd )  vectHist[iHist].push_back( 0 );
@@ -117,9 +123,10 @@ int main( int argc, char* argv[] ) {
 		vectHist[iHist][iPlot]->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
 		vectHist[iHist][iPlot]->GetYaxis()->SetTitle( TString::Format( "# Events / %2.2f", (varMax[iHist]-varMin[iHist])/vectHist[iHist][iPlot]->GetNbinsX()) );
 		vectHist[iHist][iPlot]->SetDirectory( 0 );
+		vectHist[iHist][iPlot]->Sumw2();
 	      }
 	      //if created fill it
-	      else vectHist[iHist][iPlot]->Fill( varVal[iHist] );
+	      else vectHist[iHist][iPlot]->Fill( varVal[iHist], weight );
 	    }// end iHist
 	  }// end iEvent
 
@@ -128,7 +135,7 @@ int main( int argc, char* argv[] ) {
 	}//end case TTree
 
 	case 2 : { //event/event comparison
-	  cout << "case2" << endl;
+
 	  TTree *inTree = (TTree*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
 	  if ( input.GetSelectionCut().size() ){
 	    TTree *dumTree = inTree;
@@ -167,6 +174,7 @@ int main( int argc, char* argv[] ) {
 	      vectHist[iVar].back()->SetDirectory(0);
 	      vectHist[iVar].back()->GetXaxis()->SetTitle( eventVar[iPlot][iVar].c_str() );
 	      vectHist[iVar].back()->GetYaxis()->SetTitle( "#events" );
+	      vectHist[iVar].back()->Sumw2();
 	    }
 	  }
 
@@ -215,6 +223,56 @@ int main( int argc, char* argv[] ) {
 
 	  break;
 	}//end case compare event
+
+	case 3 : {
+	  cout << "case 3 :" << endl;
+	  cout << "iPlot : " << iPlot << endl;
+	  cout << "iAdd : " << iAdd << endl;
+	  fstream inputStream;
+	  inputStream.open( inputRootFile[iPlot][iAdd].c_str(), fstream::in );
+	  string dumString;
+	  getline( inputStream, dumString );
+	  vector< string > titleVect;
+	  ParseVector(  dumString , titleVect );
+
+	  vector< vector<string> > varName = input.GetVarName();
+	  vector< double > varVal( titleVect.size(), 0 );
+	  vector< unsigned int > varIndex( varName[iPlot].size(), 0 );
+	  for ( unsigned int iVar = 0; iVar < varName[iPlot].size(); iVar++ ) {
+	    varIndex[iVar] = SearchVectorBin( varName[iPlot][iVar], titleVect );
+	    if ( varIndex[iVar] == titleVect.size() ) {
+	      cout << varName[iPlot][iVar] << " was not found in header" << endl;
+	      exit(0);
+	    }
+	  }
+	  vector< double > varMin  = input.GetVarMin();
+	  vector< double > varMax  = input.GetVarMax();
+	  vector< string > varWeight = input.GetVarWeight();
+	  unsigned int weightIndex = SearchVectorBin( varWeight[iPlot], titleVect );
+
+	  while ( true ) {
+	    for ( unsigned int iTxtVar = 0; iTxtVar < titleVect.size(); iTxtVar++ ) {
+	    inputStream >> varVal[iTxtVar];
+	    }
+	    if ( inputStream.eof() ) break;
+	  double weight = ( varWeight[iPlot] != "X" ) ? varVal[weightIndex] : 1;
+	    for ( unsigned int iVar = 0; iVar < varName[iPlot].size(); iVar++ ) {
+	      if ( vectHist.size() == iVar ) vectHist.push_back( vector<TH1*>() );
+	      if ( vectHist[iVar].size() == iPlot ) {
+		string dumString = input.GetOutName() + string( TString::Format( "_%s_%d", varName[iPlot][iVar].c_str(), iPlot ));
+		vectHist[iVar].push_back(0);
+		vectHist[iVar].back() = new TH1D( dumString.c_str(), dumString.c_str(), 100, varMin[iVar], varMax[iVar] );
+		vectHist[iVar].back()->SetDirectory(0);
+		vectHist[iVar].back()->GetXaxis()->SetTitle( varName[iPlot][iVar].c_str() );
+		vectHist[iVar].back()->GetYaxis()->SetTitle( "#events" );
+		vectHist[iVar].back()->Sumw2();
+	      }
+	      vectHist[iVar][iPlot]->Fill( varVal[varIndex[iVar]], weight );
+	    }//end for iVar
+	  }//end while
+	  cout << "endwhile" << endl;
+	  break;
+	}
 	  
 	default : 
 	  cout << "inputType=" << input.GetInputType() << " is not known." << endl;
@@ -269,5 +327,6 @@ int main( int argc, char* argv[] ) {
     }
     
   }// end iFile
+  cout << "All good" << endl;
   return 0;  
 }

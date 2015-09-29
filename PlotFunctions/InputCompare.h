@@ -26,6 +26,7 @@ class InputCompare
   vector< string > &GetSelectionCut() { return m_selectionCut;}
   vector< string > &GetEventID() { return m_eventID; }
   vector< vector< double > > &GetLatexOpt() { return m_latexOpt; }
+  vector< string > &GetVarWeight() { return m_varWeight; }
 
   string &GetOutName() { return m_outName; }
   unsigned int GetInputType() { return m_inputType; }
@@ -128,6 +129,12 @@ class InputCompare
      branch must hold long long int
   */
   vector< string > m_eventID;
+
+  /**\brief string for name of weight branch.
+
+     Put X for no weight
+  */
+  vector< string > m_varWeight;
 
 };
 

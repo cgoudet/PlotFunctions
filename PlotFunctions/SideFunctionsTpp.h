@@ -21,7 +21,7 @@ template< typename Type1 > unsigned int SearchVectorBin( Type1 val, vector< Type
   for ( ;  outBin < vect.size(); outBin++ )
     if ( vect[outBin] == val ) break;
   
-  if ( outBin == vect.size() ) vect.push_back( val );
+  //  if ( outBin == vect.size() ) vect.push_back( val );
   
   return outBin;
 }

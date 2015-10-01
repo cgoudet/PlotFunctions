@@ -56,7 +56,8 @@ int DrawPlot( vector< TH1* > inHist,
 	      vector<double> legendCoord = {},
 	      vector<string> inLatex = {},
 	      vector< vector< double > >  latexPos = vector<vector<double>>(),
-	      unsigned int drawStyle = 0
+	      unsigned int drawStyle = 0,
+	      unsigned int shiftColor = 0
 	       );
 
 

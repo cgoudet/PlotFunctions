@@ -295,7 +295,8 @@ int main( int argc, char* argv[] ) {
 		input.GetLegendPos(),
 		input.GetLatex(),
 		input.GetLatexOpt(),
-		input.GetDrawStyle()
+		input.GetDrawStyle(),
+		input.GetShiftColor()
 		);
       cout << "drawn : " << iHist << endl;
     }

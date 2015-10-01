@@ -16,17 +16,18 @@ void Style_Christophe();
 int colors[] = {1, 2, 4, 6, 8, 28, 46};
 
 int DrawPlot( vector< TH1* > inHist,  
-	       string outName, 
-	       vector< string> inLegend, 
-	       unsigned int doRatio, 
-	       bool normalize, 
-	       bool doChi2, 
-	       bool centerZoom , 
-	       vector<double> rangeUser, 
-	       vector<double> legendCoord,
-	       vector<string> inLatex,
+	      string outName, 
+	      vector< string> inLegend, 
+	      unsigned int doRatio, 
+	      bool normalize, 
+	      bool doChi2, 
+	      bool centerZoom , 
+	      vector<double> rangeUser, 
+	      vector<double> legendCoord,
+	      vector<string> inLatex,
 	      vector< vector< double > > latexPos,
-	      unsigned int drawStyle
+	      unsigned int drawStyle,
+	      unsigned int shiftColor
 	       ) {
   cout << "DrawPlot" << endl;
   //================ SOME CHECKS
@@ -114,16 +115,16 @@ int DrawPlot( vector< TH1* > inHist,
 
     //Set color and style of histogram
     //If only one histograms is plotted, plot it in red
-    inHist[iHist]->SetLineColor( colors[ inHist.size()==1 ? 1 : iHist ] );
-    inHist[iHist]->SetMarkerColor( colors[ inHist.size()==1 ? 1 : iHist ] );
+    inHist[iHist]->SetLineColor( colors[ (inHist.size()==1 ? 1 : iHist) + shiftColor ] );
+    inHist[iHist]->SetMarkerColor( colors[ (inHist.size()==1 ? 1 : iHist) + shiftColor ]  );
     inHist[iHist]->SetMarkerStyle( 8 ); 
     inHist[iHist]->SetMarkerSize( 1 ); 
 
     //If only one histograms is plotted, plot it in red
     switch ( drawStyle ) {
     case 1 :
-      inHist[iHist]->SetLineColor( colors[ iHist/2 ] );
-      inHist[iHist]->SetMarkerColor( colors[ iHist/2 ] );
+      inHist[iHist]->SetLineColor( colors[ iHist/2 +shiftColor ] );
+      inHist[iHist]->SetMarkerColor( colors[ iHist/2 + shiftColor ] );
       inHist[iHist]->SetMarkerStyle( (iHist%2) ? 8 : 4 ); 
       break;
     }

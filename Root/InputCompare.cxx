@@ -9,7 +9,7 @@ using std::ifstream;
 
 
 InputCompare::InputCompare() : m_inputType( 0 ), m_doRatio( 0 ), m_normalize(0), m_doChi2( 0 ), m_centerZoom( 0 ),
-			       m_drawStyle(0)
+			       m_drawStyle(0), m_shiftColor(0)
 {}
 
 //##################################
@@ -43,6 +43,7 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
     ( "eventID", po::value< string >( &eventID ), "" )
     ( "nComparedEvents", po::value< unsigned int >( &m_nComparedEvents ), "" )
     ( "varWeight", po::value< vector<string> >(&m_varWeight)->multitoken(), "" )
+    ( "shiftColor", po::value< unsigned int>( &m_shiftColor ), "" )
     ;
   
   po::variables_map vm;

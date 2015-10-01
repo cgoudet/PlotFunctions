@@ -36,7 +36,7 @@ class InputCompare
   unsigned int GetCenterZoom() { return m_centerZoom; }
   unsigned int GetDrawStyle() { return m_drawStyle; }
   unsigned int GetNComparedEvents() { return m_nComparedEvents; }
-
+  unsigned int GetShiftColor() { return m_shiftColor; }
 
  private : 
   /**\brief names of the root files
@@ -136,6 +136,9 @@ class InputCompare
   */
   vector< string > m_varWeight;
 
+  /**\value to shift colors of histograms
+   */
+  unsigned int m_shiftColor;
 };
 
 #endif

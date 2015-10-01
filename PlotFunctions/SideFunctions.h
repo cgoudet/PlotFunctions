@@ -66,4 +66,8 @@ void RemoveExtremalEmptyBins( TH1 *hist );
 
 void ParseLegend( TH1* hist, string &legend );
 
+/**\brief Create a boostraped Tree out of inputTrees
+   \param inTrees vector of input Trees
+*/
+TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents );
 #endif

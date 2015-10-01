@@ -111,6 +111,7 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
   }//end case 0 inversionProcedure/10
 
   case 1 : { //inversionProcedure/10
+    cout << "fitMethod" << endl;
     // method with likeliood fit
     //Defining observables
     RooRealVar *alpha = new RooRealVar( "alpha", "alpha", -0.1, 0.1 );
@@ -123,7 +124,7 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
     multi_array<RooConstVar*, 2> alphaErrConfig;
     RooCategory* channellist = new RooCategory("channellist","channellist");
     RooSimultaneous *combinedPdf = new RooSimultaneous("CombinedPdf","",*channellist); 
-
+    cout << "header" << endl;
     for (unsigned int iLine = 0; iLine < (unsigned int) combinMatrix.GetNrows(); iLine ++) {
       alphaBin.push_back(0);
       alphaConfig.resize( extents[iLine+1][iLine+1] );
@@ -152,43 +153,37 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
 	  break;
 
 	case 1 : {//constant term
-	  if ( inversionProcedure == 1 ) {
-	    if ( !alphaBin.back() ) {
-	      alphaName = TString::Format( "C_%d", iLine );
-	      alphaBin.back() = new RooRealVar( alphaName, alphaName, combinMatrix( iLine, iCol ), 0, 0.1 );
-	    }
-	    if ( iLine == iCol ) alphaBin[iLine]->setVal( combinMatrix[iLine][iLine] );	
-	    alphaName = TString::Format( "CConf_%d_%d", iLine, iCol );
-	    alphaConfig[iLine][iCol] = new RooFormulaVar( alphaName, alphaName, "TMath::Sqrt((@0*@0+@1*@1)/2.)", RooArgList( *alphaBin[iLine], *alphaBin[iCol] ) );
-	    alphaName = TString::Format( "CErrConf_%d_%d", iLine, iCol );
-	    alphaErrConfig[iLine][iCol] = new RooConstVar( alphaName, alphaName, combinErrMatrix( iLine, iCol ) );
-	    alpha->setVal( combinMatrix(iLine, iCol) );
+	  if ( !alphaBin.back() ) {
+	    alphaName = TString::Format( "C_%d", iLine );
+	    alphaBin.back() = new RooRealVar( alphaName, alphaName, combinMatrix( iLine, iCol ), 0, 0.1 );
 	  }
-	  else if ( inversionProcedure == 3 ) {
-	    if ( !alphaBin.back() ) {
-	      alphaName = TString::Format( "C2_%d", iLine );
-	      alphaBin.back() = new RooRealVar( alphaName, alphaName, combinMatrix( iLine, iCol ), 0, 0.1 );
-	    }
-	    if ( iLine == iCol ) alphaBin[iLine]->setVal( combinMatrix[iLine][iLine]*combinMatrix[iLine][iLine] );	
-	    alphaName = TString::Format( "C2Conf_%d_%d", iLine, iCol );
-	    alphaConfig[iLine][iCol] = new RooFormulaVar( alphaName, alphaName, "(@0+@1)/2.", RooArgList( *alphaBin[iLine], *alphaBin[iCol] ) );
-	    alphaName = TString::Format( "C2ErrConf_%d_%d", iLine, iCol );
-	    alphaErrConfig[iLine][iCol] = new RooConstVar( alphaName, alphaName, 2*combinErrMatrix( iLine, iCol )*combinMatrix( iLine, iCol )+combinErrMatrix( iLine, iCol )*combinErrMatrix( iLine, iCol ) );
-	    alpha->setVal( combinMatrix(iLine, iCol)*combinMatrix(iLine, iCol) );
+	  if ( iLine == iCol ) alphaBin[iLine]->setVal( combinMatrix[iLine][iLine] );	
+	  alphaName = TString::Format( "CConf_%d_%d", iLine, iCol );
+	  alphaConfig[iLine][iCol] = new RooFormulaVar( alphaName, alphaName, "TMath::Sqrt((@0*@0+@1*@1)/2.)", RooArgList( *alphaBin[iLine], *alphaBin[iCol] ) );
+	  alphaName = TString::Format( "CErrConf_%d_%d", iLine, iCol );
+	  alphaErrConfig[iLine][iCol] = new RooConstVar( alphaName, alphaName, combinErrMatrix( iLine, iCol ) );
+	  alpha->setVal( combinMatrix(iLine, iCol) );
+	  break;}
+	case 2 : {
+	  if ( !alphaBin.back() ) {
+	    alphaName = TString::Format( "C2_%d", iLine );
+	    alphaBin.back() = new RooRealVar( alphaName, alphaName, combinMatrix( iLine, iCol ), 0, 0.1 );
 	  }
-	  break;
-	}
-
+	  if ( iLine == iCol ) alphaBin[iLine]->setVal( combinMatrix[iLine][iLine]*combinMatrix[iLine][iLine] );	
+	  alphaName = TString::Format( "C2Conf_%d_%d", iLine, iCol );
+	  alphaConfig[iLine][iCol] = new RooFormulaVar( alphaName, alphaName, "(@0+@1)/2.", RooArgList( *alphaBin[iLine], *alphaBin[iCol] ) );
+	  alphaName = TString::Format( "C2ErrConf_%d_%d", iLine, iCol );
+	  alphaErrConfig[iLine][iCol] = new RooConstVar( alphaName, alphaName, 2*combinErrMatrix( iLine, iCol )*combinMatrix( iLine, iCol )+combinErrMatrix( iLine, iCol )*combinErrMatrix( iLine, iCol ) );
+	  alpha->setVal( combinMatrix(iLine, iCol)*combinMatrix(iLine, iCol) );
+	  break;}
 	default :
 	  cout << "Not supporting inversionProcedure : " << inversionProcedure << endl;
 	  return;
 	}// end switch inputType
-	
 
 	//Create the model for the configuration
 	RooGaussian *configPdf = new RooGaussian( "Gauss_" + configName, "Gauss_" + configName , *alpha, *alphaConfig[iLine][iCol], *alphaErrConfig[iLine][iCol] ); 	
 	combinedPdf->addPdf( *configPdf, configName );
-	
 	//Create the dataset
 
 	RooDataSet *configData = new RooDataSet( "Data_" + configName, "Data_" + configName, *observables );
@@ -200,9 +195,9 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
 
     
     RooDataSet* obsData = new RooDataSet("obsData","combined data ",*observables, Index(*channellist), Import(datasetMap)); 
-    //    combinedPdf->Print();
+    combinedPdf->Print();
     combinedPdf->fitTo( *obsData );
-    
+
     outMatrix = TMatrixD( nBins, 1 );
     outErrMatrix = TMatrixD( nBins, 1 );
     //FillThe result Matrix
@@ -213,14 +208,11 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
 	outErrMatrix(iLine, 0) = alphaBin[iLine]->getError();
 	break;
       case 1 ://sigma
-	if ( inversionProcedure == 1 ) {
-	  outMatrix(iLine, 0) = alphaBin[iLine]->getVal();
-	  outErrMatrix(iLine, 0) = alphaBin[iLine]->getError();
-	}
-	else if ( inversionProcedure == 3 ) {
-	  outMatrix(iLine, 0) = SignSquare( alphaBin[iLine]->getVal() );
-	  outErrMatrix(iLine, 0) = ErrC( outMatrix(iLine, 0), alphaBin[iLine]->getError() );
-	}
+	outMatrix(iLine, 0) = alphaBin[iLine]->getVal();
+	outErrMatrix(iLine, 0) = alphaBin[iLine]->getError();
+      case 2 :
+	outMatrix(iLine, 0) = SignSquare( alphaBin[iLine]->getVal() );
+	outErrMatrix(iLine, 0) = ErrC( outMatrix(iLine, 0), alphaBin[iLine]->getError() );
 	break;
       }//end switch inversionprocedure%10
     }//end for

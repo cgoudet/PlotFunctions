@@ -3,11 +3,17 @@
 #include "TF1.h"
 #include "TCanvas.h"
 #include "TLegend.h"
+#include "TObjArray.h"
+#include "time.h"
+#include <chrono>
+#include "TRandom.h"
+#include "TClass.h"
+
 using std::vector;
 using std::cout;
 using std::endl;
 using std::stringstream;
-
+using namespace std::chrono;
 double ComputeChi2( TH1 *MCHist, TH1 *DataHist ) {
 
   if ( MCHist->GetNbinsX() != DataHist->GetNbinsX() 
@@ -130,5 +136,79 @@ void ParseLegend( TH1* hist, string &legend ) {
   dumString.ReplaceAll( "__MEAN", TString::Format( "%1.2e", hist->GetMean() ) );
   dumString.ReplaceAll( "__STDEV", TString::Format( "%1.2e", hist->GetStdDev() ) );
   legend = dumString;
+
+}
+
+
+TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents ) {
+  cout << "Bootstrap" << endl;
+  string outTreeName = inTrees.front()->GetName() + string( "_bootstrap" );
+  TTree * outTree = new TTree ( outTreeName.c_str(), outTreeName.c_str() );
+  TRandom rand;
+  high_resolution_clock::time_point t1 = high_resolution_clock::now();
+  rand.SetSeed( t1.time_since_epoch().count() );
+
+  cout << "nEvents : " << nEvents << endl;
+  unsigned int totEntry = 0;
+  for ( unsigned int iTree = 0; iTree < inTrees.size(); iTree++ ) totEntry += inTrees[iTree]->GetEntries();
+  if ( !nEvents ) nEvents = totEntry;
+  cout << "nEvents : " << nEvents << endl;
+
+  TClass *expectedClass;
+  EDataType expectedType;
+  
+  for ( unsigned int iTree = 0; iTree < inTrees.size(); iTree++ ) {
+    cout << "iTree : " << iTree << endl;
+    TObjArray *branches = inTrees[iTree]->GetListOfBranches();
+
+    vector< double > varDouble( branches->GetEntries(), 0 );
+    vector< long long int > varLongLong( branches->GetEntries(), 0 );
+
+    for ( unsigned int iBranch = 0; iBranch < (unsigned int) branches->GetEntries(); iBranch++ ) {
+
+      ( (TBranch*) (*branches)[iBranch])->GetExpectedType( expectedClass, expectedType );
+
+      if ( !expectedClass ) {
+	switch ( expectedType ) { //documentation at https://root.cern.ch/doc/master/TDataType_8h.html#add4d321bb9cc51030786d53d76b8b0bd
+	case 8 : {//double
+	  inTrees[iTree]->SetBranchAddress( (*branches)[iBranch]->GetName(), &varDouble[iBranch] );
+	  if ( !iTree ) outTree->Branch( (*branches)[iBranch]->GetName(), &varDouble[iBranch] );
+	  break;}
+	case 16 :
+	  inTrees[iTree]->SetBranchAddress( (*branches)[iBranch]->GetName(), &varLongLong[iBranch] );
+	  if ( !iTree ) outTree->Branch( (*branches)[iBranch]->GetName(), &varLongLong[iBranch] );
+	  break;
+	default :
+	  cout << "bootstrap not planned for type : " << expectedType << endl;
+	  exit(0);
+	}//end switch
+      }//end if expectedClass
+      else {
+	cout << "bootstrap not planned for handmade classes" << endl;
+	exit(0);
+      }
+    }//end iBranch
+
+    unsigned int nEntries = inTrees[iTree]->GetEntries();
+    for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {
+      if ( outTree->GetEntries() >= nEvents ) {
+	cout << "nEvents : " << nEvents << endl;
+	cout << "iEvent : " << iEvent << endl;
+	break;
+      }
+      inTrees[iTree]->GetEntry( iEvent );
+
+      unsigned int nUse = rand.Poisson( 1.0*nEvents/totEntry );
+      //  cout << "nUse : " << nUse << endl;
+      for ( unsigned int iUse = 0; iUse < nUse; iUse++ ) outTree->Fill();
+
+    }//end for iEvent
+
+  }//end iTree
+
+  //  outTree->Print();
+  cout << "entries : " << outTree->GetEntries() << endl;
+  cout << "end bootstrap" << endl;
+  return outTree;
 
 }

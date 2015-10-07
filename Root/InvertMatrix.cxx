@@ -54,6 +54,7 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
   switch ( inversionProcedure/10 ) {
 
   case 0 : { // Exact linear matrix inversion
+    cout << "linear matrix inversion" << endl;
     //Create the B matrix for alpha
     TMatrixD *bMatrix = new TMatrixD( nBins, 1);
     TMatrixD *UMatrix = new TMatrixD( nBins, nBins );  

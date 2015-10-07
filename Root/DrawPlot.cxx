@@ -29,7 +29,7 @@ int DrawPlot( vector< TH1* > inHist,
 	      unsigned int drawStyle,
 	      unsigned int shiftColor
 	       ) {
-  cout << "DrawPlot" << endl;
+
   //================ SOME CHECKS
   if ( inLegend.size() && inLegend.size()!=inHist.size() ) {
     cout << "Legend do not match input" << endl;
@@ -150,7 +150,7 @@ int DrawPlot( vector< TH1* > inHist,
 	inHist.front()->GetYaxis()->SetTitleSize( 0.06 );
       }
       if ( rangeUser.size() == 2 ) inHist.front()->GetYaxis()->SetRangeUser( rangeUser[0], rangeUser[1] );
-      else inHist.front()->GetYaxis()->SetRangeUser( isNegativeValue ? minVal - ( maxVal - minVal ) *0.05 : 0 , maxVal + ( maxVal - minVal ) *0.05 );
+      else inHist.front()->GetYaxis()->SetRangeUser( minVal - ( maxVal - minVal ) *0.05 , maxVal + ( maxVal - minVal ) *0.05 );
       if ( centerZoom ) inHist.front()->GetXaxis()->SetRangeUser( minX, maxX );    
     }
     inHist[iHist]->Draw( (iHist) ? "e,same" : "e" );
@@ -204,11 +204,11 @@ int DrawPlot( vector< TH1* > inHist,
   	ratio.back()->GetXaxis()->SetLabelSize( 0.1 );
   	ratio.back()->GetXaxis()->SetTitleSize( 0.1 );
   	ratio.back()->GetYaxis()->SetLabelSize( 0.05 );
-  	ratio.back()->GetYaxis()->SetTitleSize( 0.9 );
-  	ratio.back()->GetYaxis()->SetTitleOffset( 0.25 );
+  	ratio.back()->GetYaxis()->SetTitleSize( 0.1 );
+  	ratio.back()->GetYaxis()->SetTitleOffset( 0.3 );
   	ratio.back()->GetXaxis()->SetTitleOffset( 0.7 );
   	ratio.back()->SetTitle("");
-  	if ( doRatio ==  1 ) ratio.back()->GetYaxis()->SetTitle( yTitle.c_str() );
+        ratio.back()->GetYaxis()->SetTitle( yTitle.c_str() );
       }
 
       //Update the values of Y axis range

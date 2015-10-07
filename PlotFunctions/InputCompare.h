@@ -93,6 +93,9 @@ class InputCompare
   /**\brief Type of object that will be plotted
     0 : TH1
     1 : TTree
+    2 : comparison event by event
+    3 : plot text files
+    4 : merging some histograms into 1 root file
   */
   unsigned int m_inputType;
 

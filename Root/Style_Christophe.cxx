@@ -27,7 +27,7 @@ void Style_Christophe()
    tmpStyle->SetTickLength(0.03, "y");
    tmpStyle->SetTickLength(0.03, "z");
    tmpStyle->SetTitleOffset(0.9, "x");
-   tmpStyle->SetTitleOffset(1.2, "y");
+   tmpStyle->SetTitleOffset(1.1, "y");
    tmpStyle->SetTitleOffset(1, "z");
    tmpStyle->SetTitleSize(0.05, "x");
    tmpStyle->SetTitleSize(0.05, "y");

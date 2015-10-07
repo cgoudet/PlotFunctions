@@ -54,7 +54,7 @@ int main( int argc, char* argv[] ) {
     vector< vector< TH1* > > vectHist;
     multi_array< double, 2 > eventVarVect;
     multi_array< long long int, 2> eventIDVect;
-    
+    TFile *outFile = 0;    
     vector< vector< string > > inputRootFile = input.GetRootFileName();
     vector< vector< string > > inputObjName = input.GetObjName();
     for ( unsigned int iPlot = 0; iPlot < inputRootFile.size(); iPlot++ ) {
@@ -273,6 +273,14 @@ int main( int argc, char* argv[] ) {
 	  cout << "endwhile" << endl;
 	  break;
 	}
+
+	case 4 : {
+
+	  if ( !iPlot && !iAdd ) outFile = new TFile( string( plotPath + input.GetOutName()+ ".root").c_str(), "RECREATE"  );
+	  outFile->cd();
+	  inFile.Get( inputObjName[iPlot][0].c_str() )->Write( input.GetLegend()[iPlot].c_str(), TObject::kOverwrite );
+	  break;
+	}
 	  
 	default : 
 	  cout << "inputType=" << input.GetInputType() << " is not known." << endl;
@@ -316,6 +324,11 @@ int main( int argc, char* argv[] ) {
 	csvStream << endl;
       }
       csvStream.close();
+    }
+
+    if ( outFile ) {
+      outFile->Close("R");
+      delete outFile;
     }
 
     //cleaning vectors of pointers

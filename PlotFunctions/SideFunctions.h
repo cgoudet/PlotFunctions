@@ -70,4 +70,8 @@ void ParseLegend( TH1* hist, string &legend );
    \param inTrees vector of input Trees
 */
 TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents );
+
+string FindDefaultTree( TFile* inFile );
+void AddTree( TTree *treeAdd, TTree *treeAdded );
+void SaveTree( TTree *inTree, string prefix );
 #endif

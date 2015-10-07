@@ -96,6 +96,7 @@ class InputCompare
     2 : comparison event by event
     3 : plot text files
     4 : merging some histograms into 1 root file
+    5 : separate a set of tree into two subTree according to a selection
   */
   unsigned int m_inputType;
 

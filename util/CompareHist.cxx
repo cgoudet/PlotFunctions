@@ -57,6 +57,8 @@ int main( int argc, char* argv[] ) {
     TFile *outFile = 0;    
     vector< vector< string > > inputRootFile = input.GetRootFileName();
     vector< vector< string > > inputObjName = input.GetObjName();
+    TTree *treePassSel=0, *treeRejSel=0;
+
     for ( unsigned int iPlot = 0; iPlot < inputRootFile.size(); iPlot++ ) {
       for ( unsigned int iAdd = 0; iAdd < inputRootFile[iPlot].size(); iAdd ++ ) {
 	TFile inFile( inputRootFile[iPlot][iAdd].c_str() );	
@@ -281,12 +283,60 @@ int main( int argc, char* argv[] ) {
 	  inFile.Get( inputObjName[iPlot][0].c_str() )->Write( input.GetLegend()[iPlot].c_str(), TObject::kOverwrite );
 	  break;
 	}
+
+	case 5 : {
+	  cout << "case 5" << endl;
+	  if ( !iAdd ) {
+	    if ( treePassSel ) {
+	      SaveTree( treePassSel, plotPath );
+	      SaveTree( treeRejSel, plotPath  );
+	    }
+	      string dumString = inFile.GetName();
+	      dumString = StripString( dumString ) + "_" + input.GetOutName() ;
+	      string treeName = dumString + "_PassSel";
+	      treePassSel = new TTree( treeName.c_str(), treeName.c_str() );
+	      treePassSel->SetDirectory( 0);
+	      treeName = dumString + "_RejSel";
+	      treeRejSel = new TTree( treeName.c_str(), treeName.c_str() );
+	      treeRejSel->SetDirectory( 0);
+
+	  }
+	  string treeName = inputObjName[iPlot].size() ?  ( inputObjName[iPlot].size()>iAdd ?  inputObjName[iPlot][iAdd].c_str()  : inputObjName[iPlot].back() ) : FindDefaultTree( &inFile ).c_str() ;
+	  TTree *inTree = (TTree*) inFile.Get( treeName.c_str() );
+	  if ( !inTree ) {
+	    cout << treeName << " doesn't exist in " << inFile.GetName() << endl;
+	    continue;
+	  }
+	  inTree->SetDirectory(0);
+	  gROOT->cd();
+	  TTree *dumTree = inTree->CopyTree( input.GetSelectionCut()[iPlot].c_str() );
+	  dumTree->SetDirectory(0);
+	  AddTree( treePassSel, dumTree  );
+	  delete dumTree;
+	  string antiSelection = "!(" + input.GetSelectionCut()[iPlot] + ")";
+	  dumTree = inTree->CopyTree( antiSelection.c_str() );
+	  dumTree->SetDirectory(0);
+	  AddTree( treeRejSel, dumTree  );
+	  delete dumTree;dumTree=0;
+	  cout << "end case 5" << endl;
+	  delete inTree; inTree = 0;
+
+	  if ( iPlot==inputRootFile.size()-1 && iAdd == inputRootFile.back().size()-1 ) {
+	    if ( treePassSel ) {
+	      SaveTree( treePassSel, plotPath  );
+	      SaveTree( treeRejSel, plotPath );
+	    }
+	  }
+
+	  break;
+	}
 	  
 	default : 
 	  cout << "inputType=" << input.GetInputType() << " is not known." << endl;
 	  exit(0);
 	}//end switch inputType
 	inFile.Close("R");	
+	cout << "end iAdd" << endl;
       }// end iAdd
     }//end iPlot
 
@@ -344,3 +394,7 @@ int main( int argc, char* argv[] ) {
   cout << "All good" << endl;
   return 0;  
 }
+
+//===============================================
+
+

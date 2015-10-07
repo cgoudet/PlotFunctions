@@ -8,6 +8,8 @@
 #include <chrono>
 #include "TRandom.h"
 #include "TClass.h"
+#include "TKey.h"
+#include "TFile.h"
 
 using std::vector;
 using std::cout;
@@ -139,7 +141,7 @@ void ParseLegend( TH1* hist, string &legend ) {
 
 }
 
-
+//============================================
 TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents ) {
   cout << "Bootstrap" << endl;
   string outTreeName = inTrees.front()->GetName() + string( "_bootstrap" );
@@ -215,4 +217,46 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents ) {
 
   return outTree;
 
+}
+
+//================================================
+string FindDefaultTree( TFile* inFile ) { 
+  if ( !inFile ) return "";
+
+  vector<string> listTreeNames;
+  
+  TIter nextkey( inFile->GetListOfKeys());
+  TKey *key=0;
+  while ((key = (TKey*)nextkey())) {
+    if (strcmp( "TTree",key->GetClassName())) continue;
+    listTreeNames.push_back( key->GetName() );
+  }
+  delete key; key=0;
+  
+  if ( !listTreeNames.size() ) {
+    cout << "No TTree in this file. exiting" << endl;
+    exit( 0 );
+  }
+  else  if ( listTreeNames.size() == 1 ) return listTreeNames.front();
+  else return listTreeNames.front();
+
+}
+
+//===========================================
+void AddTree( TTree *treeAdd, TTree *treeAdded ) {
+  
+  TList *list = new TList();
+  list->Add( treeAdd );
+  list->Add( treeAdded );
+  treeAdd->Merge( list );
+
+}
+//===================================
+void SaveTree( TTree *inTree, string prefix) {
+  prefix += string( inTree->GetName()) + ".root";
+  TFile *dumFile = new TFile( prefix.c_str(), "RECREATE" );
+  inTree->Write();
+  dumFile->Close("R");
+  delete dumFile;
+  delete inTree; inTree=0;
 }

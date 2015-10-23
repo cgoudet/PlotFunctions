@@ -74,4 +74,8 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents );
 string FindDefaultTree( TFile* inFile );
 void AddTree( TTree *treeAdd, TTree *treeAdded );
 void SaveTree( TTree *inTree, string prefix );
+
+void DiffSystematics( string inFileName, string outFileName, string outSystName, bool update=0 );
+void VarOverTime( string inFileName, string outFileName, bool update=0);
 #endif
+

@@ -97,6 +97,7 @@ class InputCompare
     3 : plot text files
     4 : merging some histograms into 1 root file
     5 : separate a set of tree into two subTree according to a selection
+    6 : cmopare all bins of histograms ( of the same size )  as a function of the legend (as label)
   */
   unsigned int m_inputType;
 

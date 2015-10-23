@@ -45,7 +45,7 @@ int main( int argc, char* argv[] ) {
   
   if (vm.count("help")) {cout << desc; return 0;}
   //=============================================
-  string plotPath = "/afs/in2p3.fr/home/c/cgoudet/private/Codes/PlotFunctions/Plots/";
+  string plotPath = "/sps/atlas/c/cgoudet/Plots/";
 
   for ( unsigned int iFile = 0; iFile < inFiles.size(); iFile++ ) {
     cout << "iFile : " << iFile << " " << inFiles[iFile] << endl;
@@ -74,6 +74,7 @@ int main( int argc, char* argv[] ) {
 	      cout << "histogram not found : " << inputObjName[iPlot][iAdd] << " in file " << inputRootFile[iPlot][iAdd] << endl;
 	      return 1 ;
 	    }
+	    cout << "setName" << endl;
 	    vectHist.front().back()->SetName( TString::Format( "%s_%d", inputObjName[iPlot][iAdd].c_str(), iPlot ) );
 	    vectHist.front().back()->SetDirectory( 0 );  
 	  }
@@ -87,10 +88,21 @@ int main( int argc, char* argv[] ) {
 	  vector< double > varMax  = input.GetVarMax();
 	  vector< double > varVal( varName[iPlot].size(), 0 );
 	  vector< string > varWeight = input.GetVarWeight();
+	  if ( varMin.size() != varMax.size() || varName.size()<=iPlot || ( varName.size()>iPlot && varName[iPlot].size() != varMin.size() ) ) {
+	    cout << "varMin and varMax sizes matching : " << varMin.size() << " " << varMax.size() << endl;
+	    cout << "varName size and iPlot : " << varName.size() << " " << iPlot << endl;
+	    if ( varName.size()>iPlot ) cout << "varName[iPlot].size() : "  << varName[iPlot].size() << endl;
+	    return 1;
+	  }
+	  if ( !varWeight.size() ) varWeight = vector<string>( varName.size(), "X" );
 	  double weight = 1;
 
 	  TTree *inTree = (TTree*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
-	  cout << "inTree : " << inTree << endl;
+	  if ( !inTree ) {
+	    cout << inputObjName[iPlot][iAdd] << " does not exist in " << inFile.GetName() << endl;
+	    exit(0);
+	  }
+	  cout << inTree->GetName() <<  endl;
 	  inTree->SetDirectory( 0 );
 
 	  if ( input.GetSelectionCut().size() ){
@@ -100,16 +112,11 @@ int main( int argc, char* argv[] ) {
 	    delete dumTree;
 	  }
 	  unsigned int nEntries = (unsigned int) inTree->GetEntries();
-	  cout << varWeight[iPlot] << endl;
-
 	  if ( varWeight[iPlot] != "X" ) inTree->SetBranchAddress( varWeight[iPlot].c_str(), &weight );
-		
 	  for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {
 	    for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
-
 	      if ( !iEvent ) {
 		//Link tree branches to local variables
-		cout << varName[iPlot][iHist] << endl;
 		inTree->SetBranchAddress( varName[iPlot][iHist].c_str(), &varVal[iHist] );
 		if ( !iPlot && !iAdd )  vectHist.push_back( vector<TH1*>() );
 		if ( !iAdd )  vectHist[iHist].push_back( 0 );
@@ -139,6 +146,10 @@ int main( int argc, char* argv[] ) {
 	case 2 : { //event/event comparison
 
 	  TTree *inTree = (TTree*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
+	  if ( !inTree ) {
+	    cout << inputObjName[iPlot][iAdd] << " not found in " << inFile.GetName() << endl;
+	    exit(0);
+	  }
 	  if ( input.GetSelectionCut().size() ){
 	    TTree *dumTree = inTree;
 	    gROOT->cd();
@@ -147,11 +158,16 @@ int main( int argc, char* argv[] ) {
 	    delete dumTree;
 	  }
 
-	  vector< string > eventID = input.GetEventID();
+	  vector< string > &eventID = input.GetEventID();
 	  vector< long long int > eventIDVal( eventID.size(), 0 );
 	  for ( unsigned int i = 0; i<eventID.size(); i++ ) inTree->SetBranchAddress( eventID[i].c_str(), &eventIDVal[i] );
 
-	  vector< vector<string> > eventVar = input.GetVarName();
+	  vector< vector<string> > &eventVar = input.GetVarName();
+	  if ( !eventVar.size() ) {
+	    cout << "no variable name given" << endl;
+	    exit(0);
+	  }
+	  if ( eventVar.size() <= iPlot ) eventVar.push_back( eventVar.back() );
 	  vector< double > eventVarVal(eventVar[iPlot].size(), 0 );
 	  for ( unsigned int i = 0; i<eventVar[iPlot].size(); i++ ) inTree->SetBranchAddress( eventVar[iPlot][i].c_str(), &eventVarVal[i] );
 	  //resize the 2D vector
@@ -182,11 +198,8 @@ int main( int argc, char* argv[] ) {
 
 	  //Run over all events
 	  for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {	  
-	    
 	    if ( !iPlot && nComparedEvents && eventVarVect[0].size() >= nComparedEvents ) break;
 	    inTree->GetEntry( iEvent );
-	    //	    cout << iEvent << " " << eventVarVect[0].size() << endl;
-	      
 	      unsigned int index = iEvent;
 	      if ( !iPlot ) { //I save the informations of the event I want to compare
 		//Fill the event ID informations
@@ -217,9 +230,9 @@ int main( int argc, char* argv[] ) {
 	      for ( unsigned int i = 0; i<eventVar[iPlot].size(); i++ ) {
 		eventVarVect[i*inputRootFile.size()+iPlot][index] = eventVarVal[i];  
 		vectHist[i][iPlot]->Fill( eventVarVal[i] );
+
 		//		if ( !i ) cout << iPlot << " " << iAdd << " " << i << " " << eventVarVal[i] << endl;
 	      }// end i
-
 
 	  }// end iEvent
 
@@ -285,58 +298,86 @@ int main( int argc, char* argv[] ) {
 	}
 
 	case 5 : {
-	  cout << "case 5" << endl;
-	  if ( !iAdd ) {
-	    if ( treePassSel ) {
-	      SaveTree( treePassSel, plotPath );
-	      SaveTree( treeRejSel, plotPath  );
+	  for ( unsigned int iPass = 0; iPass < 2; iPass++ ) {
+	    TTree *selTree = iPass ? treeRejSel : treePassSel;
+	    if ( !iAdd && selTree ) SaveTree( selTree, plotPath );
+	    
+	    string treeName = inputObjName[iPlot].size() ?  ( inputObjName[iPlot].size()>iAdd ?  inputObjName[iPlot][iAdd].c_str()  : inputObjName[iPlot].back() ) : FindDefaultTree( &inFile ).c_str() ;
+	    TTree *inTree = (TTree*) inFile.Get( treeName.c_str() );
+	    if ( !inTree ) {
+	      cout << treeName << " doesn't exist in " << inFile.GetName() << endl;
+	      continue;
 	    }
-	      string dumString = inFile.GetName();
-	      dumString = StripString( dumString ) + "_" + input.GetOutName() ;
-	      string treeName = dumString + "_PassSel";
-	      treePassSel = new TTree( treeName.c_str(), treeName.c_str() );
-	      treePassSel->SetDirectory( 0);
-	      treeName = dumString + "_RejSel";
-	      treeRejSel = new TTree( treeName.c_str(), treeName.c_str() );
-	      treeRejSel->SetDirectory( 0);
+	    inTree->SetDirectory(0);
+	    
+	    gROOT->cd();
+	    string dumString = inFile.GetName();
+	    treeName = StripString( dumString ) + "_" + input.GetOutName() + ( iPass ? "_RejSel" : "_PassSel" );	  
+	    string selection = input.GetSelectionCut()[iPlot];
+	    if ( iPass ) selection = "!(" + selection + ")";
+	    TTree *dumTree = inTree->CopyTree( selection.c_str() );
+	    dumTree->SetDirectory(0);
 
-	  }
-	  string treeName = inputObjName[iPlot].size() ?  ( inputObjName[iPlot].size()>iAdd ?  inputObjName[iPlot][iAdd].c_str()  : inputObjName[iPlot].back() ) : FindDefaultTree( &inFile ).c_str() ;
-	  TTree *inTree = (TTree*) inFile.Get( treeName.c_str() );
-	  if ( !inTree ) {
-	    cout << treeName << " doesn't exist in " << inFile.GetName() << endl;
-	    continue;
-	  }
-	  inTree->SetDirectory(0);
-	  gROOT->cd();
-	  TTree *dumTree = inTree->CopyTree( input.GetSelectionCut()[iPlot].c_str() );
-	  dumTree->SetDirectory(0);
-	  AddTree( treePassSel, dumTree  );
-	  delete dumTree;
-	  string antiSelection = "!(" + input.GetSelectionCut()[iPlot] + ")";
-	  dumTree = inTree->CopyTree( antiSelection.c_str() );
-	  dumTree->SetDirectory(0);
-	  AddTree( treeRejSel, dumTree  );
-	  delete dumTree;dumTree=0;
-	  cout << "end case 5" << endl;
-	  delete inTree; inTree = 0;
-
-	  if ( iPlot==inputRootFile.size()-1 && iAdd == inputRootFile.back().size()-1 ) {
-	    if ( treePassSel ) {
-	      SaveTree( treePassSel, plotPath  );
-	      SaveTree( treeRejSel, plotPath );
+	    if ( selTree ) selTree->Print();
+	    if ( selTree ) {
+	      AddTree( selTree, dumTree  );
+	      delete dumTree; dumTree=0;
 	    }
-	  }
+	    else {
+	      dumTree->SetName( treeName.c_str() );
+	      dumTree->SetTitle( treeName.c_str() );
+	      iPass ? (treeRejSel = dumTree) : (treePassSel= dumTree) ;
+	    }
 
+	    delete inTree; inTree = 0;
+
+	    if ( iPlot==inputRootFile.size()-1 && iAdd == inputRootFile.back().size()-1 && selTree ) SaveTree( selTree, plotPath );
+	  }//end iPass
+	  
 	  break;
 	}
 	  
+	case 6 : {
+	  if ( iAdd ) continue;
+	  vector<string> &labelVect = input.GetLegend();
+	  if ( inputRootFile.size() != labelVect.size() ) {
+	    cout << "legend size and total files do not have the same size." << endl;
+	    exit(0);
+	  }
+
+	  TH1D* inHist = (TH1D*) inFile.Get(  inputObjName[iPlot][iAdd].c_str() );
+	  if ( !inHist ) {
+	    cout << inputObjName[iPlot][iAdd] << " does not exist within " << inFile.GetName() << endl;
+	    exit(0);
+	  }
+	  if ( !iPlot )  vectHist.push_back( vector<TH1*>( inHist->GetNbinsX(), 0) );
+	
+	  for ( unsigned int iBin = 0; iBin < (unsigned int) inHist-> GetNbinsX(); iBin++ ) {
+	    if ( !vectHist.front()[iBin] ) {
+	      vectHist.front()[iBin] = new TH1D( input.GetOutName().c_str(), input.GetOutName().c_str(), labelVect.size(), -0.5, labelVect.size()-0.5 );
+	      vectHist.front()[iBin]->SetDirectory(0);
+	      vectHist.front()[iBin]->GetYaxis()->SetTitle( inHist->GetYaxis()->GetTitle() );
+	    }
+	    vectHist.front()[iBin]->GetXaxis()->SetBinLabel( iPlot+1, labelVect[iPlot].c_str() );
+	    vectHist.front()[iBin]->SetBinContent( iPlot+1, inHist->GetBinContent( iBin+1 ) );
+	    vectHist.front()[iBin]->SetBinError( iPlot+1, inHist->GetBinError( iBin+1 ) );
+
+	  }//end for iBin
+	  if ( iPlot == inputRootFile.size()-1 ) {
+	    labelVect.clear();
+	    for ( unsigned int iPlot = 0; iPlot < vectHist.front().size(); iPlot++ ) {
+	      labelVect.push_back( string( TString::Format( "Bin %d", iPlot )) );
+	      vectHist.front()[iPlot]->LabelsOption("v" );
+	    }
+	  }
+	delete inHist;
+	break;
+      }//end case 6
 	default : 
 	  cout << "inputType=" << input.GetInputType() << " is not known." << endl;
 	  exit(0);
 	}//end switch inputType
 	inFile.Close("R");	
-	cout << "end iAdd" << endl;
       }// end iAdd
     }//end iPlot
 
@@ -359,21 +400,31 @@ int main( int argc, char* argv[] ) {
       cout << "drawn : " << iHist << endl;
     }
 
+
     if ( input.GetInputType() == 2 ) { //print csvFile
       fstream csvStream;
       cout << string( plotPath+input.GetOutName() + ".csv" ).c_str() << endl;
       csvStream.open( string( plotPath+input.GetOutName() + ".csv" ).c_str(), fstream::out | fstream::trunc );
       vector< string > eventID = input.GetEventID();
       vector< vector<string> > eventVar = input.GetVarName();      
+
+      //Write column names
       for ( unsigned int iVar = 0; iVar < eventIDVect.size(); iVar++ ) csvStream << eventID[iVar] << ",";
-      for ( unsigned int iVar = 0; iVar < eventVar.front().size()*eventVar.size(); iVar++ ) csvStream << eventVar[iVar%inputRootFile.size()][iVar/inputRootFile.size()] << ",";
+      for ( unsigned int iVar = 0; iVar < eventVarVect.size(); iVar++ ) {
+	csvStream << eventVar[iVar%eventVar.size()][iVar/eventVar.size()] << ",";
+      }
       csvStream << endl;
+
+
       for ( unsigned int iEvent = 0; iEvent< eventIDVect[0].size(); iEvent++ ) {
 	for ( unsigned int iVar = 0; iVar < eventIDVect.size(); iVar++ ) csvStream << eventIDVect[iVar][iEvent] << ",";
-	for ( unsigned int iVar = 0; iVar < eventVar.front().size()*eventVar.size(); iVar++ ) csvStream << eventVarVect[iVar%inputRootFile.size()][iVar/inputRootFile.size()] << ",";
+	for ( unsigned int iVar = 0; iVar < eventVarVect.size(); iVar++ ) {
+	  csvStream << eventVarVect[iVar][iEvent] << ",";
+	}
 	csvStream << endl;
       }
       csvStream.close();
+      cout << "csv file saved" << endl;
     }
 
     if ( outFile ) {

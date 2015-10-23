@@ -82,20 +82,20 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
   //   cout << "varName does not have right size. It must be either 1 (if all trees have same branch name) or equal to number of input trees." << endl;
   //   exit(1);
   // }
-  cout << "m_inputType : " << m_inputType << endl;
-  unsigned int nVariables = 0;
-  for ( unsigned int iName = 0; iName < ( varName.size() ? rootFileName.size() : 0 ); iName++ ) {
-    if ( iName <= varName.size() ) {
-      m_varName.push_back( vector<string>() );
-      ParseVector( varName[iName], m_varName.back() );
-      if ( !nVariables ) nVariables = m_varName.back().size();
-      cout << nVariables << " " << m_varName.back().size() << endl;
-      if ( m_varName.back().size() != nVariables || !nVariables ) {
-	cout << "number of variable in each tree do not match or no variable at all" << endl;
-	exit(2);
-      }
-    }
-    else m_varName.push_back( m_varName.front() );
+
+  // unsigned int nVariables = 0;
+  // for ( unsigned int iName = 0; iName < ( varName.size() ? rootFileName.size() : 0 ); iName++ ) {
+  //   if ( iName <= varName.size() ) {
+  //     m_varName.push_back( vector<string>() );
+  //     ParseVector( varName[iName], m_varName.back() );
+  //     if ( !nVariables ) nVariables = m_varName.back().size();
+  //   }
+  //   else m_varName.push_back( m_varName.front() );
+  // }
+
+  for ( unsigned int iName = 0; iName < varName.size(); iName++ ) {
+    m_varName.push_back( vector<string>() );
+    ParseVector( varName[iName], m_varName.back() );
   }
 
   ParseVector( legendPos, m_legendPos );
@@ -124,5 +124,6 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
     cout << "selectionCuts have non-zero size and diferent from rootFileName" << endl;
     exit(0);
   }
+
 
 }

@@ -222,7 +222,8 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents ) {
 //================================================
 string FindDefaultTree( TFile* inFile ) { 
   if ( !inFile ) return "";
-
+  string inFileName = inFile->GetName();
+  StripString( inFileName );
   vector<string> listTreeNames;
   
   TIter nextkey( inFile->GetListOfKeys());
@@ -238,19 +239,22 @@ string FindDefaultTree( TFile* inFile ) {
     exit( 0 );
   }
   else  if ( listTreeNames.size() == 1 ) return listTreeNames.front();
-  else return listTreeNames.front();
-
+  else 
+    for ( auto treeName : listTreeNames )
+      if ( TString( treeName ).Contains( inFileName ) ) return treeName;
+  return listTreeNames.front();
+  
 }
 
 //===========================================
 void AddTree( TTree *treeAdd, TTree *treeAdded ) {
-  
   TList *list = new TList();
   list->Add( treeAdd );
   list->Add( treeAdded );
   treeAdd->Merge( list );
 
 }
+
 //===================================
 void SaveTree( TTree *inTree, string prefix) {
   prefix += string( inTree->GetName()) + ".root";
@@ -259,4 +263,167 @@ void SaveTree( TTree *inTree, string prefix) {
   dumFile->Close("R");
   delete dumFile;
   delete inTree; inTree=0;
+}
+
+//================================
+void DiffSystematics( string inFileName, string outFileName, string outSystName, bool update ) {
+
+  TFile *outFile = new TFile( outFileName.c_str(), update ? "UPDATE" : "RECREATE" );
+  TH1D *totSyst = 0;
+  TH1D* baseValue = 0;
+
+  fstream inStream;
+  inStream.open( inFileName, fstream::in );
+  if ( !inStream.is_open() ) {
+    cout << inFileName << " does not exist." << endl;
+    exit(0);
+  }
+  string rootFileName, histName, systName;
+  unsigned int counterSyst=0;
+
+  while ( inStream >> rootFileName >> histName >> systName ) {
+
+    TFile *inFile = new TFile( rootFileName.c_str() );
+    if ( !inFile ) {
+      cout << rootFileName << " does not exist." << endl;
+      exit(0);
+    }
+    inFile->cd();
+    if ( !counterSyst ) {
+      baseValue = (TH1D*) inFile->Get( histName.c_str() )->Clone();
+      baseValue->SetDirectory(0);
+      outFile->cd();
+      baseValue->Write( systName.c_str(), TObject::kOverwrite );
+
+      if ( update ) totSyst = (TH1D*) outFile->Get( outSystName.c_str() );
+      if ( !totSyst ) {
+	totSyst = (TH1D*) baseValue->Clone();
+	totSyst->Add( totSyst, -1 );
+	for ( int i = 1; i<totSyst->GetNbinsX()+1; i++ ) {
+	  totSyst->SetBinContent( i, fabs( totSyst->GetBinContent(i) ) );
+	  totSyst->SetBinError( i, 0 );
+	}
+	totSyst->SetName( outSystName.c_str() );
+	totSyst->SetTitle( totSyst->GetName() );
+	totSyst->SetDirectory(0);
+      }
+
+    }//end !counterSyst
+    else {
+      TH1D* inHist = (TH1D*) inFile->Get( histName.c_str() );
+      if ( !inHist ) {
+	cout << histName << " does not exist within " << inFile->GetName() << endl;
+	exit(0);
+      }
+      inHist->SetDirectory(0);
+      systName = "syst_" + systName;
+      inHist->SetName( systName.c_str() );
+      inHist->SetTitle( inHist->GetName() );
+      inHist->Add( baseValue, -1 );
+      for ( int i = 1; i<inHist->GetNbinsX()+1; i++ ) {
+	inHist->SetBinContent( i, fabs( inHist->GetBinContent(i) ) );
+	inHist->SetBinError( i, 0 );
+      }
+      outFile->cd();
+      cout << "inHist name : " << inHist->GetName() << endl;
+      inHist->Write( "", TObject::kOverwrite );
+
+      for ( int iBin = 1; iBin<totSyst->GetNbinsX()+1; iBin++ ) {
+	totSyst->SetBinContent( iBin,
+				  sqrt(totSyst->GetBinContent( iBin )*totSyst->GetBinContent( iBin ) + inHist->GetBinContent( iBin )*inHist->GetBinContent( iBin ) ) );
+      }
+      delete inHist; inHist=0;
+    }//end else
+
+    outFile->cd();
+    totSyst->Write( "", TObject::kOverwrite );
+
+    delete inFile;
+    counterSyst++;
+  }//end while
+
+  delete totSyst;
+  delete baseValue; baseValue=0;
+  delete outFile;
+}//EndDiffSystematic
+
+//===================================================
+void VarOverTime( string inFileName, string outFileName, bool update) {
+
+
+
+  fstream inStream;
+  inStream.open( inFileName, fstream::in );
+  if ( !inStream.is_open() ) {
+    cout << inFileName << " does not exist." << endl;
+    exit(0);
+  }
+  string rootFileName, histName, systName;
+  double val;
+  unsigned int counterSyst=0;
+  string yaxis;
+
+  vector<double> valVect;
+  multi_array<double, 3> scales;
+
+  while ( inStream >> rootFileName >> histName >> val ) {
+    unsigned int index = SearchVectorBin( val, valVect );
+    if ( index == valVect.size() ) valVect.push_back( val );
+
+    TFile *inFile = new TFile( rootFileName.c_str() );
+    if ( !inFile ) {
+      cout << rootFileName << " does not exists." << endl;
+      exit(0);
+    }
+
+    TH1D* inHist = (TH1D*) inFile->Get( histName.c_str() );
+    if ( !inHist ) {
+      cout << histName << " does not exist within " << rootFileName << endl;
+      exit(0);
+    }
+    yaxis = inHist->GetYaxis()->GetTitle();
+    if ( !scales.size() ) scales.resize( extents[inHist->GetNbinsX()][2][0] );
+    cout << "sizes : " << scales.size() << " " << inHist->GetNbinsX() << endl;
+    cout << inFile->GetName() << " " << inHist->GetName() << endl;
+    if ( scales.size() != ( unsigned int ) inHist->GetNbinsX() ) {
+      cout << "all input scales are not from same binning" << endl;
+      exit(0);
+    }
+    scales.resize( extents[scales.size()][2][valVect.size()] );
+
+    for ( int iBin = 0; iBin < inHist->GetNbinsX(); iBin++ )  {
+      scales[iBin][0][index] = inHist->GetBinContent( iBin+1 );
+      scales[iBin][1][index] = inHist->GetBinError( iBin+1 );
+    }
+
+    delete inHist;
+    delete inFile;
+  }// end while
+
+  
+  TFile *outFile = new TFile( outFileName.c_str(), update ? "UPDATE" : "RECREATE" );
+  vector< TH1D *> histVect( scales.size(), 0 );
+  cout << "scale size : " << scales.size() << endl;
+  for ( unsigned int iBin=0; iBin<scales.size(); iBin++ ) {
+    cout << "iBin : " << iBin << endl;
+    if ( ! histVect[iBin] ) {
+      string dumName = StripString( inFileName );
+      dumName = TString::Format( "%s_bin%d", dumName.c_str(), iBin );
+      histVect[iBin] = new TH1D( dumName.c_str(), dumName.c_str(), 9, 26.5, 35.5 );
+      histVect[iBin]->GetXaxis()->SetTitle( "PT" );
+      histVect[iBin]->GetYaxis()->SetTitle( yaxis.c_str() );
+    }
+    
+    for ( unsigned int iPt=0; iPt<scales[iBin][0].size(); iPt++ ) {
+      unsigned int bin = histVect[iBin]->FindFixBin( valVect[iPt] );
+      histVect[iBin]->SetBinContent( bin, scales[iBin][0][iPt] );
+      histVect[iBin]->SetBinError( bin , scales[iBin][1][iPt] );
+    }
+    histVect[iBin]->Write( "" , TObject::kOverwrite );
+  }
+
+
+
+  for ( auto hist : histVect ) delete hist;
+  delete outFile;
 }

@@ -211,6 +211,7 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
       case 1 ://sigma
 	outMatrix(iLine, 0) = alphaBin[iLine]->getVal();
 	outErrMatrix(iLine, 0) = alphaBin[iLine]->getError();
+	break;
       case 2 :
 	outMatrix(iLine, 0) = SignSquare( alphaBin[iLine]->getVal() );
 	outErrMatrix(iLine, 0) = ErrC( outMatrix(iLine, 0), alphaBin[iLine]->getError() );

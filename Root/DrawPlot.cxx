@@ -149,6 +149,7 @@ int DrawPlot( vector< TH1* > inHist,
 	inHist.front()->GetYaxis()->SetTitleOffset( 0.6 );
 	inHist.front()->GetYaxis()->SetTitleSize( 0.06 );
       }
+
       if ( rangeUser.size() == 2 ) inHist.front()->GetYaxis()->SetRangeUser( rangeUser[0], rangeUser[1] );
       else inHist.front()->GetYaxis()->SetRangeUser( minVal - ( maxVal - minVal ) *0.05 , maxVal + ( maxVal - minVal ) *0.05 );
       if ( centerZoom ) inHist.front()->GetXaxis()->SetRangeUser( minX, maxX );    

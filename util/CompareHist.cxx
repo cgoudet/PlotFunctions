@@ -407,11 +407,13 @@ int main( int argc, char* argv[] ) {
       csvStream.open( string( plotPath+input.GetOutName() + ".csv" ).c_str(), fstream::out | fstream::trunc );
       vector< string > eventID = input.GetEventID();
       vector< vector<string> > eventVar = input.GetVarName();      
-
+      vector<string> legend = input.GetLegend();
       //Write column names
       for ( unsigned int iVar = 0; iVar < eventIDVect.size(); iVar++ ) csvStream << eventID[iVar] << ",";
       for ( unsigned int iVar = 0; iVar < eventVarVect.size(); iVar++ ) {
-	csvStream << eventVar[iVar%eventVar.size()][iVar/eventVar.size()] << ",";
+	TString columnTitle = eventVar[iVar%eventVar.size()][iVar/eventVar.size()] + "_" + ( legend.size() ? legend[iVar%eventVar.size()] : "" );
+	columnTitle = columnTitle.ReplaceAll( "_", "\\_" );
+	csvStream <<  columnTitle << ",";
       }
       csvStream << endl;
 

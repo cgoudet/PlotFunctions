@@ -4,7 +4,9 @@
 #include "TLine.h"
 #include "TLatex.h"
 #include "PlotFunctions/SideFunctions.h"
+#include <map>
 
+using std::map;
 using std::cout;
 using std::endl;
 using std::min;
@@ -17,21 +19,44 @@ int colors[] = {1, 2, 4, 6, 8, 28, 46};
 
 int DrawPlot( vector< TH1* > inHist,  
 	      string outName, 
-	      vector< string> inLegend, 
-	      unsigned int doRatio, 
-	      bool normalize, 
-	      bool doChi2, 
-	      bool centerZoom , 
-	      vector<double> rangeUser, 
-	      vector<double> legendCoord,
-	      vector<string> inLatex,
-	      vector< vector< double > > latexPos,
-	      unsigned int drawStyle,
-	      unsigned int shiftColor
+	      vector<string> inOptions
 	       ) {
 
 
   //================ SOME CHECKS
+
+  map<string, unsigned int >  mapOptionsInt;
+  mapOptionsInt["doRatio"]=0;
+  mapOptionsInt["shiftColor"]=0;
+  mapOptionsInt["normalize"]=0;
+  mapOptionsInt["doChi2"]=0;
+  mapOptionsInt["centerZoom"]=0;
+  mapOptionsInt["drawStyle"]=0;
+
+  vector<string> inLegend, inLatex; 
+  vector< vector< double > > latexPos;
+  vector< double > legendCoord, rangeUser;
+
+  for ( auto iOption : inOptions ) {
+    string option = iOption.substr( 0, iOption.find_first_of('=' ) );
+    string value = iOption.substr( iOption.find_first_of("=")+1);
+
+    if ( mapOptionsInt.find(option) != mapOptionsInt.end() ) mapOptionsInt[option] = atoi( value.c_str() );
+    else if ( option == "legend" ) inLegend.push_back( value );
+    else if ( option == "latex" ) inLatex.push_back( value );
+    else if ( option == "latexOpt" ) {
+      latexPos.push_back( vector<double>() );
+      ParseVector( value, latexPos.back() );
+    }
+    else if ( option == "legendPos" ) ParseVector( value, legendCoord );
+    else if ( option == "rangeUser" ) ParseVector( value, rangeUser );
+    else {
+      cout << "Option : " << option << " not known" << endl;
+      //      exit(0);
+    }
+    }
+
+
   if ( inLegend.size() && inLegend.size()!=inHist.size() ) {
     cout << "Legend do not match input" << endl;
     return  1;
@@ -42,24 +67,10 @@ int DrawPlot( vector< TH1* > inHist,
     return 2;
   }
 
-  if ( inHist.size() == 1 ) drawStyle = 0;
-
+  if ( inHist.size() == 1 ) mapOptionsInt["drawStyle"] = 0;
+  if ( inHist.size() < 2 ) mapOptionsInt["doRatio"] = 0;
   Style_Christophe();
-
-
-  if ( inHist.size() < 2 ) doRatio = 0;
   vector< TH1D* > ratio;
-
-  //  unsigned int shiftColor=0;
-  // vector<string> inOptions = { "shiftColor=3" };
-  // for ( auto iOption : inOptions ) {
-  //   string option = iOption.substr( 0, iOption.find_first_of('=' ) );
-  //   string value = iOption.substr( iOption.find_first_of("=")+1);
-
-  //   if ( option == "doRatio" ) 
-  //   else if ( option== "shiftColor" ) shiftColor = atoi( value.c_str() );
-  //   else if ( 
-  //   }
 
   //================ PAD DEFINITION
   TCanvas canvas;
@@ -79,7 +90,7 @@ int DrawPlot( vector< TH1* > inHist,
   padDown.SetBottomMargin( 0.2 );
   padDown.SetLeftMargin( 0.07 );
 
-  if ( doRatio ) {
+  if ( mapOptionsInt["doRatio"] ) {
     padUp.Draw();
     canvas.cd();
     padDown.Draw();
@@ -99,10 +110,10 @@ int DrawPlot( vector< TH1* > inHist,
   //============ LOOP OTHER INPUT HIST
   //Find the extremum of the histograms to choose rangeUser if not given
   double minVal=0, maxVal=0, minX=0, maxX=0;
-  bool isNegativeValue = false;
+  //  bool isNegativeValue = false;
   for ( unsigned int iHist = 0; iHist < inHist.size(); iHist++ ) {
 
-    if ( normalize && inHist[iHist]->Integral() )  inHist[iHist]->Scale( 1./inHist[iHist]->Integral() );
+    if ( mapOptionsInt["normalize"] && inHist[iHist]->Integral() )  inHist[iHist]->Scale( 1./inHist[iHist]->Integral() );
 
     //============ LOOK FOR Y EXTREMAL VALUES AND DEFINE Y RANGE
     if( !iHist ) {
@@ -113,7 +124,7 @@ int DrawPlot( vector< TH1* > inHist,
     for ( int bin = 1; bin <= inHist[iHist]->GetNbinsX(); bin++ ) {
       minVal = min( inHist[iHist]->GetBinContent( bin ) - inHist[iHist]->GetBinError( bin ), minVal );
       maxVal = max( inHist[iHist]->GetBinContent( bin ) + inHist[iHist]->GetBinError( bin ), maxVal );
-      if ( inHist[iHist]->GetBinContent( bin ) < 0 ) isNegativeValue = true;
+      //  if ( inHist[iHist]->GetBinContent( bin ) < 0 ) isNegativeValue = true;
     }
 
     //========== LOOK FOR X EXTREMAL VALUES AND DEFINE X RANGE
@@ -127,23 +138,23 @@ int DrawPlot( vector< TH1* > inHist,
 
     //Set color and style of histogram
     //If only one histograms is plotted, plot it in red
-    inHist[iHist]->SetLineColor( colors[ (inHist.size()==1 ? 1 : iHist) + shiftColor ] );
-    inHist[iHist]->SetMarkerColor( colors[ (inHist.size()==1 ? 1 : iHist) + shiftColor ]  );
+    inHist[iHist]->SetLineColor( colors[ (inHist.size()==1 ? 1 : iHist) + mapOptionsInt["shiftColor"] ] );
+    inHist[iHist]->SetMarkerColor( colors[ (inHist.size()==1 ? 1 : iHist) + mapOptionsInt["shiftColor"] ]  );
     inHist[iHist]->SetMarkerStyle( 8 ); 
     inHist[iHist]->SetMarkerSize( 1 ); 
 
     //If only one histograms is plotted, plot it in red
-    switch ( drawStyle ) {
+    switch ( mapOptionsInt["drawStyle"] ) {
     case 1 :
-      inHist[iHist]->SetLineColor( colors[ iHist/2 +shiftColor ] );
-      inHist[iHist]->SetMarkerColor( colors[ iHist/2 + shiftColor ] );
+      inHist[iHist]->SetLineColor( colors[ iHist/2 +mapOptionsInt["shiftColor"] ] );
+      inHist[iHist]->SetMarkerColor( colors[ iHist/2 + mapOptionsInt["shiftColor"] ] );
       inHist[iHist]->SetMarkerStyle( (iHist%2) ? 8 : 4 ); 
       break;
     }
 
     //======== CHI2 OF HISTOGRAM RATIOS
-    if ( doChi2 && inLegend.size() && iHist ){
-      switch ( drawStyle ) {
+    if ( mapOptionsInt["doChi2"] && inLegend.size() && iHist ){
+      switch ( mapOptionsInt["drawStyle"] ) {
       case 1 : 
 	if ( iHist % 2 ) inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( inHist[iHist], inHist[iHist-1] )/inHist[iHist]->GetNbinsX() );
 	break;
@@ -157,14 +168,14 @@ int DrawPlot( vector< TH1* > inHist,
   //Plotting histograms
   for ( unsigned int iHist = 0; iHist < inHist.size(); iHist++ ) {
     if ( !iHist ) {
-      if (doRatio) {
+      if (mapOptionsInt["doRatio"]) {
 	inHist.front()->GetYaxis()->SetTitleOffset( 0.6 );
 	inHist.front()->GetYaxis()->SetTitleSize( 0.06 );
       }
 
       if ( rangeUser.size() == 2 ) inHist.front()->GetYaxis()->SetRangeUser( rangeUser[0], rangeUser[1] );
       else inHist.front()->GetYaxis()->SetRangeUser( minVal - ( maxVal - minVal ) *0.05 , maxVal + ( maxVal - minVal ) *0.05 );
-      if ( centerZoom ) inHist.front()->GetXaxis()->SetRangeUser( minX, maxX );    
+      if ( mapOptionsInt["centerZoom"] ) inHist.front()->GetXaxis()->SetRangeUser( minX, maxX );    
     }
     inHist[iHist]->Draw( (iHist) ? "e,same" : "e" );
 
@@ -185,7 +196,7 @@ int DrawPlot( vector< TH1* > inHist,
   }
 
   //===============  CREATE RATIO PLOTS
-  if ( doRatio ) {
+  if ( mapOptionsInt["doRatio"] ) {
     padDown.cd();
  
     double minValRatio = 0;
@@ -194,21 +205,21 @@ int DrawPlot( vector< TH1* > inHist,
       string yTitle;
 
       //Decide how to pair histogram for ratio
-      switch ( drawStyle ) {
+      switch ( mapOptionsInt["drawStyle"] ) {
       case 1 :
 	if ( !(iHist % 2) ) continue;
 	ratio.push_back( 0 );
 	ratio.back() = (TH1D*) inHist[iHist]->Clone();
 	ratio.back()->Add( inHist[iHist-1], -1 );
-	if ( doRatio == 1 ) ratio.back()->Divide( inHist[iHist-1] );
-	yTitle = ( doRatio==1 ) ? "#frac{h_{2n+1}-h_{2n}}{h_{2n}}" : "h_{2n+1}-h_{2n}";
+	if ( mapOptionsInt["doRatio"] == 1 ) ratio.back()->Divide( inHist[iHist-1] );
+	yTitle = ( mapOptionsInt["doRatio"]==1 ) ? "#frac{h_{2n+1}-h_{2n}}{h_{2n}}" : "h_{2n+1}-h_{2n}";
 	break;
       default : 
 	ratio.push_back( 0 );
 	ratio.back() = (TH1D*) inHist[iHist]->Clone();
 	ratio.back()->Add( inHist.front(), -1 );
-	if ( doRatio == 1 ) ratio.back()->Divide( inHist.front() );
-	yTitle = ( doRatio==1 ) ? "#frac{h_{n}-h_{0}}{h_{0}}" : "h_{n}-h_{0}";
+	if ( mapOptionsInt["doRatio"] == 1 ) ratio.back()->Divide( inHist.front() );
+	yTitle = ( mapOptionsInt["doRatio"]==1 ) ? "#frac{h_{n}-h_{0}}{h_{0}}" : "h_{n}-h_{0}";
       }
 
       //Set graphics properties of first hitogram
@@ -234,12 +245,12 @@ int DrawPlot( vector< TH1* > inHist,
 
     //Plot all the ratio plots
     ratio.front()->GetYaxis()->SetRangeUser( minValRatio - (maxValRatio-minValRatio)*0.05, maxValRatio+(maxValRatio-minValRatio)*0.05 );
-    if ( centerZoom ) ratio.front()->GetXaxis()->SetRangeUser( minX, maxX );
+    if ( mapOptionsInt["centerZoom"] ) ratio.front()->GetXaxis()->SetRangeUser( minX, maxX );
     for ( unsigned int iHist = 0; iHist < ratio.size(); iHist++ ) {
       ratio[iHist]->Draw( ( iHist ) ? "e,same" : "e" );
     }
     //Create a line at 0 to visualize deviations
-    line->DrawLine( centerZoom ? minX : ratio.front()->GetXaxis()->GetXmin(), 0, centerZoom ? maxX :ratio.front()->GetXaxis()->GetXmax(), 0);
+    line->DrawLine( mapOptionsInt["centerZoom"] ? minX : ratio.front()->GetXaxis()->GetXmin(), 0, mapOptionsInt["centerZoom"] ? maxX :ratio.front()->GetXaxis()->GetXmax(), 0);
   }//end doRatio
 
   canvas.SaveAs( TString(outName) + ".pdf" );

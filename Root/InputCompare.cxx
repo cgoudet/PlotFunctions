@@ -8,9 +8,18 @@ namespace po = boost::program_options;
 using std::ifstream;
 
 
-InputCompare::InputCompare() : m_inputType( 0 ), m_doRatio( 0 ), m_normalize(0), m_doChi2( 0 ), m_centerZoom( 0 ),
-			       m_drawStyle(0), m_shiftColor(0)
-{}
+InputCompare::InputCompare() {
+  m_mapOptions["inputType"]="";
+  m_mapOptions["doRatio"]="";
+  m_mapOptions["normalize"]="";
+  m_mapOptions["doChi2"]="";
+  m_mapOptions["centerZoom"]="";
+  m_mapOptions["drawStyle"]="";
+  m_mapOptions["shiftColor"]="";
+  m_mapOptions["nComparedEvents"]="";
+  m_mapOptions["legendPos"]="";
+  m_mapOptions["rangeUser"]="";
+}
 
 //##################################
 InputCompare::InputCompare( string fileName ) : InputCompare()
@@ -18,7 +27,7 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
 
 
 
-  string legendPos, rangeUser, inLatexPos, varMin, varMax, eventID;
+  string inLatexPos, varMin, varMax, eventID;
   vector< string > rootFileName, objName, latexOpt, varName, varWeight;
 
   po::options_description configOptions("configOptions");
@@ -26,24 +35,24 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
     ( "rootFileName", po::value< vector< string > >( &rootFileName )->multitoken(), "" )
     ( "objName", po::value< vector< string > >( &objName )->multitoken(), "" )
     ( "legend", po::value< vector< string > >( &m_legend )->multitoken(), "" )
-    ( "legendPos", po::value<string>( &legendPos ), "" )
-    ( "rangeUser", po::value<string>( &rangeUser ), "" )
-    ( "inputType", po::value<unsigned int>( &m_inputType ),"" )
-    ( "doRatio", po::value<unsigned int>( &m_doRatio ), "" )
-    ( "normalize", po::value<unsigned int>( &m_normalize ), "" )
-    ( "doChi2", po::value<unsigned int>( &m_doChi2 ), "" )
-    ( "centerZoom", po::value<unsigned int>( &m_centerZoom ), "" )
+    ( "legendPos", po::value<string>( &m_mapOptions["legendPos"] ), "" )
+    ( "rangeUser", po::value<string>( &m_mapOptions["rangeUser"] ), "" )
+    ( "inputType", po::value<string>( &m_mapOptions["inputType"] ),"" )
+    ( "doRatio", po::value<string>( &m_mapOptions["doRatio"] ), "" )
+    ( "normalize", po::value<string>( &m_mapOptions["normalize"] ), "" )
+    ( "doChi2", po::value<string>( &m_mapOptions["doChi2"] ), "" )
+    ( "centerZoom", po::value<string>( &m_mapOptions["centerZoom"] ), "" )
     ( "varName", po::value< vector<string> >( &varName )->multitoken(), "" )
     ( "varMin", po::value< string >( &varMin ), "" )
     ( "varMax", po::value< string >( &varMax ), "" )
     ( "latex", po::value< vector< string > >( &m_latex )->multitoken(), "" )
-    ( "latexOpt", po::value< vector< string > >( &latexOpt )->multitoken(), "")
-    ( "drawStyle", po::value< unsigned int >( &m_drawStyle ), "" )
+    ( "latexOpt", po::value< vector<string> >( &latexOpt )->multitoken(), "")
+    ( "drawStyle", po::value< string >( &m_mapOptions["drawStyle"] ), "" )
     ( "selectionCut", po::value< vector< string > >( & m_selectionCut ), "TFormula to select tree events" )
     ( "eventID", po::value< string >( &eventID ), "" )
-    ( "nComparedEvents", po::value< unsigned int >( &m_nComparedEvents ), "" )
+    ( "nComparedEvents", po::value< string >( &m_mapOptions["nComparedEvents"] ), "" )
     ( "varWeight", po::value< vector<string> >(&m_varWeight)->multitoken(), "" )
-    ( "shiftColor", po::value< unsigned int>( &m_shiftColor ), "" )
+    ( "shiftColor", po::value< string >( &m_mapOptions["shiftColor"] ), "" )
     ;
   
   po::variables_map vm;
@@ -52,15 +61,6 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
   po::notify( vm );
 
   m_outName = StripString( fileName );
-
-  // //Some checks
-  // if ( m_inputType!=3  && (rootFileName.size() != objName.size()
-  // 	|| ( m_legend.size() && rootFileName.size() != m_legend.size() ) )
-  //      ) {
-  //   cout << "Wrong vector sizes" << endl;
-  //   exit( 0 );
-  // }
-
 
 
   for ( unsigned int iHist = 0; iHist < rootFileName.size(); iHist++ ) {
@@ -78,36 +78,9 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
   ParseVector( varMax, m_varMax );
   ParseVector( varMin, m_varMin );
 
-  // if ( ( m_inputType == 1 || m_&& varName.size() != rootFileName.size() && varName.size() != 1 ) {
-  //   cout << "varName does not have right size. It must be either 1 (if all trees have same branch name) or equal to number of input trees." << endl;
-  //   exit(1);
-  // }
-
-  // unsigned int nVariables = 0;
-  // for ( unsigned int iName = 0; iName < ( varName.size() ? rootFileName.size() : 0 ); iName++ ) {
-  //   if ( iName <= varName.size() ) {
-  //     m_varName.push_back( vector<string>() );
-  //     ParseVector( varName[iName], m_varName.back() );
-  //     if ( !nVariables ) nVariables = m_varName.back().size();
-  //   }
-  //   else m_varName.push_back( m_varName.front() );
-  // }
-
   for ( unsigned int iName = 0; iName < varName.size(); iName++ ) {
     m_varName.push_back( vector<string>() );
     ParseVector( varName[iName], m_varName.back() );
-  }
-
-  ParseVector( legendPos, m_legendPos );
-  if ( m_legendPos.size() && m_legendPos.size() != 4 ) {
-    cout << "Wrong size for legendPos" << endl;
-    exit(0);
-  }
-
-  ParseVector( rangeUser, m_rangeUser );
-  if ( m_rangeUser.size() && ( m_rangeUser.size() !=2 && m_rangeUser.size()!=4 ) ) {
-    cout << "Wrong size of rangeUser" << endl;
-    exit(0);
   }
 
 
@@ -115,15 +88,29 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
     cout << "laetx names and options have different sizes" << endl;
     exit(0);
   }
-  for ( unsigned int iLatex = 0; iLatex < m_latex.size(); iLatex++ ) {
-    m_latexOpt.push_back( vector< double >() );
-    ParseVector( latexOpt[iLatex], m_latexOpt[iLatex] );
-  }
 
   if ( m_selectionCut.size() && m_selectionCut.size() != m_rootFileName.size() ) {
     cout << "selectionCuts have non-zero size and diferent from rootFileName" << endl;
     exit(0);
   }
+
+
+}
+
+
+vector<string> InputCompare::CreateVectorOptions() {
+
+  vector<string> outVect;
+  for ( map<string, string>::iterator it = m_mapOptions.begin(); it != m_mapOptions.end(); it++) {
+    if ( it->first == "inputType" || it->first == "nComparedEvents" ) continue;
+    outVect.push_back( it->first +"=" + it->second );
+  }
+  for ( auto legend : m_legend ) outVect.push_back( "legend=" + legend );
+  for ( auto latex : m_latex ) outVect.push_back( "latex=" + latex );
+  for ( auto latexOpt : m_latexOpt ) outVect.push_back( "latexOpt=" + latexOpt );
+
+
+  return outVect;
 
 
 }

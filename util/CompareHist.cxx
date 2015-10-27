@@ -63,8 +63,8 @@ int main( int argc, char* argv[] ) {
     for ( unsigned int iPlot = 0; iPlot < inputRootFile.size(); iPlot++ ) {
       for ( unsigned int iAdd = 0; iAdd < inputRootFile[iPlot].size(); iAdd ++ ) {
 	TFile inFile( inputRootFile[iPlot][iAdd].c_str() );	
-
-	switch( input.GetInputType() ) {
+	cout << "switch : " << atoi(input.GetOption("inputType").c_str()) << endl;
+	switch( atoi(input.GetOption("inputType").c_str()) ) {
 	case 0 : //histograms
 	  if ( !iPlot && !iAdd ) vectHist.push_back( vector< TH1* >() );
 	  if ( !iAdd ) vectHist.back().push_back( 0 );
@@ -177,7 +177,7 @@ int main( int argc, char* argv[] ) {
 	    eventIDVect.resize( extents[eventID.size()][0] );
 	  }
 
-	  unsigned int nComparedEvents = input.GetNComparedEvents();
+	  unsigned int nComparedEvents = atoi(input.GetOption("nComparedEvents").c_str());
 	  unsigned int nEntries = (unsigned int) inTree->GetEntries();
 	  vector< double > varMin  = input.GetVarMin();
 	  vector< double > varMax  = input.GetVarMax();
@@ -405,7 +405,7 @@ int main( int argc, char* argv[] ) {
 	}
 
 	default : 
-	  cout << "inputType=" << input.GetInputType() << " is not known." << endl;
+	  cout << "inputType= " << input.GetOption("inputType") << " is not known." << endl;
 	  exit(0);
 	}//end switch inputType
 	inFile.Close("R");	
@@ -416,23 +416,13 @@ int main( int argc, char* argv[] ) {
       cout << "drawing : " << iHist << endl;
       DrawPlot( vectHist[iHist], 
 		plotPath + input.GetOutName()+ ( input.GetVarName().size() && input.GetVarName().front().size() ? "_" + input.GetVarName().front()[iHist] : "" ),
-		input.GetLegend(),
-		input.GetDoRatio(),
-		input.GetNormalize(),
-		input.GetDoChi2(),
-		input.GetCenterZoom(),
-		input.GetRangeUser(),
-		input.GetLegendPos(),
-		input.GetLatex(),
-		input.GetLatexOpt(),
-		input.GetDrawStyle(),
-		input.GetShiftColor()
+		input.CreateVectorOptions()
 		);
       cout << "drawn : " << iHist << endl;
     }
 
 
-    if ( input.GetInputType() == 2 ) { //print csvFile
+    if ( atoi(input.GetOption("inputType").c_str()) == 2 ) { //print csvFile
       fstream csvStream;
       cout << string( plotPath+input.GetOutName() + ".csv" ).c_str() << endl;
       csvStream.open( string( plotPath+input.GetOutName() + ".csv" ).c_str(), fstream::out | fstream::trunc );

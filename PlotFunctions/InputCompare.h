@@ -3,7 +3,9 @@
 
 #include <vector>
 #include <string>
+#include <map>
 
+using std::map;
 using std::vector;
 using std::string;
 
@@ -18,26 +20,19 @@ class InputCompare
   vector< vector< string > > &GetObjName() { return m_objName; }
   vector< string > &GetLegend() { return m_legend; }
   vector< vector<string> > &GetVarName() { return m_varName; }
-  vector< double > &GetLegendPos() { return m_legendPos; }
   vector< double > &GetRangeUser() { return m_rangeUser; }
   vector< double > &GetVarMin() { return m_varMin; }
   vector< double > &GetVarMax() { return m_varMax; }
   vector< string > &GetLatex() { return m_latex; }
   vector< string > &GetSelectionCut() { return m_selectionCut;}
   vector< string > &GetEventID() { return m_eventID; }
-  vector< vector< double > > &GetLatexOpt() { return m_latexOpt; }
+  vector< string > &GetLatexOpt() { return m_latexOpt; }
   vector< string > &GetVarWeight() { return m_varWeight; }
 
   string &GetOutName() { return m_outName; }
-  unsigned int GetInputType() { return m_inputType; }
-  unsigned int GetDoRatio() { return m_doRatio; }
-  unsigned int GetNormalize() { return m_normalize; }
-  unsigned int GetDoChi2() { return m_doChi2; }
-  unsigned int GetCenterZoom() { return m_centerZoom; }
-  unsigned int GetDrawStyle() { return m_drawStyle; }
-  unsigned int GetNComparedEvents() { return m_nComparedEvents; }
-  unsigned int GetShiftColor() { return m_shiftColor; }
+  string GetOption( string option ) { return m_mapOptions[option]; }
 
+  vector<string> CreateVectorOptions();
  private : 
   /**\brief names of the root files
 
@@ -71,7 +66,6 @@ class InputCompare
      1 : latex Y
      2 : text size
    */
-  vector< double > m_legendPos;
 
   /**\brief display Y range for the plot
    */
@@ -88,7 +82,7 @@ class InputCompare
   /**\brief Name of the plot without suffix or prefix
    */
   string m_outName ;
-  vector< vector< double > > m_latexOpt;
+  vector< string > m_latexOpt;
   
   /**\brief Type of object that will be plotted
     0 : TH1
@@ -100,35 +94,11 @@ class InputCompare
     6 : cmopare all bins of histograms ( of the same size )  as a function of the legend (as label)
     7 : Compare TMatrixD
   */
-  unsigned int m_inputType;
-
-  /**\brief decide wether perform the ratio of histograms.
-   */
-  unsigned int m_doRatio;
-
-  /**\brief normalize histograms
-   */
-  unsigned int m_normalize;
-
-  /**\brief compute chi2 betwwen histograms
-   */
-  unsigned int m_doChi2;
-
-  /**\brief center X axis to non empty bins
-   */
-  unsigned int m_centerZoom;
-
-  /**\brief Scheme to pair histograms
-   */
-  unsigned int m_drawStyle;
 
   /**\brief string of selection for tree events
    */
   vector< string > m_selectionCut;
   
-  /**\brief number of event to compare in inputType2
-   */
-  unsigned int m_nComparedEvents;
 
   /**\brief string of branch names to id the event
 
@@ -142,9 +112,7 @@ class InputCompare
   */
   vector< string > m_varWeight;
 
-  /**\value to shift colors of histograms
-   */
-  unsigned int m_shiftColor;
+  map<string,string>  m_mapOptions;
 };
 
 #endif

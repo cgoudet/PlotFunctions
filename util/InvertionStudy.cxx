@@ -100,11 +100,11 @@ int main( ) {
   }
 
   cout << histVect.size() << " " << legend.size() << endl;
-  DrawPlot( histVect, "/afs/in2p3.fr/home/c/cgoudet/private/Template/PlotFunctions/Plots/InversionStudy"
-	    , legend
-	    , 0, 0, 0, 0
-	    , vector<double>()
-	    , { 0.4, 0.7, 0.6, 0.95 }
-);
+//   DrawPlot( histVect, "/afs/in2p3.fr/home/c/cgoudet/private/Template/PlotFunctions/Plots/InversionStudy"
+// 	    , legend
+// 	    , 0, 0, 0, 0
+// 	    , vector<double>()
+// 	    , { 0.4, 0.7, 0.6, 0.95 }
+// );
   return 0;
 }

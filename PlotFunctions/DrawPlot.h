@@ -47,18 +47,9 @@ using std::string;
  */
 int DrawPlot( vector< TH1* > inHist,  
 	      string outName, 
-	      vector< string> inLegend = {}, 
-	      unsigned int doRatio = 0, 
-	      bool normalize = 0, 
-	      bool doChi2 = 0, 
-	      bool centerZoom = 0, 
-	      vector<double> rangeUser = {}, 
-	      vector<double> legendCoord = {},
-	      vector<string> inLatex = {},
-	      vector< vector< double > >  latexPos = vector<vector<double>>(),
-	      unsigned int drawStyle = 0,
-	      unsigned int shiftColor = 0
-	       );
+	      vector<string> inOptions=vector<string>()
+	      );
+
 
 
 #endif

@@ -9,6 +9,7 @@
 #include "PlotFunctions/InputCompare.h"
 #include "PlotFunctions/SideFunctions.h"
 #include <TROOT.h>
+#include "TMatrixD.h"
 using std::string;
 using std::cout;
 using std::endl;
@@ -200,39 +201,39 @@ int main( int argc, char* argv[] ) {
 	  for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {	  
 	    if ( !iPlot && nComparedEvents && eventVarVect[0].size() >= nComparedEvents ) break;
 	    inTree->GetEntry( iEvent );
-	      unsigned int index = iEvent;
-	      if ( !iPlot ) { //I save the informations of the event I want to compare
-		//Fill the event ID informations
-		eventIDVect.resize( extents[eventIDVect.size()][iEvent+1] );		
-		for ( unsigned int i = 0; i<eventID.size(); i++ )  eventIDVect[i][iEvent] = eventIDVal[i];		  
-		eventVarVect.resize( extents[eventVarVect.size()][iEvent+1] );
-	      }
-	      else { //look for the right index to place values
-		index = iEvent+1;
+	    unsigned int index = iEvent;
+	    if ( !iPlot ) { //I save the informations of the event I want to compare
+	      //Fill the event ID informations
+	      eventIDVect.resize( extents[eventIDVect.size()][iEvent+1] );		
+	      for ( unsigned int i = 0; i<eventID.size(); i++ )  eventIDVect[i][iEvent] = eventIDVal[i];		  
+	      eventVarVect.resize( extents[eventVarVect.size()][iEvent+1] );
+	    }
+	    else { //look for the right index to place values
+	      index = iEvent+1;
 
-		for ( unsigned int iSavedEvent = 0; iSavedEvent < eventVarVect[0].size(); iSavedEvent++ ) {
+	      for ( unsigned int iSavedEvent = 0; iSavedEvent < eventVarVect[0].size(); iSavedEvent++ ) {
 		bool foundEvent =true;
-		  for ( unsigned int iID = 0; iID < eventIDVect.size(); iID++ ) {
-		    if ( eventIDVect[iID][iSavedEvent] == eventIDVal[iID] ) continue;
-		    foundEvent = false;
-		    break;
-		  }
-
-		  if ( !foundEvent ) continue;
-		  index = iSavedEvent;
+		for ( unsigned int iID = 0; iID < eventIDVect.size(); iID++ ) {
+		  if ( eventIDVect[iID][iSavedEvent] == eventIDVal[iID] ) continue;
+		  foundEvent = false;
 		  break;
-		}// end iSavedEvent
+		}
+
+		if ( !foundEvent ) continue;
+		index = iSavedEvent;
+		break;
+	      }// end iSavedEvent
 		
-	      }//end else
+	    }//end else
 
-	      // get to the next event if not found in selected events
-	      if ( index == iEvent+1 ) continue;
-	      for ( unsigned int i = 0; i<eventVar[iPlot].size(); i++ ) {
-		eventVarVect[i*inputRootFile.size()+iPlot][index] = eventVarVal[i];  
-		vectHist[i][iPlot]->Fill( eventVarVal[i] );
+	    // get to the next event if not found in selected events
+	    if ( index == iEvent+1 ) continue;
+	    for ( unsigned int i = 0; i<eventVar[iPlot].size(); i++ ) {
+	      eventVarVect[i*inputRootFile.size()+iPlot][index] = eventVarVal[i];  
+	      vectHist[i][iPlot]->Fill( eventVarVal[i] );
 
-		//		if ( !i ) cout << iPlot << " " << iAdd << " " << i << " " << eventVarVal[i] << endl;
-	      }// end i
+	      //		if ( !i ) cout << iPlot << " " << iAdd << " " << i << " " << eventVarVal[i] << endl;
+	    }// end i
 
 	  }// end iEvent
 
@@ -267,10 +268,10 @@ int main( int argc, char* argv[] ) {
 
 	  while ( true ) {
 	    for ( unsigned int iTxtVar = 0; iTxtVar < titleVect.size(); iTxtVar++ ) {
-	    inputStream >> varVal[iTxtVar];
+	      inputStream >> varVal[iTxtVar];
 	    }
 	    if ( inputStream.eof() ) break;
-	  double weight = ( varWeight[iPlot] != "X" ) ? varVal[weightIndex] : 1;
+	    double weight = ( varWeight[iPlot] != "X" ) ? varVal[weightIndex] : 1;
 	    for ( unsigned int iVar = 0; iVar < varName[iPlot].size(); iVar++ ) {
 	      if ( vectHist.size() == iVar ) vectHist.push_back( vector<TH1*>() );
 	      if ( vectHist[iVar].size() == iPlot ) {
@@ -370,9 +371,39 @@ int main( int argc, char* argv[] ) {
 	      vectHist.front()[iPlot]->LabelsOption("v" );
 	    }
 	  }
-	delete inHist;
-	break;
-      }//end case 6
+	  delete inHist;
+	  break;
+	}//end case 6
+	  
+	case 7 : {
+	  if ( iAdd )  continue;
+	  TMatrixD *matrix = ( TMatrixD*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
+	  if ( !matrix ) {
+	    cout << inputObjName[iPlot][iAdd].c_str() << " not found in " << inFile.GetName() << endl;
+	    exit(0);
+	  }
+	  matrix->Print();
+	  unsigned int nLine = matrix->GetNrows();
+	  unsigned int nCol = matrix->GetNcols();
+	  if ( !iPlot ) vectHist.push_back( vector<TH1*>() );
+	  vectHist.front().push_back(0);
+	  TString histTitle;
+	  vectHist.front().back() = new TH1D( histTitle, histTitle, nLine*nCol, 0.5, nLine*nCol+0.5 );
+	  vectHist.front().back()->SetDirectory(0);
+	  for ( unsigned int iLine=0; iLine<nLine; iLine++ ) {
+	    for ( unsigned int iCol=0; iCol<nCol; iCol++ ) {
+	      int bin = iLine*nCol+iCol+1;
+	      if ( (*matrix)(iLine, iCol) != 100 ) vectHist.front().back()->SetBinContent( bin, (*matrix)(iLine, iCol) );
+	      vectHist.front().back()->SetBinError( bin, 0 );
+	      vectHist.front().back()->GetXaxis()->SetBinLabel( bin, TString::Format( "%d_%d", iLine, iCol ) );
+	    }
+	  }
+
+	  vectHist.front().back()->LabelsOption("v" );
+	  vectHist.front().back()->GetXaxis()->SetTitle( "Line_Column" );
+	  break;
+	}
+
 	default : 
 	  cout << "inputType=" << input.GetInputType() << " is not known." << endl;
 	  exit(0);

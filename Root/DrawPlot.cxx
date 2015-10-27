@@ -30,6 +30,7 @@ int DrawPlot( vector< TH1* > inHist,
 	      unsigned int shiftColor
 	       ) {
 
+
   //================ SOME CHECKS
   if ( inLegend.size() && inLegend.size()!=inHist.size() ) {
     cout << "Legend do not match input" << endl;
@@ -48,6 +49,17 @@ int DrawPlot( vector< TH1* > inHist,
 
   if ( inHist.size() < 2 ) doRatio = 0;
   vector< TH1D* > ratio;
+
+  //  unsigned int shiftColor=0;
+  // vector<string> inOptions = { "shiftColor=3" };
+  // for ( auto iOption : inOptions ) {
+  //   string option = iOption.substr( 0, iOption.find_first_of('=' ) );
+  //   string value = iOption.substr( iOption.find_first_of("=")+1);
+
+  //   if ( option == "doRatio" ) 
+  //   else if ( option== "shiftColor" ) shiftColor = atoi( value.c_str() );
+  //   else if ( 
+  //   }
 
   //================ PAD DEFINITION
   TCanvas canvas;

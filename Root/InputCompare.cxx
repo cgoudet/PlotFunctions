@@ -18,7 +18,10 @@ InputCompare::InputCompare() {
   m_mapOptions["shiftColor"]="";
   m_mapOptions["nComparedEvents"]="";
   m_mapOptions["legendPos"]="";
-  m_mapOptions["rangeUser"]="";
+  m_mapOptions["rangeUserX"]="";
+  m_mapOptions["rangeUserY"]="";
+  m_mapOptions["line"]="";
+  m_mapOptions["diagonalize"]="";
 }
 
 //##################################
@@ -28,7 +31,7 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
 
 
   string inLatexPos, varMin, varMax, eventID;
-  vector< string > rootFileName, objName, latexOpt, varName, varWeight;
+  vector< string > rootFileName, objName, varName, varWeight;
 
   po::options_description configOptions("configOptions");
   configOptions.add_options()
@@ -36,7 +39,8 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
     ( "objName", po::value< vector< string > >( &objName )->multitoken(), "" )
     ( "legend", po::value< vector< string > >( &m_legend )->multitoken(), "" )
     ( "legendPos", po::value<string>( &m_mapOptions["legendPos"] ), "" )
-    ( "rangeUser", po::value<string>( &m_mapOptions["rangeUser"] ), "" )
+    ( "rangeUserX", po::value<string>( &m_mapOptions["rangeUserX"] ), "" )
+    ( "rangeUserY", po::value<string>( &m_mapOptions["rangeUserY"] ), "" )
     ( "inputType", po::value<string>( &m_mapOptions["inputType"] ),"" )
     ( "doRatio", po::value<string>( &m_mapOptions["doRatio"] ), "" )
     ( "normalize", po::value<string>( &m_mapOptions["normalize"] ), "" )
@@ -46,13 +50,15 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
     ( "varMin", po::value< string >( &varMin ), "" )
     ( "varMax", po::value< string >( &varMax ), "" )
     ( "latex", po::value< vector< string > >( &m_latex )->multitoken(), "" )
-    ( "latexOpt", po::value< vector<string> >( &latexOpt )->multitoken(), "")
+    ( "latexOpt", po::value< vector<string> >( &m_latexOpt )->multitoken(), "")
     ( "drawStyle", po::value< string >( &m_mapOptions["drawStyle"] ), "" )
     ( "selectionCut", po::value< vector< string > >( & m_selectionCut ), "TFormula to select tree events" )
     ( "eventID", po::value< string >( &eventID ), "" )
     ( "nComparedEvents", po::value< string >( &m_mapOptions["nComparedEvents"] ), "" )
     ( "varWeight", po::value< vector<string> >(&m_varWeight)->multitoken(), "" )
     ( "shiftColor", po::value< string >( &m_mapOptions["shiftColor"] ), "" )
+    ( "line", po::value<string>( &m_mapOptions["line"] ), "" )
+    ( "diagonalize", po::value<string>( &m_mapOptions["diagonalize"] ), "" )
     ;
   
   po::variables_map vm;
@@ -84,7 +90,7 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
   }
 
 
-  if ( m_latex.size() != latexOpt.size() ) {
+  if ( m_latex.size() != m_latexOpt.size() ) {
     cout << "laetx names and options have different sizes" << endl;
     exit(0);
   }
@@ -102,7 +108,11 @@ vector<string> InputCompare::CreateVectorOptions() {
 
   vector<string> outVect;
   for ( map<string, string>::iterator it = m_mapOptions.begin(); it != m_mapOptions.end(); it++) {
-    if ( it->first == "inputType" || it->first == "nComparedEvents" ) continue;
+    if ( it->second == "" 
+	 || it->first == "inputType" 
+	 || it->first == "nComparedEvents" 
+	 || it->first == "diagonalize" 
+	 ) continue;
     outVect.push_back( it->first +"=" + it->second );
   }
   for ( auto legend : m_legend ) outVect.push_back( "legend=" + legend );

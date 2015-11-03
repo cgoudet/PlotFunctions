@@ -16,6 +16,7 @@ using std::max;
 
 void Style_Christophe();
 int colors[] = {1, 2, 4, 6, 8, 28, 46};
+int fillColors[] = { 3, 5 };
 
 int DrawPlot( vector< TH1* > inHist,  
 	      string outName, 
@@ -25,17 +26,17 @@ int DrawPlot( vector< TH1* > inHist,
 
   //================ SOME CHECKS
 
-  map<string, unsigned int >  mapOptionsInt;
+  map<string, int >  mapOptionsInt;
   mapOptionsInt["doRatio"]=0;
   mapOptionsInt["shiftColor"]=0;
   mapOptionsInt["normalize"]=0;
   mapOptionsInt["doChi2"]=0;
   mapOptionsInt["centerZoom"]=0;
   mapOptionsInt["drawStyle"]=0;
-
+  mapOptionsInt["line"]=-99;
   vector<string> inLegend, inLatex; 
   vector< vector< double > > latexPos;
-  vector< double > legendCoord, rangeUser;
+  vector< double > legendCoord, rangeUserX, rangeUserY;
 
   for ( auto iOption : inOptions ) {
     string option = iOption.substr( 0, iOption.find_first_of('=' ) );
@@ -49,7 +50,8 @@ int DrawPlot( vector< TH1* > inHist,
       ParseVector( value, latexPos.back() );
     }
     else if ( option == "legendPos" ) ParseVector( value, legendCoord );
-    else if ( option == "rangeUser" ) ParseVector( value, rangeUser );
+    else if ( option == "rangeUserX" ) ParseVector( value, rangeUserX );
+    else if ( option == "rangeUserY" ) ParseVector( value, rangeUserY );
     else {
       cout << "Option : " << option << " not known" << endl;
       //      exit(0);
@@ -64,6 +66,7 @@ int DrawPlot( vector< TH1* > inHist,
 		 
   if ( inLatex.size() != latexPos.size() ) {
     cout << "Number of latex names and positions do not match" << endl;
+    cout << inLatex.size() << " " << latexPos.size() << endl;
     return 2;
   }
 
@@ -97,10 +100,11 @@ int DrawPlot( vector< TH1* > inHist,
     padUp.cd();
   }
 
-  if ( !legendCoord.size() ) legendCoord={ 0.7, 0.95-inLegend.size()*0.03, 0.99, 0.95  };
+  if ( !legendCoord.size() ) legendCoord={ 0.7, 0.95-inLegend.size()*0.05, 0.99, 0.95  };
   TLegend *legend = new TLegend( legendCoord[0], legendCoord[1], legendCoord[2], legendCoord[3]);
   legend->SetFillColorAlpha( 0, 0 );
   legend->SetLineColorAlpha( 0, 0 );
+  legend->SetLineWidth(0);
 
   TLine *line = new TLine( 0, 0.005, 100, 0.005);
   line->SetLineColor( kBlack );
@@ -138,16 +142,16 @@ int DrawPlot( vector< TH1* > inHist,
 
     //Set color and style of histogram
     //If only one histograms is plotted, plot it in red
-    inHist[iHist]->SetLineColor( colors[ (inHist.size()==1 ? 1 : iHist) + mapOptionsInt["shiftColor"] ] );
-    inHist[iHist]->SetMarkerColor( colors[ (inHist.size()==1 ? 1 : iHist) + mapOptionsInt["shiftColor"] ]  );
+    inHist[iHist]->SetLineColor(  colors[ max( 0, (int) ( (inHist.size()==1 ? 1 : iHist) + mapOptionsInt["shiftColor"])) ]  );
+    inHist[iHist]->SetMarkerColor( colors[ max( 0, (int) ((inHist.size()==1 ? 1 : iHist) + mapOptionsInt["shiftColor"] ) )] );
     inHist[iHist]->SetMarkerStyle( 8 ); 
-    inHist[iHist]->SetMarkerSize( 1 ); 
+    inHist[iHist]->SetMarkerSize( 0.5 ); 
 
     //If only one histograms is plotted, plot it in red
     switch ( mapOptionsInt["drawStyle"] ) {
     case 1 :
-      inHist[iHist]->SetLineColor( colors[ iHist/2 +mapOptionsInt["shiftColor"] ] );
-      inHist[iHist]->SetMarkerColor( colors[ iHist/2 + mapOptionsInt["shiftColor"] ] );
+      inHist[iHist]->SetLineColor( colors[ max( 0, (int) (iHist/2 +mapOptionsInt["shiftColor"] ) )] );
+      inHist[iHist]->SetMarkerColor( colors[ max( 0 , (int) (iHist/2 + mapOptionsInt["shiftColor"]) ) ] );
       inHist[iHist]->SetMarkerStyle( (iHist%2) ? 8 : 4 ); 
       break;
     }
@@ -163,6 +167,7 @@ int DrawPlot( vector< TH1* > inHist,
       }
     }
     if  ( inLegend.size() ) ParseLegend( inHist[iHist], inLegend[iHist] );    
+
   }//end iHist
 
   //Plotting histograms
@@ -173,15 +178,34 @@ int DrawPlot( vector< TH1* > inHist,
 	inHist.front()->GetYaxis()->SetTitleSize( 0.06 );
       }
 
-      if ( rangeUser.size() == 2 ) inHist.front()->GetYaxis()->SetRangeUser( rangeUser[0], rangeUser[1] );
+      if ( rangeUserY.size() == 2 ) inHist.front()->GetYaxis()->SetRangeUser( rangeUserY[0], rangeUserY[1] );
       else inHist.front()->GetYaxis()->SetRangeUser( minVal - ( maxVal - minVal ) *0.05 , maxVal + ( maxVal - minVal ) *0.05 );
-      if ( mapOptionsInt["centerZoom"] ) inHist.front()->GetXaxis()->SetRangeUser( minX, maxX );    
+      if ( rangeUserX.size() == 2 ) inHist.front()->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
+      else if ( mapOptionsInt["centerZoom"] ) inHist.front()->GetXaxis()->SetRangeUser( minX, maxX );
     }
-    inHist[iHist]->Draw( (iHist) ? "e,same" : "e" );
+    string drawOpt = (iHist) ? "SAME,E" : "E";
+    string legendOpt="";
+    if ( inLegend.size() > iHist && TString( inLegend[iHist].c_str() ).Contains( "__NOPOINT" ) ) {
+      inHist[iHist]->SetLineColorAlpha( 0, 0 );
+      inHist[iHist]->SetMarkerColorAlpha( 0, 0 );
+      inLegend[iHist]= TString(inLegend[iHist].c_str() ).ReplaceAll("__NOPOINT", "" );
+    }
+    else legendOpt+="p";
 
+    if ( inLegend.size() > iHist && TString( inLegend[iHist].c_str() ).Contains( "__FILL" ) ) {
+      inLegend[iHist]= TString(inLegend[iHist].c_str() ).ReplaceAll("__FILL", "" );
+      drawOpt += "2";
+      legendOpt+="f";
+      inHist[iHist]->SetFillColor( fillColors[iHist] );
+    }
+    inHist[iHist]->Draw( drawOpt.c_str() );
+    if( !iHist && mapOptionsInt["line"] != -99 ) {
+      double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : (mapOptionsInt["centerZoom"] ? minX : inHist.front()->GetXaxis()->GetXmin() );
+      double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : ( mapOptionsInt["centerZoom"] ? maxX :inHist.front()->GetXaxis()->GetXmax() );
+      line->DrawLine( rangeMin , mapOptionsInt["line"], rangeMax, mapOptionsInt["line"]);
+    }
     //========== ADD HISTOGRAM TO LEGEND
-
-    if ( inLegend.size() ) legend->AddEntry( inHist[iHist], inLegend[iHist].c_str(), "p" );
+    if ( inLegend.size() > iHist && inLegend[iHist] != "" ) legend->AddEntry( inHist[iHist], inLegend[iHist].c_str() , legendOpt.c_str() );
   }//end iHist
 
   // =========== PRINT LEGENDS AND LATEX

@@ -149,8 +149,9 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents ) {
   outTree->SetDirectory(0);
   TRandom rand;
   high_resolution_clock::time_point t1 = high_resolution_clock::now();
-  rand.SetSeed( t1.time_since_epoch().count() );
-
+  unsigned long seed = t1.time_since_epoch().count();
+  rand.SetSeed( seed );
+  cout << "bootstrapSeed : " << seed << endl;
   cout << "nEvents : " << nEvents << endl;
   unsigned int totEntry = 0;
   for ( unsigned int iTree = 0; iTree < inTrees.size(); iTree++ ) totEntry += inTrees[iTree]->GetEntries();
@@ -266,9 +267,9 @@ void SaveTree( TTree *inTree, string prefix) {
 }
 
 //================================
-void DiffSystematics( string inFileName, string outFileName, string outSystName, bool update ) {
+void DiffSystematics( string inFileName, bool update ) {
 
-  TFile *outFile = new TFile( outFileName.c_str(), update ? "UPDATE" : "RECREATE" );
+  TFile *outFile = 0;
   TH1D *totSyst = 0;
   TH1D* baseValue = 0;
 
@@ -278,10 +279,17 @@ void DiffSystematics( string inFileName, string outFileName, string outSystName,
     cout << inFileName << " does not exist." << endl;
     exit(0);
   }
-  string rootFileName, histName, systName;
+  string rootFileName, histName, systName, outSystName;
   unsigned int counterSyst=0;
 
   while ( inStream >> rootFileName >> histName >> systName ) {
+
+    if ( !outFile ) {
+      outFile = new TFile( rootFileName.c_str(), update ? "UPDATE" : "RECREATE" );
+      outSystName = histName;
+      totSyst = (TH1D*) outFile->Get( histName.c_str() );
+      continue;
+    }
 
     TFile *inFile = new TFile( rootFileName.c_str() );
     if ( !inFile ) {
@@ -295,7 +303,6 @@ void DiffSystematics( string inFileName, string outFileName, string outSystName,
       outFile->cd();
       baseValue->Write( systName.c_str(), TObject::kOverwrite );
 
-      if ( update ) totSyst = (TH1D*) outFile->Get( outSystName.c_str() );
       if ( !totSyst ) {
 	totSyst = (TH1D*) baseValue->Clone();
 	totSyst->Add( totSyst, -1 );
@@ -344,6 +351,7 @@ void DiffSystematics( string inFileName, string outFileName, string outSystName,
 
   delete totSyst;
   delete baseValue; baseValue=0;
+  cout << "outFile : " << outFile->GetName() << endl;
   delete outFile;
 }//EndDiffSystematic
 
@@ -405,7 +413,6 @@ void VarOverTime( string inFileName, string outFileName, bool update) {
   vector< TH1D *> histVect( scales.size(), 0 );
   cout << "scale size : " << scales.size() << endl;
   for ( unsigned int iBin=0; iBin<scales.size(); iBin++ ) {
-    cout << "iBin : " << iBin << endl;
     if ( ! histVect[iBin] ) {
       string dumName = StripString( inFileName );
       dumName = TString::Format( "%s_bin%d", dumName.c_str(), iBin );
@@ -427,3 +434,39 @@ void VarOverTime( string inFileName, string outFileName, bool update) {
   for ( auto hist : histVect ) delete hist;
   delete outFile;
 }
+//=====================================
+void LinkTreeBranches( TTree *inTree, TTree *outTree, map<string, double> &mapDouble, map<string, long long int > &mapLongLong ) {
+
+  TObjArray *branches = inTree->GetListOfBranches();
+  TClass *expectedClass;
+  EDataType expectedType;
+  string name;
+  for ( unsigned int iBranch = 0; iBranch < (unsigned int) branches->GetEntries(); iBranch++ ) {
+    
+    ( (TBranch*) (*branches)[iBranch])->GetExpectedType( expectedClass, expectedType );
+    name=(*branches)[iBranch]->GetName();    
+    if ( !expectedClass ) {
+      switch ( expectedType ) { //documentation at https://root.cern.ch/doc/master/TDataType_8h.html#add4d321bb9cc51030786d53d76b8b0bd
+      case 8 : {//double
+	mapDouble[name] = 0;
+	inTree->SetBranchAddress( name.c_str(), &mapDouble[name] );
+	if ( outTree ) 
+	  if ( !outTree->FindBranch( name.c_str()) ) outTree->Branch( name.c_str(), &mapDouble[name] );
+	  else outTree->SetBranchAddress( name.c_str(), &mapDouble[name] );
+	break;}
+      case 16 :
+	mapLongLong[ name ] = 0;
+	inTree->SetBranchAddress( name.c_str(), &mapLongLong[name] );
+	if ( outTree ) 
+	  if ( !outTree->FindBranch( name.c_str()) ) outTree->Branch( name.c_str(), &mapLongLong[name] );
+	  else outTree->SetBranchAddress( name.c_str(), &mapLongLong[name] );
+	break;
+      default :
+	cout << "bootstrap not planned for type : " << expectedType << endl;
+      }
+    }
+  }
+  return ;
+}
+
+

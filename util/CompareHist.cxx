@@ -63,7 +63,7 @@ int main( int argc, char* argv[] ) {
     for ( unsigned int iPlot = 0; iPlot < inputRootFile.size(); iPlot++ ) {
       for ( unsigned int iAdd = 0; iAdd < inputRootFile[iPlot].size(); iAdd ++ ) {
 	TFile inFile( inputRootFile[iPlot][iAdd].c_str() );	
-	cout << "switch : " << atoi(input.GetOption("inputType").c_str()) << endl;
+
 	switch( atoi(input.GetOption("inputType").c_str()) ) {
 	case 0 : //histograms
 	  if ( !iPlot && !iAdd ) vectHist.push_back( vector< TH1* >() );
@@ -75,7 +75,6 @@ int main( int argc, char* argv[] ) {
 	      cout << "histogram not found : " << inputObjName[iPlot][iAdd] << " in file " << inputRootFile[iPlot][iAdd] << endl;
 	      return 1 ;
 	    }
-	    cout << "setName" << endl;
 	    vectHist.front().back()->SetName( TString::Format( "%s_%d", inputObjName[iPlot][iAdd].c_str(), iPlot ) );
 	    vectHist.front().back()->SetDirectory( 0 );  
 	  }
@@ -85,13 +84,21 @@ int main( int argc, char* argv[] ) {
 
 	case 1 : {//TTree plotting
 	  vector< vector<string> > varName = input.GetVarName();
+	  //cout << "varName" << endl;
+	  //	  for ( unsigned int i=0; i<varName.size(); i++ ) cout << varName[i] << endl;
 	  vector< double > varMin  = input.GetVarMin();
 	  vector< double > varMax  = input.GetVarMax();
 	  vector< double > varVal( varName[iPlot].size(), 0 );
 	  vector< string > varWeight = input.GetVarWeight();
-	  if ( varMin.size() != varMax.size() || varName.size()<=iPlot || ( varName.size()>iPlot && varName[iPlot].size() != varMin.size() ) ) {
+
+	  if ( varName.size() == iPlot ) {
+	    vector<string> dumVect= varName.back();
+	    varName.push_back( dumVect );
+	  }
+
+	  if ( varMin.size() != varMax.size() || ( varName.size()>iPlot && varName[iPlot].size() != varMin.size() ) ) {
 	    cout << "varMin and varMax sizes matching : " << varMin.size() << " " << varMax.size() << endl;
-	    cout << "varName size and iPlot : " << varName.size() << " " << iPlot << endl;
+	    //cout << "varName size and iPlot : " << varName.size() << " " << iPlot << endl;
 	    if ( varName.size()>iPlot ) cout << "varName[iPlot].size() : "  << varName[iPlot].size() << endl;
 	    return 1;
 	  }
@@ -377,6 +384,7 @@ int main( int argc, char* argv[] ) {
 	  
 	case 7 : {
 	  if ( iAdd )  continue;
+	  cout << inputObjName[iPlot][iAdd] << endl;
 	  TMatrixD *matrix = ( TMatrixD*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
 	  if ( !matrix ) {
 	    cout << inputObjName[iPlot][iAdd].c_str() << " not found in " << inFile.GetName() << endl;
@@ -388,14 +396,18 @@ int main( int argc, char* argv[] ) {
 	  if ( !iPlot ) vectHist.push_back( vector<TH1*>() );
 	  vectHist.front().push_back(0);
 	  TString histTitle;
-	  vectHist.front().back() = new TH1D( histTitle, histTitle, nLine*nCol, 0.5, nLine*nCol+0.5 );
+	  bool doDiagonalize = ( nCol==nLine && input.GetOption( "diagonalize" ) != "" && atoi( input.GetOption( "diagonalize" ).c_str() ) );
+	  unsigned int nBins = doDiagonalize ? nLine*(nLine+1)/2 : nLine*nCol;
+	  vectHist.front().back() = new TH1D( histTitle, histTitle, nBins, 0.5, nBins+0.5 );
 	  vectHist.front().back()->SetDirectory(0);
+	  int bin =1;
 	  for ( unsigned int iLine=0; iLine<nLine; iLine++ ) {
-	    for ( unsigned int iCol=0; iCol<nCol; iCol++ ) {
-	      int bin = iLine*nCol+iCol+1;
+	    unsigned int iColMax =  doDiagonalize ? iLine+1 : nCol;
+	    for ( unsigned int iCol=0; iCol<iColMax; iCol++ ) {
 	      if ( (*matrix)(iLine, iCol) != 100 ) vectHist.front().back()->SetBinContent( bin, (*matrix)(iLine, iCol) );
 	      vectHist.front().back()->SetBinError( bin, 0 );
 	      vectHist.front().back()->GetXaxis()->SetBinLabel( bin, TString::Format( "%d_%d", iLine, iCol ) );
+	      bin++;
 	    }
 	  }
 

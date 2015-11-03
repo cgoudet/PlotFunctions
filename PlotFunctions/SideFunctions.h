@@ -7,11 +7,13 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <map>
 #include "boost/multi_array.hpp"
 using boost::multi_array;
 using boost::extents;
 #include "PlotFunctions/SideFunctionsTpp.h"
 
+using std::map;
 using std::fstream;
 using std::string;
 using std::vector;
@@ -75,7 +77,11 @@ string FindDefaultTree( TFile* inFile );
 void AddTree( TTree *treeAdd, TTree *treeAdded );
 void SaveTree( TTree *inTree, string prefix );
 
-void DiffSystematics( string inFileName, string outFileName, string outSystName, bool update=0 );
+void DiffSystematics( string inFileName, bool update=0 );
 void VarOverTime( string inFileName, string outFileName, bool update=0);
+void LinkTreeBranches( TTree *inTree, TTree *outTree, 
+		       map<string, double> &mapDouble, 
+		       map<string, long long int > &mapLongLong
+		       );
 #endif
 

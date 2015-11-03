@@ -20,7 +20,6 @@ class InputCompare
   vector< vector< string > > &GetObjName() { return m_objName; }
   vector< string > &GetLegend() { return m_legend; }
   vector< vector<string> > &GetVarName() { return m_varName; }
-  vector< double > &GetRangeUser() { return m_rangeUser; }
   vector< double > &GetVarMin() { return m_varMin; }
   vector< double > &GetVarMax() { return m_varMax; }
   vector< string > &GetLatex() { return m_latex; }
@@ -66,10 +65,6 @@ class InputCompare
      1 : latex Y
      2 : text size
    */
-
-  /**\brief display Y range for the plot
-   */
-  vector< double > m_rangeUser;
 
   /**\brief low bound for histogram X axis for TTree drawing
    */

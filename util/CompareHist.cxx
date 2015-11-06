@@ -84,17 +84,14 @@ int main( int argc, char* argv[] ) {
 
 	case 1 : {//TTree plotting
 	  vector< vector<string> > varName = input.GetVarName();
-	  //cout << "varName" << endl;
-	  //	  for ( unsigned int i=0; i<varName.size(); i++ ) cout << varName[i] << endl;
-	  vector< double > varMin  = input.GetVarMin();
-	  vector< double > varMax  = input.GetVarMax();
-	  vector< double > varVal( varName[iPlot].size(), 0 );
-	  vector< string > varWeight = input.GetVarWeight();
-
 	  if ( varName.size() == iPlot ) {
 	    vector<string> dumVect= varName.back();
 	    varName.push_back( dumVect );
 	  }
+	  vector< double > varMin  = input.GetVarMin();
+	  vector< double > varMax  = input.GetVarMax();
+	  vector< string > varWeight = input.GetVarWeight();
+	  vector< double > varVal( varName[iPlot].size(), 0 );
 
 	  if ( varMin.size() != varMax.size() || ( varName.size()>iPlot && varName[iPlot].size() != varMin.size() ) ) {
 	    cout << "varMin and varMax sizes matching : " << varMin.size() << " " << varMax.size() << endl;
@@ -110,7 +107,6 @@ int main( int argc, char* argv[] ) {
 	    cout << inputObjName[iPlot][iAdd] << " does not exist in " << inFile.GetName() << endl;
 	    exit(0);
 	  }
-	  cout << inTree->GetName() <<  endl;
 	  inTree->SetDirectory( 0 );
 
 	  if ( input.GetSelectionCut().size() ){
@@ -147,7 +143,7 @@ int main( int argc, char* argv[] ) {
 	    }// end iHist
 	  }// end iEvent
 
-	  delete inTree;
+	  delete inTree; inTree = 0;
 	  break;
 	}//end case TTree
 
@@ -413,6 +409,21 @@ int main( int argc, char* argv[] ) {
 
 	  vectHist.front().back()->LabelsOption("v" );
 	  vectHist.front().back()->GetXaxis()->SetTitle( "Line_Column" );
+	  break;
+	}
+
+	case 8 : {
+	  TH2D *inHist = (TH2D*) inFile.Get(  inputObjName[iPlot][iAdd].c_str() );
+	  if ( !inHist ) {
+	    cout << inputObjName[iPlot][iAdd] << " not found in " << inFile.GetName() << endl;
+	    exit(0);
+	  }
+	  inHist->SetDirectory(0);
+	  if ( !iAdd ) {
+	    vectHist.push_back( vector<TH1*>() );
+	    vectHist.back().push_back( (TH1*) inHist );
+	  }
+	  else vectHist.back().back()->Add( (TH1*) inHist );
 	  break;
 	}
 

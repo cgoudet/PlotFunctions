@@ -56,7 +56,7 @@ int DrawPlot( vector< TH1* > inHist,
       cout << "Option : " << option << " not known" << endl;
       //      exit(0);
     }
-    }
+  }
 
 
   if ( inLegend.size() && inLegend.size()!=inHist.size() ) {
@@ -77,7 +77,6 @@ int DrawPlot( vector< TH1* > inHist,
 
   //================ PAD DEFINITION
   TCanvas canvas;
-
   if ( inHist.size()==1 && TString(inHist.front()->ClassName()).Contains("TH2") ) {
     canvas.SetRightMargin( 0.1 );
     inHist.front()->Draw( "COLZ" );
@@ -117,6 +116,34 @@ int DrawPlot( vector< TH1* > inHist,
   //  bool isNegativeValue = false;
   for ( unsigned int iHist = 0; iHist < inHist.size(); iHist++ ) {
 
+    //Set color and style of histogram
+    //If only one histograms is plotted, plot it in red
+    inHist[iHist]->SetLineColor(  colors[ max( 0, (int) ( (inHist.size()==1 ? 1 : iHist) + mapOptionsInt["shiftColor"])) ]  );
+    inHist[iHist]->SetMarkerColor( colors[ max( 0, (int) ((inHist.size()==1 ? 1 : iHist) + mapOptionsInt["shiftColor"] ) )] );
+    inHist[iHist]->SetMarkerStyle( 8 ); 
+    inHist[iHist]->SetMarkerSize( 0.5 ); 
+
+    //If only one histograms is plotted, plot it in red
+    switch ( mapOptionsInt["drawStyle"] ) {
+    case 1 :
+      inHist[iHist]->SetLineColor( colors[ max( 0, (int) (iHist/2 +mapOptionsInt["shiftColor"] ) )] );
+      inHist[iHist]->SetMarkerColor( colors[ max( 0 , (int) (iHist/2 + mapOptionsInt["shiftColor"]) ) ] );
+      inHist[iHist]->SetMarkerStyle( (iHist%2) ? 4 : 8 ); 
+      break;
+    }
+
+    //======== CHI2 OF HISTOGRAM RATIOS
+    if ( mapOptionsInt["doChi2"] && inLegend.size() && iHist ){
+      switch ( mapOptionsInt["drawStyle"] ) {
+      case 1 : 
+	if ( iHist % 2 ) inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( inHist[iHist], inHist[iHist-1] )/inHist[iHist]->GetNbinsX() );
+	break;
+      default :
+	inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( inHist[iHist], inHist.front() )/inHist.front()->GetNbinsX() );
+      }
+    }
+    if  ( inLegend.size() ) ParseLegend( inHist[iHist], inLegend[iHist] );    
+
     if ( mapOptionsInt["normalize"] && inHist[iHist]->Integral() )  inHist[iHist]->Scale( 1./inHist[iHist]->Integral() );
 
     //============ LOOK FOR Y EXTREMAL VALUES AND DEFINE Y RANGE
@@ -140,33 +167,6 @@ int DrawPlot( vector< TH1* > inHist,
       if ( !iHist || maxX < inHist[iHist]->GetXaxis()->GetBinUpEdge( upBin ) ) maxX = inHist[iHist]->GetXaxis()->GetBinUpEdge( upBin );
     }
 
-    //Set color and style of histogram
-    //If only one histograms is plotted, plot it in red
-    inHist[iHist]->SetLineColor(  colors[ max( 0, (int) ( (inHist.size()==1 ? 1 : iHist) + mapOptionsInt["shiftColor"])) ]  );
-    inHist[iHist]->SetMarkerColor( colors[ max( 0, (int) ((inHist.size()==1 ? 1 : iHist) + mapOptionsInt["shiftColor"] ) )] );
-    inHist[iHist]->SetMarkerStyle( 8 ); 
-    inHist[iHist]->SetMarkerSize( 0.5 ); 
-
-    //If only one histograms is plotted, plot it in red
-    switch ( mapOptionsInt["drawStyle"] ) {
-    case 1 :
-      inHist[iHist]->SetLineColor( colors[ max( 0, (int) (iHist/2 +mapOptionsInt["shiftColor"] ) )] );
-      inHist[iHist]->SetMarkerColor( colors[ max( 0 , (int) (iHist/2 + mapOptionsInt["shiftColor"]) ) ] );
-      inHist[iHist]->SetMarkerStyle( (iHist%2) ? 8 : 4 ); 
-      break;
-    }
-
-    //======== CHI2 OF HISTOGRAM RATIOS
-    if ( mapOptionsInt["doChi2"] && inLegend.size() && iHist ){
-      switch ( mapOptionsInt["drawStyle"] ) {
-      case 1 : 
-	if ( iHist % 2 ) inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( inHist[iHist], inHist[iHist-1] )/inHist[iHist]->GetNbinsX() );
-	break;
-      default :
-	inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( inHist[iHist], inHist.front() )/inHist.front()->GetNbinsX() );
-      }
-    }
-    if  ( inLegend.size() ) ParseLegend( inHist[iHist], inLegend[iHist] );    
 
   }//end iHist
 

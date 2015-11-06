@@ -115,28 +115,14 @@ void RemoveExtremalEmptyBins( TH1 *hist ) {
   hist->GetXaxis()->SetRangeUser( hist->GetXaxis()->GetBinLowEdge( lowBin ), hist->GetXaxis()->GetBinUpEdge( upBin ) );
 }
 
-//===============================
-// int ParseVector( string &stringVector, vector<double> &outVector ) {
-  
-//   outVector.clear();
-  
-//   stringstream stream;
-//   stream << stringVector;  
-
-//   double value = 0;
-//   while ( stream >> value ) {
-//     outVector.push_back( value );
-//   }
-
-//   return 0;
-// }
 //========================================================
 void ParseLegend( TH1* hist, string &legend ) {
 
   TString dumString = legend;
   dumString.ReplaceAll( "__Entries", TString::Format( "%1.0f", hist->GetEntries() ) );
-  dumString.ReplaceAll( "__MEAN", TString::Format( "%1.2e", hist->GetMean() ) );
-  dumString.ReplaceAll( "__STDEV", TString::Format( "%1.2e", hist->GetStdDev() ) );
+  dumString.ReplaceAll( "__MEAN", TString::Format( "%1.3e", hist->GetMean() ) );
+  dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", hist->GetStdDev() ) );
+  dumString.ReplaceAll( "__INTEGRAL", TString::Format( "%1.3e", hist->GetSumOfWeights() ) );
   legend = dumString;
 
 }
@@ -299,6 +285,7 @@ void DiffSystematics( string inFileName, bool update ) {
     inFile->cd();
     if ( !counterSyst ) {
       baseValue = (TH1D*) inFile->Get( histName.c_str() )->Clone();
+      cout << "base Value : " << baseValue->GetBinContent(3) << endl;
       baseValue->SetDirectory(0);
       outFile->cd();
       baseValue->Write( systName.c_str(), TObject::kOverwrite );
@@ -306,6 +293,7 @@ void DiffSystematics( string inFileName, bool update ) {
       if ( !totSyst ) {
 	totSyst = (TH1D*) baseValue->Clone();
 	totSyst->Add( totSyst, -1 );
+	totSyst->SetName( outSystName.c_str() );
 	for ( int i = 1; i<totSyst->GetNbinsX()+1; i++ ) {
 	  totSyst->SetBinContent( i, fabs( totSyst->GetBinContent(i) ) );
 	  totSyst->SetBinError( i, 0 );
@@ -322,22 +310,24 @@ void DiffSystematics( string inFileName, bool update ) {
 	cout << histName << " does not exist within " << inFile->GetName() << endl;
 	exit(0);
       }
-      inHist->SetDirectory(0);
       systName = "syst_" + systName;
       inHist->SetName( systName.c_str() );
+      inHist->SetDirectory(0);
+
       inHist->SetTitle( inHist->GetName() );
+      cout << "hist : " << inHist->GetBinContent(3) << " " << baseValue->GetBinContent(3) << " ";
       inHist->Add( baseValue, -1 );
-      for ( int i = 1; i<inHist->GetNbinsX()+1; i++ ) {
-	inHist->SetBinContent( i, fabs( inHist->GetBinContent(i) ) );
-	inHist->SetBinError( i, 0 );
-      }
+      cout << inHist->GetBinContent(3) << endl;
+
       outFile->cd();
       cout << "inHist name : " << inHist->GetName() << endl;
       inHist->Write( "", TObject::kOverwrite );
 
       for ( int iBin = 1; iBin<totSyst->GetNbinsX()+1; iBin++ ) {
+	cout << "values : " << totSyst->GetBinContent(iBin) << " " << inHist->GetBinContent(iBin) << " ";
 	totSyst->SetBinContent( iBin,
 				  sqrt(totSyst->GetBinContent( iBin )*totSyst->GetBinContent( iBin ) + inHist->GetBinContent( iBin )*inHist->GetBinContent( iBin ) ) );
+	cout << totSyst->GetBinContent( iBin ) << endl;
       }
       delete inHist; inHist=0;
     }//end else
@@ -356,9 +346,7 @@ void DiffSystematics( string inFileName, bool update ) {
 }//EndDiffSystematic
 
 //===================================================
-void VarOverTime( string inFileName, string outFileName, bool update) {
-
-
+void VarOverTime( string inFileName, bool update) {
 
   fstream inStream;
   inStream.open( inFileName, fstream::in );
@@ -366,17 +354,28 @@ void VarOverTime( string inFileName, string outFileName, bool update) {
     cout << inFileName << " does not exist." << endl;
     exit(0);
   }
-  string rootFileName, histName, systName;
-  double val;
-  unsigned int counterSyst=0;
+  string rootFileName, histName, systName, outFileName, outHistName;
+  double val, valMin=-99, valMax=-99;
+  //  unsigned int counterSyst=0;
   string yaxis;
 
   vector<double> valVect;
   multi_array<double, 3> scales;
 
   while ( inStream >> rootFileName >> histName >> val ) {
+
+    if ( outFileName == "" ) {
+      outFileName = rootFileName;
+      outHistName = histName;
+      continue;
+    }
+
     unsigned int index = SearchVectorBin( val, valVect );
     if ( index == valVect.size() ) valVect.push_back( val );
+
+
+    if ( valMax == -99 || val > valMax ) valMax = val;
+    if ( valMin == -99 || valMin < valMin ) valMin = val;
 
     TFile *inFile = new TFile( rootFileName.c_str() );
     if ( !inFile ) {
@@ -408,15 +407,14 @@ void VarOverTime( string inFileName, string outFileName, bool update) {
     delete inFile;
   }// end while
 
-  
+  cout << "outFileName : " << outFileName << " " << outHistName << endl;  
   TFile *outFile = new TFile( outFileName.c_str(), update ? "UPDATE" : "RECREATE" );
   vector< TH1D *> histVect( scales.size(), 0 );
   cout << "scale size : " << scales.size() << endl;
   for ( unsigned int iBin=0; iBin<scales.size(); iBin++ ) {
     if ( ! histVect[iBin] ) {
-      string dumName = StripString( inFileName );
-      dumName = TString::Format( "%s_bin%d", dumName.c_str(), iBin );
-      histVect[iBin] = new TH1D( dumName.c_str(), dumName.c_str(), 9, 26.5, 35.5 );
+      string dumName = outHistName + string( TString::Format( "_bin%d", iBin ));
+      histVect[iBin] = new TH1D( dumName.c_str(), dumName.c_str(), ceil( valMax ) - floor( valMin ) +1, floor( valMin ) -0.5, ceil( valMax ) +0.5 );
       histVect[iBin]->GetXaxis()->SetTitle( "PT" );
       histVect[iBin]->GetYaxis()->SetTitle( yaxis.c_str() );
     }
@@ -450,16 +448,18 @@ void LinkTreeBranches( TTree *inTree, TTree *outTree, map<string, double> &mapDo
       case 8 : {//double
 	mapDouble[name] = 0;
 	inTree->SetBranchAddress( name.c_str(), &mapDouble[name] );
-	if ( outTree ) 
+	if ( outTree ) {
 	  if ( !outTree->FindBranch( name.c_str()) ) outTree->Branch( name.c_str(), &mapDouble[name] );
 	  else outTree->SetBranchAddress( name.c_str(), &mapDouble[name] );
+	}
 	break;}
       case 16 :
 	mapLongLong[ name ] = 0;
 	inTree->SetBranchAddress( name.c_str(), &mapLongLong[name] );
-	if ( outTree ) 
+	if ( outTree ) {
 	  if ( !outTree->FindBranch( name.c_str()) ) outTree->Branch( name.c_str(), &mapLongLong[name] );
 	  else outTree->SetBranchAddress( name.c_str(), &mapLongLong[name] );
+	}
 	break;
       default :
 	cout << "bootstrap not planned for type : " << expectedType << endl;

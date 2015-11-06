@@ -78,7 +78,7 @@ void AddTree( TTree *treeAdd, TTree *treeAdded );
 void SaveTree( TTree *inTree, string prefix );
 
 void DiffSystematics( string inFileName, bool update=0 );
-void VarOverTime( string inFileName, string outFileName, bool update=0);
+void VarOverTime( string inFileName, bool update=0);
 void LinkTreeBranches( TTree *inTree, TTree *outTree, 
 		       map<string, double> &mapDouble, 
 		       map<string, long long int > &mapLongLong

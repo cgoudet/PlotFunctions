@@ -30,7 +30,7 @@ class InputCompare
 
   string &GetOutName() { return m_outName; }
   string GetOption( string option ) { return m_mapOptions[option]; }
-
+  void  LoadFile( string fileName );
   vector<string> CreateVectorOptions();
  private : 
   /**\brief names of the root files
@@ -106,7 +106,7 @@ class InputCompare
      Put X for no weight
   */
   vector< string > m_varWeight;
-
+  vector< string > m_loadFiles;
   map<string,string>  m_mapOptions;
 };
 

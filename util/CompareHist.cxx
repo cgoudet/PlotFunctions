@@ -83,7 +83,7 @@ int main( int argc, char* argv[] ) {
 	  break;
 
 	case 1 : {//TTree plotting
-	  vector< vector<string> > varName = input.GetVarName();
+	  vector< vector<string> > &varName = input.GetVarName();
 	  if ( varName.size() == iPlot ) {
 	    vector<string> dumVect= varName.back();
 	    varName.push_back( dumVect );
@@ -100,21 +100,27 @@ int main( int argc, char* argv[] ) {
 	    return 1;
 	  }
 	  if ( !varWeight.size() ) varWeight = vector<string>( varName.size(), "X" );
-	  double weight = 1;
 
-	  TTree *inTree = (TTree*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
+	  double weight = 1;
+	  TTree *inTree = 0;
+	  inFile.GetObject( inputObjName[iPlot][iAdd].c_str(), inTree );
 	  if ( !inTree ) {
 	    cout << inputObjName[iPlot][iAdd] << " does not exist in " << inFile.GetName() << endl;
 	    exit(0);
 	  }
-	  inTree->SetDirectory( 0 );
+	  inTree->SetDirectory(0);
 
 	  if ( input.GetSelectionCut().size() ){
-	    TTree *dumTree = inTree;
-	    inTree = dumTree->CopyTree( input.GetSelectionCut()[iPlot].c_str() );
-	    inTree->SetDirectory(0);
-	    delete dumTree;
+	    TFile *dumFile = new TFile( "/tmp/cgoudet/dumFile", "RECREATE" );
+	    TTree* dumTree = inTree->CopyTree( input.GetSelectionCut()[iPlot].c_str() );
+	    if ( dumTree ) {
+	      delete inTree;
+	      inTree= dumTree;
+	      inTree->SetDirectory(0);
+	    }
+	    delete dumFile; dumFile=0;
 	  }
+
 	  unsigned int nEntries = (unsigned int) inTree->GetEntries();
 	  if ( varWeight[iPlot] != "X" ) inTree->SetBranchAddress( varWeight[iPlot].c_str(), &weight );
 	  for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {
@@ -436,12 +442,10 @@ int main( int argc, char* argv[] ) {
     }//end iPlot
 
     for ( unsigned int iHist = 0; iHist < vectHist.size(); iHist++ ) {
-      cout << "drawing : " << iHist << endl;
       DrawPlot( vectHist[iHist], 
 		plotPath + input.GetOutName()+ ( input.GetVarName().size() && input.GetVarName().front().size() ? "_" + input.GetVarName().front()[iHist] : "" ),
 		input.CreateVectorOptions()
 		);
-      cout << "drawn : " << iHist << endl;
     }
 
 

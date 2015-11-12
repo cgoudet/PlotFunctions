@@ -8,7 +8,8 @@ namespace po = boost::program_options;
 using std::ifstream;
 
 
-InputCompare::InputCompare() {
+InputCompare::InputCompare() 
+{
   m_mapOptions["inputType"]="";
   m_mapOptions["doRatio"]="";
   m_mapOptions["normalize"]="";
@@ -22,14 +23,24 @@ InputCompare::InputCompare() {
   m_mapOptions["rangeUserY"]="";
   m_mapOptions["line"]="";
   m_mapOptions["diagonalize"]="";
+  m_mapOptions["extendUp"]="";
 }
 
 //##################################
 InputCompare::InputCompare( string fileName ) : InputCompare()
 {
+  LoadFile( fileName );
+  string name = m_outName;
+  while( m_loadFiles.size() ) {
+    string dumName = m_loadFiles.back();
+    m_loadFiles.pop_back();
+    LoadFile( dumName );
+  }
+  m_outName=name;
+}
 
-
-
+//###########################
+void  InputCompare::LoadFile( string fileName ) {
   string inLatexPos, varMin, varMax, eventID;
   vector< string > rootFileName, objName, varName, varWeight;
 
@@ -59,7 +70,9 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
     ( "shiftColor", po::value< string >( &m_mapOptions["shiftColor"] ), "" )
     ( "line", po::value<string>( &m_mapOptions["line"] ), "" )
     ( "diagonalize", po::value<string>( &m_mapOptions["diagonalize"] ), "" )
-    ;
+    ( "loadFiles", po::value< vector<string > >( &m_loadFiles )->multitoken(), "" )
+    ( "extendUp", po::value<string>( &m_mapOptions["extendUp"] ), "" )
+      ;
   
   po::variables_map vm;
   ifstream ifs( fileName, ifstream::in );
@@ -80,9 +93,9 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
   }
 
 
-  ParseVector( eventID, m_eventID );
-  ParseVector( varMax, m_varMax );
-  ParseVector( varMin, m_varMin );
+  if ( eventID != "" ) ParseVector( eventID, m_eventID );
+  if ( varMax != "" ) ParseVector( varMax, m_varMax );
+  if ( varMin != "" ) ParseVector( varMin, m_varMin );
 
   for ( unsigned int iName = 0; iName < varName.size(); iName++ ) {
     m_varName.push_back( vector<string>() );

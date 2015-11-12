@@ -119,10 +119,18 @@ void RemoveExtremalEmptyBins( TH1 *hist ) {
 void ParseLegend( TH1* hist, string &legend ) {
 
   TString dumString = legend;
-  dumString.ReplaceAll( "__Entries", TString::Format( "%1.0f", hist->GetEntries() ) );
-  dumString.ReplaceAll( "__MEAN", TString::Format( "%1.3e", hist->GetMean() ) );
-  dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", hist->GetStdDev() ) );
-  dumString.ReplaceAll( "__INTEGRAL", TString::Format( "%1.3e", hist->GetSumOfWeights() ) );
+  if ( hist ) { 
+    dumString.ReplaceAll( "__Entries", TString::Format( "%1.0f", hist->GetEntries() ) );
+    dumString.ReplaceAll( "__MEAN", TString::Format( "%1.3e", hist->GetMean() ) );
+    dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", hist->GetStdDev() ) );
+    dumString.ReplaceAll( "__INTEGRAL", TString::Format( "%1.3e", hist->GetSumOfWeights() ) );
+  }
+  dumString.ReplaceAll( "__HASHTAG", "#" );
+  dumString.ReplaceAll( "__FILL", "" );
+  dumString.ReplaceAll("__NOPOINT", "" );
+  dumString.ReplaceAll("__ATLAS", "" );
+  dumString.ReplaceAll("ETA_CALO", "#eta_{CALO}" );
+
   legend = dumString;
 
 }

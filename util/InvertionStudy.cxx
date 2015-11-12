@@ -25,7 +25,8 @@ int main( ) {
   double inputConstantValue = 0.0062348;
   double inputConstantError = 0.001;
   unsigned int readMatrix = 1;
-  TFile inFile( "/sps/atlas/c/cgoudet/Calibration/ScaleResults/280614/1510284/DataOff_25ns_dataScaled.root" );
+  TFile inFile( "/sps/atlas/c/cgoudet/Calibration/ScaleResults/282712/DataOff_25ns_noPileup.root" );
+  inFile.ls();
   string matrixName, matrixErrName;
   switch ( inputType ) {
   case 0 : 
@@ -71,7 +72,7 @@ int main( ) {
   vector< int > fitMethod = { 0, 1, 11, 12};
   for (  unsigned int iProc = 1; iProc < legend.size(); iProc++ ) {
     if ( !iProc  )   {
-      histVect.push_back( (TH1D*) inFile.Get( "measScale_c" )->Clone() );
+      histVect.push_back( (TH1D*) inFile.Get( "inputScale_c" )->Clone() );
       histVect.back()->SetName( TString::Format( "hist_%d", (int) histVect.size() ) );
       histVect.back()->GetXaxis()->SetTitle( "#eta_{calo}" );
       histVect.back()->GetYaxis()->SetTitle( "C" );

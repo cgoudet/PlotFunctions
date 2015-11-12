@@ -94,6 +94,7 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
       }}
   
     UMatrix->Invert();
+    //    UMatrix=2*UMatrix;
     outMatrix = TMatrixD( nBins, 1);
     outErrMatrix = TMatrixD( nBins, 1);
     outMatrix = (*UMatrix) * (*bMatrix);

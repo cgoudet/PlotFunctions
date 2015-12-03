@@ -126,6 +126,7 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
     multi_array<RooConstVar*, 2> alphaErrConfig;
     RooCategory* channellist = new RooCategory("channellist","channellist");
     RooSimultaneous *combinedPdf = new RooSimultaneous("CombinedPdf","",*channellist); 
+    vector< RooGaussian*> configPdf;
     cout << "header" << endl;
     for (unsigned int iLine = 0; iLine < (unsigned int) combinMatrix.GetNrows(); iLine ++) {
       alphaBin.push_back(0);
@@ -184,8 +185,9 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
 	}// end switch inputType
 
 	//Create the model for the configuration
-	RooGaussian *configPdf = new RooGaussian( "Gauss_" + configName, "Gauss_" + configName , *alpha, *alphaConfig[iLine][iCol], *alphaErrConfig[iLine][iCol] ); 	
-	combinedPdf->addPdf( *configPdf, configName );
+	configPdf.push_back( 0 );
+	configPdf.back() = new RooGaussian( "Gauss_" + configName, "Gauss_" + configName , *alpha, *alphaConfig[iLine][iCol], *alphaErrConfig[iLine][iCol] ); 	
+	combinedPdf->addPdf( *configPdf.back(), configName );
 	//Create the dataset
 
 	RooDataSet *configData = new RooDataSet( "Data_" + configName, "Data_" + configName, *observables );
@@ -219,9 +221,23 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
 	break;
       }//end switch inversionprocedure%10
     }//end for
+
+    delete alpha;
+    delete observables;
+    for ( auto ent1 : datasetMap) delete ent1.second;
+    for ( auto bin : alphaBin ) delete bin;
+    delete channellist;
+    for(auto pdf : configPdf) delete pdf;
+    delete combinedPdf;
+    for ( unsigned int iLine = 0; iLine < alphaConfig.size(); iLine++ ) {
+      for ( unsigned int iCol = 0; iCol < alphaConfig[iLine].size(); iCol++ ) {
+    	delete alphaConfig[iLine][iCol];
+	delete alphaErrConfig[iLine][iCol];
+      }}
     break;
   }//end case 1 invettionProcedure
 
+    
   default : 
     cout << "input inversionProcedure/10 do not corresponds do any case available : " << inversionProcedure << endl;
   }//end switch inversionProcedure 

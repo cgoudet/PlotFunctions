@@ -17,8 +17,11 @@ using std::max;
 #include "PlotFunctions/AtlasUtils.h"
 #include "PlotFunctions/AtlasLabels.h"
 
+// enum EColor { kWhite =0,   kBlack =1,   kGray=920,
+//               kRed   =632, kGreen =416, kBlue=600, kYellow=400, kMagenta=616, kCyan=432,
+//               kOrange=800, kSpring=820, kTeal=840, kAzure =860, kViolet =880, kPink=900 };
 
-int colors[] = {1, 2, 4, 6, 8, 28, 46};
+int colors[] = {923, 628, 596, 414, 617, 804, 797};
 int fillColors[] = { 3, 5 };
 
 int DrawPlot( vector< TH1* > inHist,  
@@ -83,6 +86,7 @@ int DrawPlot( vector< TH1* > inHist,
   //================ PAD DEFINITION
   TCanvas canvas;
   if ( inHist.size()==1 && TString(inHist.front()->ClassName()).Contains("TH2") ) {
+    canvas.SetRightMargin(0.1);
     inHist.front()->Draw( "COLZ" );
     for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {
       if ( latexPos[iLatex].size() != 2 ) continue;
@@ -94,11 +98,11 @@ int DrawPlot( vector< TH1* > inHist,
 
   TPad padUp( "padUp", "padUp", 0, 0.3, 1, 1 );
   padUp.SetBottomMargin( 0 );
-  padUp.SetLeftMargin( 0.07 );
+  //  padUp.SetLeftMargin( 0.07 );
   TPad padDown( "padDown", "padDown", 0, 0, 1, 0.3 );
   padDown.SetTopMargin( 0 );
   padDown.SetBottomMargin( 0.2 );
-  padDown.SetLeftMargin( 0.07 );
+  //  padDown.SetLeftMargin( 0.07 );
 
   if ( mapOptionsInt["doRatio"] ) {
     padUp.Draw();

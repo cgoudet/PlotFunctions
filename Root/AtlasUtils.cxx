@@ -99,15 +99,15 @@ TGraphAsymmErrors* myTGraphErrorsDivide(TGraphAsymmErrors* g1,TGraphAsymmErrors*
   Double_t dy1h=0., dy1l=0.;
   Double_t dy2h=0., dy2l=0.;
 
-  Double_t* X1 = g1->GetX();
-  Double_t* Y1 = g1->GetY();
+  // Double_t* X1 = g1->GetX();
+  // Double_t* Y1 = g1->GetY();
   Double_t* EXhigh1 = g1->GetEXhigh();
   Double_t* EXlow1 =  g1->GetEXlow();
   Double_t* EYhigh1 = g1->GetEYhigh();
   Double_t* EYlow1 =  g1->GetEYlow();
 
-  Double_t* X2 = g2->GetX();
-  Double_t* Y2 = g2->GetY();
+  // Double_t* X2 = g2->GetX();
+  // Double_t* Y2 = g2->GetY();
   Double_t* EXhigh2 = g2->GetEXhigh();
   Double_t* EXlow2 =  g2->GetEXlow();
   Double_t* EYhigh2 = g2->GetEYhigh();
@@ -302,12 +302,12 @@ void myBoxText(Double_t x, Double_t y,Double_t boxsize,Int_t mcolor,const char *
   mbox->SetFillStyle(1001);
   mbox->Draw();
 
-  TLine mline;
-  mline.SetLineWidth(2);
-  mline.SetLineColor(1);
-  mline.SetLineStyle(1);
-  Double_t y_new=(y1+y2)/2.;
-  mline.DrawLineNDC(x1,y_new,x2,y_new);
+  // TLine mline;
+  // mline.SetLineWidth(2);
+  // mline.SetLineColor(1);
+  // mline.SetLineStyle(1);
+  // Double_t y_new=(y1+y2)/2.;
+  //  mline.DrawLineNDC(x1,y_new,x2,y_new);
 
 }
 

@@ -83,6 +83,11 @@ class InputCompare
     0 : TH1
     1 : TTree
     2 : comparison event by event
+    eventID : names of branches that identify an event
+    varName : names of the branches to compare
+    nComparedEvents : number of events to be compared
+    lengend : name of the column in csv file
+
     3 : plot text files
     4 : merging some histograms into 1 root file
     5 : separate a set of tree into two subTree according to a selection

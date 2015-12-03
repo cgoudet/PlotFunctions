@@ -25,7 +25,7 @@ int main( ) {
   double inputConstantValue = 0.0062348;
   double inputConstantError = 0.001;
   unsigned int readMatrix = 1;
-  TFile inFile( "/sps/atlas/c/cgoudet/Calibration/ScaleResults/282712/DataOff_25ns_noPileup.root" );
+  TFile inFile( "/sps/atlas/c/cgoudet/Calibration/ScaleResults/282712/Data6_25ns.root" );
   inFile.ls();
   string matrixName, matrixErrName;
   switch ( inputType ) {
@@ -62,6 +62,9 @@ int main( ) {
       
     }}
   cout << "read" << endl;
+
+  (*subErrMatrix)(1,0) = 100;
+  (*subErrMatrix)(0,1) = 100;
   TMatrixD *resultMatrix = new TMatrixD( nBins, 1);
   TMatrixD *resultErrMatrix= new TMatrixD( nBins,1);
 
@@ -70,7 +73,7 @@ int main( ) {
   vector< string > legend = { "Input", "Matrix Inversion", "Fit C", "Fit C2" };
   vector<string> options;
   vector< int > fitMethod = { 0, 1, 11, 12};
-  for (  unsigned int iProc = 1; iProc < legend.size(); iProc++ ) {
+  for (  unsigned int iProc = 2; iProc < legend.size(); iProc++ ) {
     if ( !iProc  )   {
       histVect.push_back( (TH1D*) inFile.Get( "inputScale_c" )->Clone() );
       histVect.back()->SetName( TString::Format( "hist_%d", (int) histVect.size() ) );

@@ -10,7 +10,9 @@
 #include "TClass.h"
 #include "TKey.h"
 #include "TFile.h"
+#include <memory>
 
+using std::unique_ptr;
 using std::vector;
 using std::cout;
 using std::endl;
@@ -186,6 +188,7 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents ) {
 	  cout << "bootstrap not planned for handmade classes" << endl;
 	  exit(0);
 	}
+	//	if ( expectedClass )  delete expectedClass; expectedClass=0;
       }//end iBranch
 
       unsigned int nEntries = inTrees[iTree]->GetEntries();
@@ -277,7 +280,7 @@ void DiffSystematics( string inFileName, bool update ) {
   unsigned int counterSyst=0;
 
   while ( inStream >> rootFileName >> histName >> systName ) {
-
+    if ( TString( rootFileName).Contains("#") ) continue;
     if ( !outFile ) {
       outFile = new TFile( rootFileName.c_str(), update ? "UPDATE" : "RECREATE" );
       outSystName = histName;
@@ -383,7 +386,7 @@ void VarOverTime( string inFileName, bool update) {
 
 
     if ( valMax == -99 || val > valMax ) valMax = val;
-    if ( valMin == -99 || valMin < valMin ) valMin = val;
+    if ( valMin == -99 || val < valMin ) valMin = val;
 
     TFile *inFile = new TFile( rootFileName.c_str() );
     if ( !inFile ) {
@@ -478,3 +481,4 @@ void LinkTreeBranches( TTree *inTree, TTree *outTree, map<string, double> &mapDo
 }
 
 
+//===================================

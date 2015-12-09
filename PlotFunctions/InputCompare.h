@@ -94,6 +94,9 @@ class InputCompare
     5 : separate a set of tree into two subTree according to a selection
     6 : cmopare all bins of histograms ( of the same size )  as a function of the legend (as label)
     7 : Compare TMatrixD
+    8 : TProfile
+    varName : xAxis yAxis yAxis ....
+    
   */
 
   /**\brief string of selection for tree events

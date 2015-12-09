@@ -10,6 +10,7 @@
 #include "PlotFunctions/SideFunctions.h"
 #include <TROOT.h>
 #include "TMatrixD.h"
+#include "TProfile.h"
 using std::string;
 using std::cout;
 using std::endl;
@@ -426,20 +427,86 @@ int main( int argc, char* argv[] ) {
 	  break;
 	}
 
-	case 8 : {
-	  TH2D *inHist = (TH2D*) inFile.Get(  inputObjName[iPlot][iAdd].c_str() );
-	  if ( !inHist ) {
-	    cout << inputObjName[iPlot][iAdd] << " not found in " << inFile.GetName() << endl;
+	case 8 : {//TTree into TProfile
+	  vector< vector<string> > &varName = input.GetVarName();
+	  if ( varName.size() == iPlot ) {
+	    vector<string> dumVect= varName.back();
+	    varName.push_back( dumVect );
+	  }
+	  vector< double > varMin  = input.GetVarMin();
+	  vector< double > varMax  = input.GetVarMax();
+	  vector< string > varWeight = input.GetVarWeight();
+	  vector< double > varVal( varName[iPlot].size(), 0 );
+	  vector< double > xBinning = input.GetXBinning();
+
+	  if ( !xBinning.size() && ( varMin.size() != varMax.size() || !varMin.size() ) ) {
+	    cout << "varMin and varMax sizes matching : " << varMin.size() << " " << varMax.size() << endl;
+	    if ( varName.size()>iPlot ) cout << "varName[iPlot].size() : "  << varName[iPlot].size() << endl;
+	    return 1;
+	  }
+	  if ( !varWeight.size() ) varWeight = vector<string>( varName.size(), "X" );
+
+	  double weight = 1;
+	  TTree *inTree = 0;
+	  inFile.GetObject( inputObjName[iPlot][iAdd].c_str(), inTree );
+	  if ( !inTree ) {
+	    cout << inputObjName[iPlot][iAdd] << " does not exist in " << inFile.GetName() << endl;
 	    exit(0);
 	  }
-	  inHist->SetDirectory(0);
-	  if ( !iAdd ) {
-	    vectHist.push_back( vector<TH1*>() );
-	    vectHist.back().push_back( (TH1*) inHist );
+	  //	  inTree->SetDirectory(0);
+
+	  if ( input.GetSelectionCut().size() ){
+	    //	    TFile *dumFile = new TFile( "/tmp/cgoudet/dumFile", "RECREATE" );
+	    gROOT->cd();
+	    TTree* dumTree = inTree->CopyTree( input.GetSelectionCut()[iPlot].c_str() );
+	    if ( dumTree ) {
+	      delete inTree;
+	      inTree= dumTree;
+	      inTree->SetDirectory(0);
+	    }
+	    //delete dumFile; dumFile=0;
 	  }
-	  else vectHist.back().back()->Add( (TH1*) inHist );
+
+	  unsigned int nEntries = (unsigned int) inTree->GetEntries();
+	  cout << "entries : " << nEntries << endl;
+	  if ( varWeight[iPlot] != "X" ) inTree->SetBranchAddress( varWeight[iPlot].c_str(), &weight );
+	  //	  if ( varName[iPlot].size() ) inTree->SetBranchAddress( varName[iPlot].front().c_str(), &varVal.front() );
+	  cout << "link branches" << endl;
+	  for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {
+	    for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
+	      if ( !iEvent ) {
+		cout << iPlot << " " << iHist << endl;
+		//Link tree branches to local variables
+		inTree->SetBranchAddress( varName[iPlot][iHist].c_str(), &varVal[iHist] );
+		if ( !iPlot && !iAdd )  vectHist.push_back( vector<TH1*>() );
+		if ( !iAdd )  vectHist[iHist].push_back( 0 );
+	      }
+
+	      //Read the tree entry. As we run over all plotted variables, the entry need not to be read several times
+	      if ( !iHist ) inTree->GetEntry( iEvent );
+	      if ( !vectHist[iHist][iPlot] ) {
+		//Create correspondig histogram
+		string dumName = string( TString::Format( "%s_%s_%d", input.GetObjName()[iPlot][iAdd].c_str(), varName[iPlot][iHist].c_str(), iPlot ) );
+		cout << "xBinning size : " << xBinning.size() << endl;
+		if ( !xBinning.size() ) vectHist[iHist][iPlot] = new TProfile( dumName.c_str(), dumName.c_str(), 100, varMin[iHist], varMax[iHist] );
+		else vectHist[iHist][iPlot] = new TProfile( dumName.c_str(), dumName.c_str(), (int) xBinning.size()-1, &xBinning[0] );
+		cout << vectHist[iHist][iPlot] << endl;
+		cout << vectHist[iHist][iPlot]->GetNbinsX() << endl;
+		vectHist[iHist][iPlot]->GetXaxis()->SetTitle( varName[iPlot].front().c_str() );
+		vectHist[iHist][iPlot]->GetYaxis()->SetTitle( varName[iPlot][iHist].c_str() );
+		vectHist[iHist][iPlot]->SetDirectory( 0 );
+		vectHist[iHist][iPlot]->Sumw2();
+	      }
+	      //if created fill it
+	      else {
+		((TProfile*) vectHist[iHist][iPlot])->Fill( varVal.front(), varVal[iHist], weight );
+		if ( iHist== 1 && varVal[iHist] < 50 ) cout << varVal.front() << " " << varVal[iHist] << " " << weight << endl;
+	      }
+	    }// End iHist
+	  }// end iEvent
+	  delete inTree; inTree = 0;
 	  break;
-	}
+	}//end case TProfile
 
 	default : 
 	  cout << "inputType= " << input.GetOption("inputType") << " is not known." << endl;

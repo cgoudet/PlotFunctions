@@ -41,7 +41,7 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
 
 //###########################
 void  InputCompare::LoadFile( string fileName ) {
-  string inLatexPos, varMin, varMax, eventID;
+  string inLatexPos, varMin, varMax, eventID, xBinning;
   vector< string > rootFileName, objName, varName, varWeight;
 
   po::options_description configOptions("configOptions");
@@ -72,7 +72,8 @@ void  InputCompare::LoadFile( string fileName ) {
     ( "diagonalize", po::value<string>( &m_mapOptions["diagonalize"] ), "" )
     ( "loadFiles", po::value< vector<string > >( &m_loadFiles )->multitoken(), "" )
     ( "extendUp", po::value<string>( &m_mapOptions["extendUp"] ), "" )
-      ;
+    ( "xBinning", po::value< string >( &xBinning ), "" )
+    ;
   
   po::variables_map vm;
   ifstream ifs( fileName, ifstream::in );
@@ -96,6 +97,7 @@ void  InputCompare::LoadFile( string fileName ) {
   if ( eventID != "" ) ParseVector( eventID, m_eventID );
   if ( varMax != "" ) ParseVector( varMax, m_varMax );
   if ( varMin != "" ) ParseVector( varMin, m_varMin );
+  if ( xBinning !="" ) ParseVector( xBinning, m_xBinning );
 
   for ( unsigned int iName = 0; iName < varName.size(); iName++ ) {
     m_varName.push_back( vector<string>() );

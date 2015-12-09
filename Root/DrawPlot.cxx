@@ -296,7 +296,9 @@ int DrawPlot( vector< TH1* > inHist,
 
     //Plot all the ratio plots
     ratio.front()->GetYaxis()->SetRangeUser( minValRatio - (maxValRatio-minValRatio)*0.05, maxValRatio+(maxValRatio-minValRatio)*0.05 );
-    if ( mapOptionsInt["centerZoom"] ) ratio.front()->GetXaxis()->SetRangeUser( minX, maxX );
+    if ( rangeUserX.size() == 2 ) ratio.front()->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
+    else if ( mapOptionsInt["centerZoom"] ) ratio.front()->GetXaxis()->SetRangeUser( minX, maxX );
+      //    if ( mapOptionsInt["centerZoom"] ) ratio.front()->GetXaxis()->SetRangeUser( inHist.front()->GetXaxis()->GetXmin(), inHist.front()->GetYaxis()->GetXmax() );
     for ( unsigned int iHist = 0; iHist < ratio.size(); iHist++ ) {
       ratio[iHist]->Draw( ( iHist ) ? "e,same" : "e" );
     }

@@ -122,7 +122,7 @@ void ParseLegend( TH1* hist, string &legend ) {
 
   TString dumString = legend;
   if ( hist ) { 
-    dumString.ReplaceAll( "__Entries", TString::Format( "%1.0f", hist->GetEntries() ) );
+    dumString.ReplaceAll( "__ENTRIES", TString::Format( "%1.0f", hist->GetEntries() ) );
     dumString.ReplaceAll( "__MEAN", TString::Format( "%1.3e", hist->GetMean() ) );
     dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", hist->GetStdDev() ) );
     dumString.ReplaceAll( "__INTEGRAL", TString::Format( "%1.3e", hist->GetSumOfWeights() ) );

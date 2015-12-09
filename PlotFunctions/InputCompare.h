@@ -22,6 +22,7 @@ class InputCompare
   vector< vector<string> > &GetVarName() { return m_varName; }
   vector< double > &GetVarMin() { return m_varMin; }
   vector< double > &GetVarMax() { return m_varMax; }
+  vector< double > &GetXBinning() { return m_xBinning; }
   vector< string > &GetLatex() { return m_latex; }
   vector< string > &GetSelectionCut() { return m_selectionCut;}
   vector< string > &GetEventID() { return m_eventID; }
@@ -113,6 +114,7 @@ class InputCompare
   vector< string > m_varWeight;
   vector< string > m_loadFiles;
   map<string,string>  m_mapOptions;
+  vector<double> m_xBinning;
 };
 
 #endif

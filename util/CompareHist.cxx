@@ -83,6 +83,7 @@ int main( int argc, char* argv[] ) {
 	  break;
 
 	case 1 : {//TTree plotting
+	  cout << "iPlot :" << iPlot << " " << iAdd << endl;
 	  vector< vector<string> > &varName = input.GetVarName();
 	  if ( varName.size() == iPlot ) {
 	    vector<string> dumVect= varName.back();
@@ -92,8 +93,9 @@ int main( int argc, char* argv[] ) {
 	  vector< double > varMax  = input.GetVarMax();
 	  vector< string > varWeight = input.GetVarWeight();
 	  vector< double > varVal( varName[iPlot].size(), 0 );
+	  vector< double > xBinning = input.GetXBinning();
 
-	  if ( varMin.size() != varMax.size() || ( varName.size()>iPlot && varName[iPlot].size() != varMin.size() ) ) {
+	  if ( !xBinning.size() && ( varMin.size() != varMax.size() || ( varName.size()>iPlot && varName[iPlot].size() != varMin.size() ) ) ) {
 	    cout << "varMin and varMax sizes matching : " << varMin.size() << " " << varMax.size() << endl;
 	    //cout << "varName size and iPlot : " << varName.size() << " " << iPlot << endl;
 	    if ( varName.size()>iPlot ) cout << "varName[iPlot].size() : "  << varName[iPlot].size() << endl;
@@ -108,10 +110,11 @@ int main( int argc, char* argv[] ) {
 	    cout << inputObjName[iPlot][iAdd] << " does not exist in " << inFile.GetName() << endl;
 	    exit(0);
 	  }
-	  inTree->SetDirectory(0);
+	  //	  inTree->SetDirectory(0);
 
 	  if ( input.GetSelectionCut().size() ){
 	    TFile *dumFile = new TFile( "/tmp/cgoudet/dumFile", "RECREATE" );
+	    //gROOT->cd();
 	    TTree* dumTree = inTree->CopyTree( input.GetSelectionCut()[iPlot].c_str() );
 	    if ( dumTree ) {
 	      delete inTree;
@@ -122,6 +125,7 @@ int main( int argc, char* argv[] ) {
 	  }
 
 	  unsigned int nEntries = (unsigned int) inTree->GetEntries();
+	  cout << "entries : " << nEntries << endl;
 	  if ( varWeight[iPlot] != "X" ) inTree->SetBranchAddress( varWeight[iPlot].c_str(), &weight );
 	  for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {
 	    for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
@@ -138,17 +142,21 @@ int main( int argc, char* argv[] ) {
 	      if ( !vectHist[iHist][iPlot] ) {
 		//Create correspondig histogram
 		string dumName = string( TString::Format( "%s_%s_%d", input.GetObjName()[iPlot][iAdd].c_str(), varName[iPlot][iHist].c_str(), iPlot ) );
-		vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), 100, varMin[iHist], varMax[iHist] );
+		if ( !xBinning.size() ) vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), 100, varMin[iHist], varMax[iHist] );
+		else vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), (int) xBinning.size()-1, &xBinning[0] );
+		cout << vectHist[iHist][iPlot] << endl;
+		cout << vectHist[iHist][iPlot]->GetNbinsX() << endl;
 		vectHist[iHist][iPlot]->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
 		vectHist[iHist][iPlot]->GetYaxis()->SetTitle( TString::Format( "# Events / %2.2f", (varMax[iHist]-varMin[iHist])/vectHist[iHist][iPlot]->GetNbinsX()) );
 		vectHist[iHist][iPlot]->SetDirectory( 0 );
 		vectHist[iHist][iPlot]->Sumw2();
 	      }
 	      //if created fill it
-	      else vectHist[iHist][iPlot]->Fill( varVal[iHist], weight );
-	    }// end iHist
+	      else {
+		vectHist[iHist][iPlot]->Fill( varVal[iHist], weight );
+	      }
+	    }// End iHist
 	  }// end iEvent
-
 	  delete inTree; inTree = 0;
 	  break;
 	}//end case TTree
@@ -441,6 +449,7 @@ int main( int argc, char* argv[] ) {
       }// end iAdd
     }//end iPlot
 
+    cout << "nHist : " << vectHist.size() << endl;
     for ( unsigned int iHist = 0; iHist < vectHist.size(); iHist++ ) {
       DrawPlot( vectHist[iHist], 
 		plotPath + input.GetOutName()+ ( input.GetVarName().size() && input.GetVarName().front().size() ? "_" + input.GetVarName().front()[iHist] : "" ),
@@ -483,10 +492,10 @@ int main( int argc, char* argv[] ) {
     }
 
     //cleaning vectors of pointers
-    for ( unsigned int i = 0; i < vectHist.size(); i++ ) {
-      for ( unsigned int j = 0; j < vectHist[i].size(); j++ ) {
-	if ( vectHist[i][j] ) delete vectHist[i][j];
-	vectHist[i].pop_back();
+    while ( vectHist.size() ) {
+      while ( vectHist.back().size() ) {
+	if ( vectHist.back().back() ) delete vectHist.back().back();
+	vectHist.back().pop_back();
       }
       vectHist.pop_back();
     }

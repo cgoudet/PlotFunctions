@@ -468,14 +468,11 @@ int main( int argc, char* argv[] ) {
 	  }
 
 	  unsigned int nEntries = (unsigned int) inTree->GetEntries();
-	  cout << "entries : " << nEntries << endl;
 	  if ( varWeight[iPlot] != "X" ) inTree->SetBranchAddress( varWeight[iPlot].c_str(), &weight );
 	  //	  if ( varName[iPlot].size() ) inTree->SetBranchAddress( varName[iPlot].front().c_str(), &varVal.front() );
-	  cout << "link branches" << endl;
 	  for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {
 	    for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
 	      if ( !iEvent ) {
-		cout << iPlot << " " << iHist << endl;
 		//Link tree branches to local variables
 		inTree->SetBranchAddress( varName[iPlot][iHist].c_str(), &varVal[iHist] );
 		if ( !iPlot && !iAdd )  vectHist.push_back( vector<TH1*>() );
@@ -487,15 +484,9 @@ int main( int argc, char* argv[] ) {
 	      if ( !vectHist[iHist][iPlot] ) {
 		//Create correspondig histogram
 		string dumName = string( TString::Format( "%s_%s_%d", input.GetObjName()[iPlot][iAdd].c_str(), varName[iPlot][iHist].c_str(), iPlot ) );
-		cout << "xBinning size : " << xBinning.size() << endl;
 		if ( !xBinning.size() ) vectHist[iHist][iPlot] = new TProfile( dumName.c_str(), dumName.c_str(), 100, varMin[iHist], varMax[iHist] );
 		else vectHist[iHist][iPlot] = new TProfile( dumName.c_str(), dumName.c_str(), (int) xBinning.size()-1, &xBinning[0] );
-		cout << vectHist[iHist][iPlot] << endl;
-		cout << vectHist[iHist][iPlot]->GetNbinsX() << endl;
-		vectHist[iHist][iPlot]->GetXaxis()->SetTitle( varName[iPlot].front().c_str() );
-		vectHist[iHist][iPlot]->GetYaxis()->SetTitle( varName[iPlot][iHist].c_str() );
 		vectHist[iHist][iPlot]->SetDirectory( 0 );
-		vectHist[iHist][iPlot]->Sumw2();
 	      }
 	      //if created fill it
 	      else {
@@ -504,6 +495,24 @@ int main( int argc, char* argv[] ) {
 	      }
 	    }// End iHist
 	  }// end iEvent
+
+	  if ( iAdd == inputRootFile[iPlot].size()-1 ) {
+	    for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
+	      string dumString = vectHist[iHist][iPlot]->GetName();
+	      TH1D* dumHist = new TH1D( "dumHist", "dumHist", vectHist[iHist][iPlot]->GetNbinsX(), vectHist[iHist][iPlot]->GetXaxis()->GetXbins()->GetArray() );
+	      for ( int iBin = 1; iBin <= vectHist[iHist][iPlot]->GetNbinsX(); iBin++ ) {
+		dumHist->SetBinContent( iBin, vectHist[iHist][iPlot]->GetBinContent(iBin) );
+		dumHist->SetBinError( iBin, vectHist[iHist][iPlot]->GetBinError(iBin) );
+	      }
+	      delete vectHist[iHist][iPlot];
+	      dumHist->SetName( dumString.c_str() );
+	      dumHist->SetTitle( dumString.c_str() );
+	      vectHist[iHist][iPlot] = dumHist;
+	      vectHist[iHist][iPlot]->GetXaxis()->SetTitle( varName[iPlot].front().c_str() );
+	      vectHist[iHist][iPlot]->GetYaxis()->SetTitle( varName[iPlot][iHist].c_str() );
+	      vectHist[iHist][iPlot]->SetDirectory( 0 );
+	    }
+	  }
 	  delete inTree; inTree = 0;
 	  break;
 	}//end case TProfile

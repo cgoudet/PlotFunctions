@@ -5,6 +5,7 @@
 #include "TLatex.h"
 #include "PlotFunctions/SideFunctions.h"
 #include <map>
+#include <TROOT.h>
 
 using std::map;
 using std::cout;
@@ -81,7 +82,7 @@ int DrawPlot( vector< TH1* > inHist,
   if ( inHist.size() == 1 ) mapOptionsInt["drawStyle"] = 0;
   if ( inHist.size() < 2 ) mapOptionsInt["doRatio"] = 0;
   SetAtlasStyle();
-  vector< TH1D* > ratio;
+  vector< TH1* > ratio;
 
   //================ PAD DEFINITION
   TCanvas canvas;
@@ -237,7 +238,6 @@ int DrawPlot( vector< TH1* > inHist,
     else myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetMarkerColor(), inHist[iLegend]->GetMarkerStyle(), inLegend[iLegend].c_str(), 0.5 ); 
   }
 
-  //  TLatex latex;
   for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {
     if ( latexPos[iLatex].size() != 2 ) continue;
     bool doLabel = TString( inLatex[iLatex] ).Contains("__ATLAS");
@@ -249,12 +249,10 @@ int DrawPlot( vector< TH1* > inHist,
   //===============  CREATE RATIO PLOTS
   if ( mapOptionsInt["doRatio"] ) {
     padDown.cd();
- 
     double minValRatio = 0;
     double maxValRatio = 0;
     for ( unsigned int iHist = 1; iHist < inHist.size(); iHist++ ) {
       string yTitle;
-
       //Decide how to pair histogram for ratio
       switch ( mapOptionsInt["drawStyle"] ) {
       case 1 :
@@ -267,7 +265,7 @@ int DrawPlot( vector< TH1* > inHist,
 	break;
       default : 
 	ratio.push_back( 0 );
-	ratio.back() = (TH1D*) inHist[iHist]->Clone();
+	ratio.back() = (TH1D* ) inHist[iHist]->Clone();
 	ratio.back()->Add( inHist.front(), -1 );
 	if ( mapOptionsInt["doRatio"] == 1 ) ratio.back()->Divide( inHist.front() );
 	yTitle = ( mapOptionsInt["doRatio"]==1 ) ? "#frac{h_{n}-h_{0}}{h_{0}}" : "h_{n}-h_{0}";

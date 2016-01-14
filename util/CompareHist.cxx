@@ -84,7 +84,7 @@ int main( int argc, char* argv[] ) {
 	  break;
 
 	case 1 : {//TTree plotting
-	  cout << "iPlot :" << iPlot << " " << iAdd << endl;
+	  //	  cout << iFile << " " << iPlot << endl;
 	  vector< vector<string> > &varName = input.GetVarName();
 	  if ( varName.size() == iPlot ) {
 	    vector<string> dumVect= varName.back();
@@ -103,6 +103,7 @@ int main( int argc, char* argv[] ) {
 	    return 1;
 	  }
 	  if ( !varWeight.size() ) varWeight = vector<string>( varName.size(), "X" );
+	  else if ( varWeight.size()==iPlot ) varWeight.push_back( varWeight.back() );
 
 	  double weight = 1;
 	  TTree *inTree = 0;
@@ -111,11 +112,10 @@ int main( int argc, char* argv[] ) {
 	    cout << inputObjName[iPlot][iAdd] << " does not exist in " << inFile.GetName() << endl;
 	    exit(0);
 	  }
-	  //	  inTree->SetDirectory(0);
-
+	  inTree->SetDirectory(0);
 	  if ( input.GetSelectionCut().size() ){
 	    TFile *dumFile = new TFile( "/tmp/cgoudet/dumFile", "RECREATE" );
-	    //gROOT->cd();
+	    gROOT->cd();
 	    TTree* dumTree = inTree->CopyTree( input.GetSelectionCut()[iPlot].c_str() );
 	    if ( dumTree ) {
 	      delete inTree;
@@ -126,9 +126,9 @@ int main( int argc, char* argv[] ) {
 	  }
 
 	  unsigned int nEntries = (unsigned int) inTree->GetEntries();
-	  cout << "entries : " << nEntries << endl;
 	  if ( varWeight[iPlot] != "X" ) inTree->SetBranchAddress( varWeight[iPlot].c_str(), &weight );
 	  for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {
+
 	    for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
 	      if ( !iEvent ) {
 		//Link tree branches to local variables
@@ -145,8 +145,6 @@ int main( int argc, char* argv[] ) {
 		string dumName = string( TString::Format( "%s_%s_%d", input.GetObjName()[iPlot][iAdd].c_str(), varName[iPlot][iHist].c_str(), iPlot ) );
 		if ( !xBinning.size() ) vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), 100, varMin[iHist], varMax[iHist] );
 		else vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), (int) xBinning.size()-1, &xBinning[0] );
-		cout << vectHist[iHist][iPlot] << endl;
-		cout << vectHist[iHist][iPlot]->GetNbinsX() << endl;
 		vectHist[iHist][iPlot]->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
 		vectHist[iHist][iPlot]->GetYaxis()->SetTitle( TString::Format( "# Events / %2.2f", (varMax[iHist]-varMin[iHist])/vectHist[iHist][iPlot]->GetNbinsX()) );
 		vectHist[iHist][iPlot]->SetDirectory( 0 );

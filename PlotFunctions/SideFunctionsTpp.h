@@ -1,5 +1,6 @@
 #ifndef SIDEFUNCTIONS_TPP
 #define SIDEFUNCTIONS_TPP
+#include "PlotFunctions/SideFunctions.h"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -52,5 +53,26 @@ template< typename Type1 > int ParseVector( string &stringVector, vector< Type1 
 
   return 0;
 }
+
+
+template< typename Type1 > void WriteLatexMinipage( Type1 &latexStream, vector<string> vect, unsigned int nPlotPerWidth = 0, bool putNameUnder =false ) {
+
+  if ( !vect.size() ) return;
+  if ( !nPlotPerWidth ) nPlotPerWidth = vect.size();
+
+  for ( unsigned int iPlot = 0; iPlot < vect.size(); iPlot++ ) {
+    vect[iPlot]+=".pdf";
+    latexStream << "\\begin{minipage}{" << 1./nPlotPerWidth -0.01 << "\\linewidth} " << endl;
+    latexStream << "\\includegraphics[width=\\linewidth]{" << vect[iPlot] << "}\\\\" << endl;
+    TString dum = vect[iPlot].substr( vect[iPlot].find_last_of( "/" )+1 );
+    dum = string(dum).substr( 0, string(dum).find_last_of( "." ) );
+    dum.ReplaceAll( "_", "\\_" );
+    if ( putNameUnder )   latexStream << dum  << endl;
+    latexStream << "\\end{minipage}" << endl;
+    if ( iPlot % nPlotPerWidth != nPlotPerWidth-1 ) latexStream << "\\hfill" << endl;
+
+  }
+}
+
 
 #endif

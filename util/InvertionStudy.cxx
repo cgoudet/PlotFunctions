@@ -25,8 +25,7 @@ int main( ) {
   double inputConstantValue = 0.0062348;
   double inputConstantError = 0.001;
   unsigned int readMatrix = 1;
-  TFile inFile( "/sps/atlas/c/cgoudet/Calibration/ScaleResults/282712/Data6_25ns.root" );
-  inFile.ls();
+  TFile inFile( "/sps/atlas/c/cgoudet/Calibration/ScaleResults/FinalGRL/DataOff_13TeV_25ns_dataScaled.root" );
   string matrixName, matrixErrName;
   switch ( inputType ) {
   case 0 : 
@@ -63,17 +62,16 @@ int main( ) {
     }}
   cout << "read" << endl;
 
-  (*subErrMatrix)(1,0) = 100;
-  (*subErrMatrix)(0,1) = 100;
   TMatrixD *resultMatrix = new TMatrixD( nBins, 1);
   TMatrixD *resultErrMatrix= new TMatrixD( nBins,1);
 
   vector< TH1*> histVect;
-   // vector< string > legend = { "Input", "Matrix Inversion" };
+  // vector< string > legend = { "Input", "Matrix Inversion" };
   vector< string > legend = { "Input", "Matrix Inversion", "Fit C", "Fit C2" };
   vector<string> options;
   vector< int > fitMethod = { 0, 1, 11, 12};
-  for (  unsigned int iProc = 2; iProc < legend.size(); iProc++ ) {
+  
+  for (  unsigned int iProc = 1; iProc < legend.size(); iProc++ ) {
     if ( !iProc  )   {
       histVect.push_back( (TH1D*) inFile.Get( "inputScale_c" )->Clone() );
       histVect.back()->SetName( TString::Format( "hist_%d", (int) histVect.size() ) );
@@ -89,17 +87,18 @@ int main( ) {
 	histVect.back()->SetBinContent( iBin, (*resultMatrix)(iBin-1, 0) );
 	histVect.back()->SetBinError( iBin, (*resultErrMatrix)(iBin-1, 0) );
       }
-
     }
+    
     options.push_back( "legend=" + legend[iProc] );
   }
 
 
-  options.push_back( "legendPos=0.4 0.8 0.9 0.95" );
+  options.push_back( "legendPos=0.4 0.85" );
   options.push_back( "line=0" );
   string inFileName = inFile.GetName();
   options.push_back( "latex="+StripString( inFileName ) );
-  options.push_back( "latexOpt=0.43 0.76" );
+  options.push_back( "latexOpt=0.4 0.9" );
+  options.push_back( "rangeUserY=0 0.035" );
   DrawPlot( histVect, "/sps/atlas/c/cgoudet/Plots/InversionStudy", options );
   return 0;
 }

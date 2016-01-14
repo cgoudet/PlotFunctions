@@ -30,7 +30,6 @@ int DrawPlot( vector< TH1* > inHist,
 	      vector<string> inOptions
 	       ) {
 
-
   //================ SOME CHECKS
 
   map<string, int >  mapOptionsInt;
@@ -46,13 +45,16 @@ int DrawPlot( vector< TH1* > inHist,
   vector<string> inLegend, inLatex; 
   vector< vector< double > > latexPos;
   vector< double > legendCoord, rangeUserX, rangeUserY;
-
+  map<string, string> mapOptionsString;
+  mapOptionsString["xTitle"]="";
+  mapOptionsString["yTitle"]="";
   for ( auto iOption : inOptions ) {
 
     string option = iOption.substr( 0, iOption.find_first_of('=' ) );
     string value = iOption.substr( iOption.find_first_of("=")+1);
 
     if ( mapOptionsInt.find(option) != mapOptionsInt.end() ) mapOptionsInt[option] = atoi( value.c_str() );
+    else if ( mapOptionsString.find(option) != mapOptionsString.end() ) mapOptionsString[option] = value;
     else if ( mapOptionsDouble.find(option) != mapOptionsDouble.end() ) mapOptionsDouble[option] =  (double) std::atof( value.c_str() );
     else if ( option == "legend" ) inLegend.push_back( value );
     else if ( option == "latex" ) inLatex.push_back( value );
@@ -99,11 +101,9 @@ int DrawPlot( vector< TH1* > inHist,
 
   TPad padUp( "padUp", "padUp", 0, 0.3, 1, 1 );
   padUp.SetBottomMargin( 0 );
-  //  padUp.SetLeftMargin( 0.07 );
   TPad padDown( "padDown", "padDown", 0, 0, 1, 0.3 );
   padDown.SetTopMargin( 0 );
   padDown.SetBottomMargin( 0.2 );
-  //  padDown.SetLeftMargin( 0.07 );
 
   if ( mapOptionsInt["doRatio"] ) {
     padUp.Draw();
@@ -113,10 +113,6 @@ int DrawPlot( vector< TH1* > inHist,
   }
 
   if ( !legendCoord.size() ) legendCoord={ 0.7, 0.9  };
-  // TLegend *legend = new TLegend( legendCoord[0], legendCoord[1], legendCoord[2], legendCoord[3]);
-  // legend->SetFillColorAlpha( 0, 0 );
-  // legend->SetLineColorAlpha( 0, 0 );
-  // legend->SetLineWidth(0);
 
   TLine *line = new TLine( 0, 0.005, 100, 0.005);
   line->SetLineColor( kBlack );
@@ -132,9 +128,13 @@ int DrawPlot( vector< TH1* > inHist,
 
     inHist[iHist]->UseCurrentStyle();
     if ( !iHist ) {
-      string dumString = inHist.front()->GetXaxis()->GetTitle();
-      ParseLegend( 0, dumString );
-      inHist.front()->GetXaxis()->SetTitle( dumString.c_str() );
+      if ( mapOptionsString["xTitle"]== "" ) mapOptionsString["xTitle"] = inHist.front()->GetXaxis()->GetTitle();
+      ParseLegend( 0, mapOptionsString["xTitle"] );
+      inHist.front()->GetXaxis()->SetTitle( mapOptionsString["xTitle"].c_str() );
+      if ( mapOptionsString["yTitle"]!="" ) {
+	ParseLegend( 0, mapOptionsString["yTitle"] );
+	inHist.front()->GetYaxis()->SetTitle( mapOptionsString["yTitle"].c_str() );
+      }
     }
     //Set color and style of histogram
     //If only one histograms is plotted, plot it in red
@@ -308,7 +308,6 @@ int DrawPlot( vector< TH1* > inHist,
   
 
   //========== CLEANING 
-  //  delete legend;
   delete line;
   return 0;
 }

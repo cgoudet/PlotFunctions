@@ -24,6 +24,8 @@ InputCompare::InputCompare()
   m_mapOptions["line"]="";
   m_mapOptions["diagonalize"]="";
   m_mapOptions["extendUp"]="";
+  m_mapOptions["xTitle"]="";
+  m_mapOptions["yTitle"]="";
 }
 
 //##################################
@@ -73,6 +75,8 @@ void  InputCompare::LoadFile( string fileName ) {
     ( "loadFiles", po::value< vector<string > >( &m_loadFiles )->multitoken(), "" )
     ( "extendUp", po::value<string>( &m_mapOptions["extendUp"] ), "" )
     ( "xBinning", po::value< string >( &xBinning ), "" )
+    ( "xTitle", po::value<string>( &m_mapOptions["xTitle"] ), "" )
+    ( "yTitle", po::value<string>( &m_mapOptions["yTitle"] ), "" )
     ;
   
   po::variables_map vm;

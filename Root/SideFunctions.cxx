@@ -66,23 +66,6 @@ int FindFitBestRange( TH1D *hist, int &binMin, int &binMax, double chiMinLow, do
 }
 
 //=============================================
-void WriteLatexMinipage( fstream &latexStream, vector<string> vect, unsigned int nPlotPerWidth, bool putNameUnder ) {
-
-  if ( !vect.size() ) return;
-  if ( !nPlotPerWidth ) nPlotPerWidth = vect.size();
-
-  for ( unsigned int iPlot = 0; iPlot < vect.size(); iPlot++ ) {
-    vect[iPlot]+=".pdf";
-    latexStream << "\\begin{minipage}{" << 1./nPlotPerWidth -0.01 << "\\linewidth} " << endl;
-    latexStream << "\\includegraphics[width=\\linewidth]{" << vect[iPlot] << "}\\\\" << endl;
-    TString dum = StripString( vect[iPlot] );
-    dum.ReplaceAll( "_", "\\_" );
-    if ( putNameUnder )   latexStream << dum  << endl;
-    latexStream << "\\end{minipage}" << endl;
-    if ( iPlot % nPlotPerWidth != nPlotPerWidth-1 ) latexStream << "\\hfill" << endl;
-
-    }
-  }
 
 //=============================================
 void WriteLatexHeader( fstream &latexStream, string author ) {
@@ -338,7 +321,6 @@ void DiffSystematics( string inFileName, bool update ) {
 	cout << "values : " << totSyst->GetBinContent(iBin) << " " << inHist->GetBinContent(iBin) << " ";
 	totSyst->SetBinContent( iBin,
 				  sqrt(totSyst->GetBinContent( iBin )*totSyst->GetBinContent( iBin ) + inHist->GetBinContent( iBin )*inHist->GetBinContent( iBin ) ) );
-	cout << totSyst->GetBinContent( iBin ) << endl;
       }
       delete inHist; inHist=0;
     }//end else

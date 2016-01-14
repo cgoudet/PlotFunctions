@@ -41,7 +41,7 @@ int FindFitBestRange( TH1D *hist, int &binMin, int &binMax, double chiMinLow=9, 
    \param nPlotPerWidth number of minipages per line
    \param putNameUnder Add the name of the plot below it
 */
-void WriteLatexMinipage( fstream &latexStream, vector<string> vect, unsigned int nPlotPerWidth=0, bool putNameUnder = false );
+//void WriteLatexMinipage( fstream &latexStream, vector<string> vect, unsigned int nPlotPerWidth=0, bool putNameUnder = false );
 
 /**\brief Print latex header in tex file
    \param latexStream streamer to the output file

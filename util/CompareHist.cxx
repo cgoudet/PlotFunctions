@@ -64,7 +64,7 @@ int main( int argc, char* argv[] ) {
     for ( unsigned int iPlot = 0; iPlot < inputRootFile.size(); iPlot++ ) {
       for ( unsigned int iAdd = 0; iAdd < inputRootFile[iPlot].size(); iAdd ++ ) {
 	TFile inFile( inputRootFile[iPlot][iAdd].c_str() );	
-
+	//	cout << iPlot << " " << iAdd << endl;
 	switch( atoi(input.GetOption("inputType").c_str()) ) {
 	case 0 : //histograms
 	  if ( !iPlot && !iAdd ) vectHist.push_back( vector< TH1* >() );
@@ -84,17 +84,16 @@ int main( int argc, char* argv[] ) {
 	  break;
 
 	case 1 : {//TTree plotting
-	  //	  cout << iFile << " " << iPlot << endl;
 	  vector< vector<string> > &varName = input.GetVarName();
 	  if ( varName.size() == iPlot ) {
 	    vector<string> dumVect= varName.back();
 	    varName.push_back( dumVect );
 	  }
-	  vector< double > varMin  = input.GetVarMin();
-	  vector< double > varMax  = input.GetVarMax();
-	  vector< string > varWeight = input.GetVarWeight();
+	  vector< double > &varMin  = input.GetVarMin();
+	  vector< double > &varMax  = input.GetVarMax();
+	  vector< string > &varWeight = input.GetVarWeight();
 	  vector< double > varVal( varName[iPlot].size(), 0 );
-	  vector< double > xBinning = input.GetXBinning();
+	  vector< double > &xBinning = input.GetXBinning();
 
 	  if ( !xBinning.size() && ( varMin.size() != varMax.size() || ( varName.size()>iPlot && varName[iPlot].size() != varMin.size() ) ) ) {
 	    cout << "varMin and varMax sizes matching : " << varMin.size() << " " << varMax.size() << endl;
@@ -103,8 +102,7 @@ int main( int argc, char* argv[] ) {
 	    return 1;
 	  }
 	  if ( !varWeight.size() ) varWeight = vector<string>( varName.size(), "X" );
-	  else if ( varWeight.size()==iPlot ) varWeight.push_back( varWeight.back() );
-
+	  else if ( varWeight.size()==iPlot ) varWeight.push_back( varWeight[iPlot-1] );
 	  double weight = 1;
 	  TTree *inTree = 0;
 	  inFile.GetObject( inputObjName[iPlot][iAdd].c_str(), inTree );

@@ -39,9 +39,10 @@ template< typename Type1 > unsigned int Delta( Type1 val1, Type1 val2 ) {
    \param string string to be parsed
    \param result vector
  */
-template< typename Type1 > int ParseVector( string &stringVector, vector< Type1 > &outVector ) {
+template< typename Type1 > int ParseVector( string &stringVector, vector< Type1 > &outVector, bool doClear=1 );
+template< typename Type1 > int ParseVector( string &stringVector, vector< Type1 > &outVector, bool doClear ) {
 
-  outVector.clear();
+  if ( doClear )  outVector.clear();
   
   stringstream stream;
   stream << stringVector;  

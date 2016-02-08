@@ -17,7 +17,7 @@ InputCompare::InputCompare()
   m_mapOptions["centerZoom"]="";
   m_mapOptions["drawStyle"]="";
   m_mapOptions["shiftColor"]="";
-  m_mapOptions["nComparedEvents"]="";
+  m_mapOptions["nComparedEvents"]="100";
   m_mapOptions["legendPos"]="";
   m_mapOptions["rangeUserX"]="";
   m_mapOptions["rangeUserY"]="";
@@ -26,6 +26,9 @@ InputCompare::InputCompare()
   m_mapOptions["extendUp"]="";
   m_mapOptions["xTitle"]="";
   m_mapOptions["yTitle"]="";
+  m_mapOptions["doTabular"]="0";
+  m_mapOptions["logy"]="0";
+  m_mapOptions["stack"]="0";
 }
 
 //##################################
@@ -43,9 +46,8 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
 
 //###########################
 void  InputCompare::LoadFile( string fileName ) {
-  string inLatexPos, varMin, varMax, eventID, xBinning;
-  vector< string > rootFileName, objName, varName, varWeight;
-
+  string inLatexPos, varMin, varMax, eventID;
+  vector< string > rootFileName, objName, varName, varWeight, latex, latexOpt, xBinning;
   po::options_description configOptions("configOptions");
   configOptions.add_options()
     ( "rootFileName", po::value< vector< string > >( &rootFileName )->multitoken(), "" )
@@ -62,21 +64,24 @@ void  InputCompare::LoadFile( string fileName ) {
     ( "varName", po::value< vector<string> >( &varName )->multitoken(), "" )
     ( "varMin", po::value< string >( &varMin ), "" )
     ( "varMax", po::value< string >( &varMax ), "" )
-    ( "latex", po::value< vector< string > >( &m_latex )->multitoken(), "" )
-    ( "latexOpt", po::value< vector<string> >( &m_latexOpt )->multitoken(), "")
+    ( "latex", po::value< vector< string > >( &latex )->multitoken(), "" )
+    ( "latexOpt", po::value< vector<string> >( &latexOpt )->multitoken(), "")
     ( "drawStyle", po::value< string >( &m_mapOptions["drawStyle"] ), "" )
     ( "selectionCut", po::value< vector< string > >( & m_selectionCut ), "TFormula to select tree events" )
     ( "eventID", po::value< string >( &eventID ), "" )
     ( "nComparedEvents", po::value< string >( &m_mapOptions["nComparedEvents"] ), "" )
-    ( "varWeight", po::value< vector<string> >(&m_varWeight)->multitoken(), "" )
+    ( "varWeight", po::value< vector<string> >(&varWeight)->multitoken(), "" )
     ( "shiftColor", po::value< string >( &m_mapOptions["shiftColor"] ), "" )
     ( "line", po::value<string>( &m_mapOptions["line"] ), "" )
     ( "diagonalize", po::value<string>( &m_mapOptions["diagonalize"] ), "" )
     ( "loadFiles", po::value< vector<string > >( &m_loadFiles )->multitoken(), "" )
     ( "extendUp", po::value<string>( &m_mapOptions["extendUp"] ), "" )
-    ( "xBinning", po::value< string >( &xBinning ), "" )
+    ( "xBinning", po::value< vector<string> >( &xBinning )->multitoken(), "" )
     ( "xTitle", po::value<string>( &m_mapOptions["xTitle"] ), "" )
     ( "yTitle", po::value<string>( &m_mapOptions["yTitle"] ), "" )
+    ( "doTabular", po::value<string>( &m_mapOptions["doTabular"] ), "" )
+    ( "logy", po::value<string>( &m_mapOptions["logy"] ), "" )
+    ( "stack", po::value<string>( &m_mapOptions["stack"]), "" )
     ;
   
   po::variables_map vm;
@@ -89,26 +94,52 @@ void  InputCompare::LoadFile( string fileName ) {
 
   for ( unsigned int iHist = 0; iHist < rootFileName.size(); iHist++ ) {
     m_rootFileName.push_back( vector< string >() );
-    ParseVector( rootFileName[iHist], m_rootFileName[iHist] );
+    ParseVector( rootFileName[iHist], m_rootFileName[iHist], 0 );
   }
   
   for ( unsigned int iHist = 0; iHist < objName.size(); iHist++ ) {
     m_objName.push_back( vector< string >() );
-    ParseVector( objName[iHist], m_objName[iHist] );
+    ParseVector( objName[iHist], m_objName[iHist], 0 );
   }
 
-
-  if ( eventID != "" ) ParseVector( eventID, m_eventID );
-  if ( varMax != "" ) ParseVector( varMax, m_varMax );
-  if ( varMin != "" ) ParseVector( varMin, m_varMin );
-  if ( xBinning !="" ) ParseVector( xBinning, m_xBinning );
 
   for ( unsigned int iName = 0; iName < varName.size(); iName++ ) {
     m_varName.push_back( vector<string>() );
-    ParseVector( varName[iName], m_varName.back() );
+    ParseVector( varName[iName], m_varName.back(), 0 );
   }
 
+  while ( m_varName.size() && m_varName.size() < m_rootFileName.size() ) m_varName.push_back( m_varName.back() );
 
+  for ( unsigned int iPlot = 0; iPlot < m_varName.size(); iPlot++ ) {
+    if ( m_varName.front().size() <= m_varName[iPlot].size() ) continue;
+    cout << "Missing variables for dataset " << iPlot << endl;
+    exit(0);
+  }
+
+  if ( eventID != "" ) ParseVector( eventID, m_eventID, 0 );
+  if ( varMax != "" ) {
+    ParseVector( varMax, m_varMax, 0 );
+    while ( m_varMax.size() < m_varName.front().size() ) m_varMax.push_back( m_varMax.back() );
+  }
+
+  if ( varMin != "" ) {
+    ParseVector( varMin, m_varMin, 0 );
+    while ( m_varMin.size() < m_varName.front().size() ) m_varMin.push_back( m_varMin.back() );
+  }
+
+  for ( unsigned int iPlot = 0; iPlot < xBinning.size(); iPlot++ ) {
+    m_xBinning.push_back( vector<double>() );
+    ParseVector( xBinning[iPlot], m_xBinning.back(), 0 );
+  }
+  //  while ( m_xBinning.size() && m_xBinning.size() < m_varName.front().size() ) m_xBinning.push_back( m_xBinning.back() );
+
+  for ( unsigned int iPlot = 0; iPlot < varWeight.size(); iPlot++ ) {
+    m_varWeight.push_back( vector<string>() );
+    ParseVector( varWeight[iPlot], m_varWeight.back(), 0 );
+  }
+
+  for ( auto vLatex = latex.begin(); vLatex!= latex.end(); vLatex++ ) m_latex.push_back( *vLatex );
+  for ( auto vLatexOpt = latexOpt.begin(); vLatexOpt!= latexOpt.end(); vLatexOpt++ ) m_latexOpt.push_back( *vLatexOpt );
   if ( m_latex.size() != m_latexOpt.size() ) {
     cout << "laetx names and options have different sizes" << endl;
     exit(0);
@@ -131,6 +162,7 @@ vector<string> InputCompare::CreateVectorOptions() {
 	 || it->first == "inputType" 
 	 || it->first == "nComparedEvents" 
 	 || it->first == "diagonalize" 
+	 || it->first == "doTabular" 
 	 ) continue;
     outVect.push_back( it->first +"=" + it->second );
   }

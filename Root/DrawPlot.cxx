@@ -6,6 +6,7 @@
 #include "PlotFunctions/SideFunctions.h"
 #include <map>
 #include <TROOT.h>
+#include "THStack.h"
 
 using std::map;
 using std::cout;
@@ -40,6 +41,8 @@ int DrawPlot( vector< TH1* > inHist,
   mapOptionsInt["centerZoom"]=0;
   mapOptionsInt["drawStyle"]=0;
   mapOptionsInt["line"]=-99;
+  mapOptionsInt["logy"]=-99;
+  mapOptionsInt["stack"]=-99;
   map<string, double > mapOptionsDouble;
   mapOptionsDouble["extendUp"]=0;
   vector<string> inLegend, inLatex; 
@@ -88,11 +91,12 @@ int DrawPlot( vector< TH1* > inHist,
 
   //================ PAD DEFINITION
   TCanvas canvas;
-  if ( inHist.size()==1 && TString(inHist.front()->ClassName()).Contains("TH2") ) {
+  if ( inHist.size()==1 && inHist.front() && TString(inHist.front()->ClassName()).Contains("TH2") ) {
     canvas.SetRightMargin(0.1);
     inHist.front()->Draw( "COLZ" );
     for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {
       if ( latexPos[iLatex].size() != 2 ) continue;
+
       myText( latexPos[iLatex][0], latexPos[iLatex][1], 1, inLatex[iLatex].c_str() );
     }
     canvas.SaveAs( TString(outName) + ".pdf" );
@@ -112,28 +116,32 @@ int DrawPlot( vector< TH1* > inHist,
     padUp.cd();
   }
 
+
   if ( !legendCoord.size() ) legendCoord={ 0.7, 0.9  };
 
   TLine *line = new TLine( 0, 0.005, 100, 0.005);
   line->SetLineColor( kBlack );
   line->SetLineStyle( 3 );
-
+  cout << "pass2D " << endl;
 
   //============ LOOP OTHER INPUT HIST
   //Find the extremum of the histograms to choose rangeUser if not given
   double minVal=0, maxVal=0;
   double minX=0, maxX=0;
+  THStack stack;
+  int refHist= -1;
   //  bool isNegativeValue = false;
   for ( unsigned int iHist = 0; iHist < inHist.size(); iHist++ ) {
-
+    if ( !inHist[iHist] ) continue;
+    if ( refHist == -1 ) refHist = iHist;
     inHist[iHist]->UseCurrentStyle();
     if ( !iHist ) {
-      if ( mapOptionsString["xTitle"]== "" ) mapOptionsString["xTitle"] = inHist.front()->GetXaxis()->GetTitle();
+      if ( mapOptionsString["xTitle"]== "" ) mapOptionsString["xTitle"] = inHist[refHist]->GetXaxis()->GetTitle();
       ParseLegend( 0, mapOptionsString["xTitle"] );
-      inHist.front()->GetXaxis()->SetTitle( mapOptionsString["xTitle"].c_str() );
+      inHist[refHist]->GetXaxis()->SetTitle( mapOptionsString["xTitle"].c_str() );
       if ( mapOptionsString["yTitle"]!="" ) {
 	ParseLegend( 0, mapOptionsString["yTitle"] );
-	inHist.front()->GetYaxis()->SetTitle( mapOptionsString["yTitle"].c_str() );
+	inHist[refHist]->GetYaxis()->SetTitle( mapOptionsString["yTitle"].c_str() );
       }
     }
     //Set color and style of histogram
@@ -157,7 +165,7 @@ int DrawPlot( vector< TH1* > inHist,
 	if ( iHist % 2 ) inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( inHist[iHist], inHist[iHist-1] )/inHist[iHist]->GetNbinsX() );
 	break;
       default :
-	inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( inHist[iHist], inHist.front() )/inHist.front()->GetNbinsX() );
+	inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( inHist[iHist], inHist[refHist] )/inHist[refHist]->GetNbinsX() );
       }
     }
 
@@ -166,8 +174,8 @@ int DrawPlot( vector< TH1* > inHist,
 
     //============ LOOK FOR Y EXTREMAL VALUES AND DEFINE Y RANGE
     if( !iHist ) {
-      minVal = inHist.front()->GetMinimum();
-      maxVal = inHist.front()->GetMaximum();
+      minVal = inHist[refHist]->GetMinimum();
+      maxVal = inHist[refHist]->GetMaximum();
     }
     //Update the maximum range of the plot with extremum of current plot
     for ( int bin = 1; bin <= inHist[iHist]->GetNbinsX(); bin++ ) {
@@ -185,15 +193,15 @@ int DrawPlot( vector< TH1* > inHist,
       if ( !iHist || maxX < inHist[iHist]->GetXaxis()->GetBinUpEdge( upBin ) ) maxX = inHist[iHist]->GetXaxis()->GetBinUpEdge( upBin );
     }
 
-
   }//end iHist
 
   //Plotting histograms
-  for ( unsigned int iHist = 0; iHist < inHist.size(); iHist++ ) {
-    if ( !iHist ) {
+  for ( unsigned int iHist = refHist; iHist < inHist.size(); iHist++ ) {
+    if ( !inHist[iHist] ) continue;
+    if ( (int) iHist == refHist ) {
       if (mapOptionsInt["doRatio"]) {
-	inHist.front()->GetYaxis()->SetTitleOffset( 0.6 );
-	inHist.front()->GetYaxis()->SetTitleSize( 0.06 );
+	inHist[refHist]->GetYaxis()->SetTitleOffset( 0.6 );
+	inHist[refHist]->GetYaxis()->SetTitleSize( 0.06 );
       }
 
       if ( rangeUserY.size()!=2 ) {
@@ -203,12 +211,12 @@ int DrawPlot( vector< TH1* > inHist,
       }
 
       rangeUserY.back() += (rangeUserY.back() - rangeUserY.front()) * mapOptionsDouble["extendUp"];
-      
-      inHist.front()->GetYaxis()->SetRangeUser( rangeUserY[0], rangeUserY[1] );
-      if ( rangeUserX.size() == 2 ) inHist.front()->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
-      else if ( mapOptionsInt["centerZoom"] ) inHist.front()->GetXaxis()->SetRangeUser( minX, maxX );
+      cout << "rangeUser" << endl;
+      inHist[refHist]->GetYaxis()->SetRangeUser( rangeUserY[0], rangeUserY[1] );
+      if ( rangeUserX.size() == 2 ) inHist[refHist]->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
+      else if ( mapOptionsInt["centerZoom"] ) inHist[refHist]->GetXaxis()->SetRangeUser( minX, maxX );
     }
-    string drawOpt = (iHist) ? "SAME,E" : "E";
+    string drawOpt = ( (int) iHist!= refHist) ? "SAME,E" : "E";
     if ( inLegend.size() > iHist && TString( inLegend[iHist].c_str() ).Contains( "__NOPOINT" ) ) {
       inHist[iHist]->SetLineColorAlpha( 0, 0 );
       inHist[iHist]->SetMarkerColorAlpha( 0, 0 );
@@ -221,17 +229,36 @@ int DrawPlot( vector< TH1* > inHist,
     }
 
     inHist[iHist]->Draw( drawOpt.c_str() );
+    //    stack.Add( inHist[iHist] );
     if( !iHist && mapOptionsInt["line"] != -99 ) {
-      double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : (mapOptionsInt["centerZoom"] ? minX : inHist.front()->GetXaxis()->GetXmin() );
-      double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : ( mapOptionsInt["centerZoom"] ? maxX :inHist.front()->GetXaxis()->GetXmax() );
+      double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : (mapOptionsInt["centerZoom"] ? minX : inHist[refHist]->GetXaxis()->GetXmin() );
+      double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : ( mapOptionsInt["centerZoom"] ? maxX :inHist[refHist]->GetXaxis()->GetXmax() );
       line->DrawLine( rangeMin , mapOptionsInt["line"], rangeMax, mapOptionsInt["line"]);
     }
     //========== ADD HISTOGRAM TO LEGEND
   }//end iHist
 
-  // =========== PRINT LEGENDS AND LATEX
+  //  stack.Draw( mapOptionsInt["stack"] ? "F" : "nostack"  ); 
 
+  if ( mapOptionsInt["logy"] ) {
+    int topVal = ceil( log10( maxVal ) );
+    int lowVal = minVal==0 ? topVal-5 : floor( log10( minVal ) );
+    // cout << "minVal : " << minVal << " " << maxVal << endl;
+    // cout << "lowVal : " << lowVal << " " << topVal << endl;
+    if ( rangeUserY[0] < 0 ) rangeUserY[0]=pow( 10, lowVal );
+    rangeUserY[1] = pow( 10, topVal + ( topVal - lowVal ) * (0.05 + mapOptionsDouble["extendUp"] ) );
+    inHist[refHist]->GetYaxis()->SetRangeUser( rangeUserY[0], rangeUserY[1] );    
+    if ( mapOptionsInt["doRatio"] ) {
+      padUp.SetLogy(1);
+    }
+    else {
+      canvas.SetLogy(1);
+    }
+  }
+
+  // =========== PRINT LEGENDS AND LATEX
   for ( unsigned int iLegend=0; iLegend<inLegend.size(); iLegend++ ) {
+    if ( !inHist[iLegend] ) continue;
     bool doFill = inLegend.size() > iLegend && TString( inLegend[iLegend].c_str() ).Contains( "__FILL" );
     ParseLegend( inHist[iLegend] , inLegend[iLegend] );
     if ( doFill )  myBoxText( legendCoord[0], legendCoord[1]-0.04*iLegend, 0.02, inHist[iLegend]->GetFillColor(), inLegend[iLegend].c_str() ); 
@@ -251,12 +278,13 @@ int DrawPlot( vector< TH1* > inHist,
     padDown.cd();
     double minValRatio = 0;
     double maxValRatio = 0;
-    for ( unsigned int iHist = 1; iHist < inHist.size(); iHist++ ) {
+    for ( unsigned int iHist = refHist+1; iHist < inHist.size(); iHist++ ) {
+      if ( !inHist[iHist] ) continue;
       string yTitle;
       //Decide how to pair histogram for ratio
       switch ( mapOptionsInt["drawStyle"] ) {
       case 1 :
-	if ( !(iHist % 2) ) continue;
+	if ( !(iHist % 2) || !inHist[iHist-1]) continue;
 	ratio.push_back( 0 );
 	ratio.back() = (TH1D*) inHist[iHist]->Clone();
 	ratio.back()->Add( inHist[iHist-1], -1 );
@@ -266,28 +294,28 @@ int DrawPlot( vector< TH1* > inHist,
       default : 
 	ratio.push_back( 0 );
 	ratio.back() = (TH1D* ) inHist[iHist]->Clone();
-	ratio.back()->Add( inHist.front(), -1 );
-	if ( mapOptionsInt["doRatio"] == 1 ) ratio.back()->Divide( inHist.front() );
+	ratio.back()->Add( inHist[refHist], -1 );
+	if ( mapOptionsInt["doRatio"] == 1 ) ratio.back()->Divide( inHist[refHist] );
 	yTitle = ( mapOptionsInt["doRatio"]==1 ) ? "#frac{h_{n}-h_{0}}{h_{0}}" : "h_{n}-h_{0}";
       }
 
       //Set graphics properties of first hitogram
-      if ( iHist == 1 ) {
-  	ratio.back()->GetXaxis()->SetTitle( inHist.front()->GetXaxis()->GetTitle() );
-  	ratio.back()->GetXaxis()->SetLabelSize( 0.1 );
-  	ratio.back()->GetXaxis()->SetTitleSize( 0.1 );
-  	ratio.back()->GetYaxis()->SetLabelSize( 0.05 );
-  	ratio.back()->GetYaxis()->SetTitleSize( 0.1 );
-  	ratio.back()->GetYaxis()->SetTitleOffset( 0.3 );
-  	ratio.back()->GetXaxis()->SetTitleOffset( 0.7 );
-  	ratio.back()->SetTitle("");
-        ratio.back()->GetYaxis()->SetTitle( yTitle.c_str() );
+      if ( (int) iHist == refHist+1 ) {
+  	ratio.front()->GetXaxis()->SetTitle( inHist[refHist]->GetXaxis()->GetTitle() );
+  	ratio.front()->GetXaxis()->SetLabelSize( 0.1 );
+  	ratio.front()->GetXaxis()->SetTitleSize( 0.1 );
+  	ratio.front()->GetYaxis()->SetLabelSize( 0.05 );
+  	ratio.front()->GetYaxis()->SetTitleSize( 0.1 );
+  	ratio.front()->GetYaxis()->SetTitleOffset( 0.3 );
+  	ratio.front()->GetXaxis()->SetTitleOffset( 0.7 );
+  	ratio.front()->SetTitle("");
+        ratio.front()->GetYaxis()->SetTitle( yTitle.c_str() );
       }
 
       //Update the values of Y axis range
-      for ( int bin = 1; bin <= ratio.back()->GetNbinsX(); bin++ ) {
-  	minValRatio = min( ratio.back()->GetBinContent(bin) - ratio.back()->GetBinError( bin), minValRatio );
-  	maxValRatio = max( ratio.back()->GetBinContent(bin)+ ratio.back()->GetBinError( bin ), maxValRatio );
+      for ( int bin = 1; bin <= ratio.front()->GetNbinsX(); bin++ ) {
+  	minValRatio = min( ratio.front()->GetBinContent(bin) - ratio.front()->GetBinError( bin), minValRatio );
+  	maxValRatio = max( ratio.front()->GetBinContent(bin)+ ratio.front()->GetBinError( bin ), maxValRatio );
       }
 
     }// end iHist
@@ -296,13 +324,14 @@ int DrawPlot( vector< TH1* > inHist,
     ratio.front()->GetYaxis()->SetRangeUser( minValRatio - (maxValRatio-minValRatio)*0.05, maxValRatio+(maxValRatio-minValRatio)*0.05 );
     if ( rangeUserX.size() == 2 ) ratio.front()->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
     else if ( mapOptionsInt["centerZoom"] ) ratio.front()->GetXaxis()->SetRangeUser( minX, maxX );
-      //    if ( mapOptionsInt["centerZoom"] ) ratio.front()->GetXaxis()->SetRangeUser( inHist.front()->GetXaxis()->GetXmin(), inHist.front()->GetYaxis()->GetXmax() );
+      //    if ( mapOptionsInt["centerZoom"] ) ratio.front()->GetXaxis()->SetRangeUser( inHist[refHist]->GetXaxis()->GetXmin(), inHist[refHist]->GetYaxis()->GetXmax() );
     for ( unsigned int iHist = 0; iHist < ratio.size(); iHist++ ) {
       ratio[iHist]->Draw( ( iHist ) ? "e,same" : "e" );
     }
     //Create a line at 0 to visualize deviations
     line->DrawLine( mapOptionsInt["centerZoom"] ? minX : ratio.front()->GetXaxis()->GetXmin(), 0, mapOptionsInt["centerZoom"] ? maxX :ratio.front()->GetXaxis()->GetXmax(), 0);
   }//end doRatio
+
 
   canvas.SaveAs( TString(outName) + ".pdf" );
   

@@ -22,12 +22,12 @@ class InputCompare
   vector< vector<string> > &GetVarName() { return m_varName; }
   vector< double > &GetVarMin() { return m_varMin; }
   vector< double > &GetVarMax() { return m_varMax; }
-  vector< double > &GetXBinning() { return m_xBinning; }
+  vector<vector< double >> &GetXBinning() { return m_xBinning; }
   vector< string > &GetLatex() { return m_latex; }
   vector< string > &GetSelectionCut() { return m_selectionCut;}
   vector< string > &GetEventID() { return m_eventID; }
   vector< string > &GetLatexOpt() { return m_latexOpt; }
-  vector< string > &GetVarWeight() { return m_varWeight; }
+  vector< vector<string> > &GetVarWeight() { return m_varWeight; }
 
   string &GetOutName() { return m_outName; }
   string GetOption( string option ) { return m_mapOptions[option]; }
@@ -114,10 +114,11 @@ class InputCompare
 
      Put X for no weight
   */
-  vector< string > m_varWeight;
+  vector< vector<string> > m_varWeight;
   vector< string > m_loadFiles;
   map<string,string>  m_mapOptions;
-  vector<double> m_xBinning;
+  vector<vector<double>> m_xBinning;
+  //  bool m_doTabular;
 };
 
 #endif

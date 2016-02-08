@@ -25,7 +25,7 @@ int main( ) {
   double inputConstantValue = 0.0062348;
   double inputConstantError = 0.001;
   unsigned int readMatrix = 1;
-  TFile inFile( "/sps/atlas/c/cgoudet/Calibration/ScaleResults/FinalGRL/DataOff_13TeV_25ns_dataScaled.root" );
+  TFile inFile( "/sps/atlas/c/cgoudet/Calibration/ScaleResults/FinalGRLNewPU/DataOff_13TeV_25ns_dataScaled.root" );
   string matrixName, matrixErrName;
   switch ( inputType ) {
   case 0 : 

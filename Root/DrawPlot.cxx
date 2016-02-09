@@ -19,6 +19,7 @@ using std::max;
 #include "PlotFunctions/AtlasUtils.h"
 #include "PlotFunctions/AtlasLabels.h"
 
+#define DEBUG 0
 // enum EColor { kWhite =0,   kBlack =1,   kGray=920,
 //               kRed   =632, kGreen =416, kBlue=600, kYellow=400, kMagenta=616, kCyan=432,
 //               kOrange=800, kSpring=820, kTeal=840, kAzure =860, kViolet =880, kPink=900 };
@@ -32,6 +33,7 @@ int DrawPlot( vector< TH1* > inHist,
 	       ) {
 
   //================ SOME CHECKS
+  if ( DEBUG ) cout << "DrawPlot" << endl;
 
   map<string, int >  mapOptionsInt;
   mapOptionsInt["doRatio"]=0;
@@ -87,6 +89,8 @@ int DrawPlot( vector< TH1* > inHist,
   if ( inHist.size() == 1 ) mapOptionsInt["drawStyle"] = 0;
   if ( inHist.size() < 2 ) mapOptionsInt["doRatio"] = 0;
   SetAtlasStyle();
+
+  if ( DEBUG ) cout << "Options read" << endl;
   vector< TH1* > ratio;
 
   //================ PAD DEFINITION
@@ -102,6 +106,8 @@ int DrawPlot( vector< TH1* > inHist,
     canvas.SaveAs( TString(outName) + ".pdf" );
     return 0;
   }
+
+  if ( DEBUG ) cout << "No 2D plot" << endl;
 
   TPad padUp( "padUp", "padUp", 0, 0.3, 1, 1 );
   padUp.SetBottomMargin( 0 );
@@ -122,7 +128,7 @@ int DrawPlot( vector< TH1* > inHist,
   TLine *line = new TLine( 0, 0.005, 100, 0.005);
   line->SetLineColor( kBlack );
   line->SetLineStyle( 3 );
-  cout << "pass2D " << endl;
+  if ( DEBUG ) cout << "defined pads" << endl;
 
   //============ LOOP OTHER INPUT HIST
   //Find the extremum of the histograms to choose rangeUser if not given
@@ -135,7 +141,7 @@ int DrawPlot( vector< TH1* > inHist,
     if ( !inHist[iHist] ) continue;
     if ( refHist == -1 ) refHist = iHist;
     inHist[iHist]->UseCurrentStyle();
-    if ( !iHist ) {
+    if ( (int) iHist == refHist ) {
       if ( mapOptionsString["xTitle"]== "" ) mapOptionsString["xTitle"] = inHist[refHist]->GetXaxis()->GetTitle();
       ParseLegend( 0, mapOptionsString["xTitle"] );
       inHist[refHist]->GetXaxis()->SetTitle( mapOptionsString["xTitle"].c_str() );
@@ -143,6 +149,7 @@ int DrawPlot( vector< TH1* > inHist,
 	ParseLegend( 0, mapOptionsString["yTitle"] );
 	inHist[refHist]->GetYaxis()->SetTitle( mapOptionsString["yTitle"].c_str() );
       }
+      if ( DEBUG ) cout << "titles set" << endl;
     }
     //Set color and style of histogram
     //If only one histograms is plotted, plot it in red
@@ -168,12 +175,10 @@ int DrawPlot( vector< TH1* > inHist,
 	inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( inHist[iHist], inHist[refHist] )/inHist[refHist]->GetNbinsX() );
       }
     }
-
-
     if ( mapOptionsInt["normalize"] && inHist[iHist]->Integral() )  inHist[iHist]->Scale( 1./inHist[iHist]->Integral() );
-
+    if ( DEBUG ) cout << "Style set" << endl;
     //============ LOOK FOR Y EXTREMAL VALUES AND DEFINE Y RANGE
-    if( !iHist ) {
+    if( (int) iHist == refHist ) {
       minVal = inHist[refHist]->GetMinimum();
       maxVal = inHist[refHist]->GetMaximum();
     }
@@ -183,6 +188,7 @@ int DrawPlot( vector< TH1* > inHist,
       maxVal = max( inHist[iHist]->GetBinContent( bin ) + inHist[iHist]->GetBinError( bin ), maxVal );
       //  if ( inHist[iHist]->GetBinContent( bin ) < 0 ) isNegativeValue = true;
     }
+    if ( DEBUG ) cout << "extremal Y values defined and set " << endl;
 
     //========== LOOK FOR X EXTREMAL VALUES AND DEFINE X RANGE
     int lowBin = 1, upBin = inHist[iHist]->GetNbinsX();
@@ -193,8 +199,10 @@ int DrawPlot( vector< TH1* > inHist,
       if ( !iHist || maxX < inHist[iHist]->GetXaxis()->GetBinUpEdge( upBin ) ) maxX = inHist[iHist]->GetXaxis()->GetBinUpEdge( upBin );
     }
 
+    if ( DEBUG ) cout << "X ranges defined" << endl;
   }//end iHist
 
+  if ( DEBUG ) cout << "drawing" << endl;
   //Plotting histograms
   for ( unsigned int iHist = refHist; iHist < inHist.size(); iHist++ ) {
     if ( !inHist[iHist] ) continue;
@@ -211,7 +219,6 @@ int DrawPlot( vector< TH1* > inHist,
       }
 
       rangeUserY.back() += (rangeUserY.back() - rangeUserY.front()) * mapOptionsDouble["extendUp"];
-      cout << "rangeUser" << endl;
       inHist[refHist]->GetYaxis()->SetRangeUser( rangeUserY[0], rangeUserY[1] );
       if ( rangeUserX.size() == 2 ) inHist[refHist]->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
       else if ( mapOptionsInt["centerZoom"] ) inHist[refHist]->GetXaxis()->SetRangeUser( minX, maxX );
@@ -237,7 +244,7 @@ int DrawPlot( vector< TH1* > inHist,
     }
     //========== ADD HISTOGRAM TO LEGEND
   }//end iHist
-
+  if ( DEBUG ) cout << "drawn" << endl;
   //  stack.Draw( mapOptionsInt["stack"] ? "F" : "nostack"  ); 
 
   if ( mapOptionsInt["logy"] ) {
@@ -254,6 +261,7 @@ int DrawPlot( vector< TH1* > inHist,
     else {
       canvas.SetLogy(1);
     }
+    if ( DEBUG ) cout << "logy done" << endl;
   }
 
   // =========== PRINT LEGENDS AND LATEX
@@ -264,7 +272,7 @@ int DrawPlot( vector< TH1* > inHist,
     if ( doFill )  myBoxText( legendCoord[0], legendCoord[1]-0.04*iLegend, 0.02, inHist[iLegend]->GetFillColor(), inLegend[iLegend].c_str() ); 
     else myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetMarkerColor(), inHist[iLegend]->GetMarkerStyle(), inLegend[iLegend].c_str(), 0.5 ); 
   }
-
+  if ( DEBUG )  cout << "legend drawn" << endl;
   for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {
     if ( latexPos[iLatex].size() != 2 ) continue;
     bool doLabel = TString( inLatex[iLatex] ).Contains("__ATLAS");
@@ -272,12 +280,13 @@ int DrawPlot( vector< TH1* > inHist,
     if ( doLabel ) ATLASLabel( latexPos[iLatex][0], latexPos[iLatex][1], inLatex[iLatex].c_str() );
     else myText( latexPos[iLatex][0], latexPos[iLatex][1], 1, inLatex[iLatex].c_str() );
   }
-
+  if ( DEBUG ) cout << "latex drawn" << endl;
   //===============  CREATE RATIO PLOTS
   if ( mapOptionsInt["doRatio"] ) {
     padDown.cd();
     double minValRatio = 0;
     double maxValRatio = 0;
+    bool setTitle=0;
     for ( unsigned int iHist = refHist+1; iHist < inHist.size(); iHist++ ) {
       if ( !inHist[iHist] ) continue;
       string yTitle;
@@ -298,9 +307,9 @@ int DrawPlot( vector< TH1* > inHist,
 	if ( mapOptionsInt["doRatio"] == 1 ) ratio.back()->Divide( inHist[refHist] );
 	yTitle = ( mapOptionsInt["doRatio"]==1 ) ? "#frac{h_{n}-h_{0}}{h_{0}}" : "h_{n}-h_{0}";
       }
-
+      if ( DEBUG ) cout << "ratio created" << endl;
       //Set graphics properties of first hitogram
-      if ( (int) iHist == refHist+1 ) {
+      if ( !setTitle ) {
   	ratio.front()->GetXaxis()->SetTitle( inHist[refHist]->GetXaxis()->GetTitle() );
   	ratio.front()->GetXaxis()->SetLabelSize( 0.1 );
   	ratio.front()->GetXaxis()->SetTitleSize( 0.1 );
@@ -310,16 +319,18 @@ int DrawPlot( vector< TH1* > inHist,
   	ratio.front()->GetXaxis()->SetTitleOffset( 0.7 );
   	ratio.front()->SetTitle("");
         ratio.front()->GetYaxis()->SetTitle( yTitle.c_str() );
+	setTitle = 1;
       }
-
+      if ( DEBUG ) cout << "ratio front title done" << endl;
       //Update the values of Y axis range
       for ( int bin = 1; bin <= ratio.front()->GetNbinsX(); bin++ ) {
-  	minValRatio = min( ratio.front()->GetBinContent(bin) - ratio.front()->GetBinError( bin), minValRatio );
-  	maxValRatio = max( ratio.front()->GetBinContent(bin)+ ratio.front()->GetBinError( bin ), maxValRatio );
+  	minValRatio = min( ratio.back()->GetBinContent(bin) - ratio.back()->GetBinError( bin), minValRatio );
+  	maxValRatio = max( ratio.back()->GetBinContent(bin)+ ratio.back()->GetBinError( bin ), maxValRatio );
       }
 
     }// end iHist
 
+    if ( DEBUG ) cout << "plot ratio" << endl;
     //Plot all the ratio plots
     ratio.front()->GetYaxis()->SetRangeUser( minValRatio - (maxValRatio-minValRatio)*0.05, maxValRatio+(maxValRatio-minValRatio)*0.05 );
     if ( rangeUserX.size() == 2 ) ratio.front()->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
@@ -332,7 +343,7 @@ int DrawPlot( vector< TH1* > inHist,
     line->DrawLine( mapOptionsInt["centerZoom"] ? minX : ratio.front()->GetXaxis()->GetXmin(), 0, mapOptionsInt["centerZoom"] ? maxX :ratio.front()->GetXaxis()->GetXmax(), 0);
   }//end doRatio
 
-
+  if ( DEBUG ) cout << "saving" << endl;
   canvas.SaveAs( TString(outName) + ".pdf" );
   
 

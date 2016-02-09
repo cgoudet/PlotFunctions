@@ -24,6 +24,7 @@ using boost::extents;
 
 namespace po = boost::program_options;
 
+#define DEBUG 0
 
 /**
    \param inFiles Name of the input configuration files
@@ -66,7 +67,7 @@ int main( int argc, char* argv[] ) {
   for ( unsigned int iFile = 0; iFile < inFiles.size(); iFile++ ) {
     cout << "iFile : " << iFile << " " << inFiles[iFile] << endl;
     InputCompare input( inFiles[iFile] );
-    cout << "config file loaded" << endl;
+    if ( DEBUG ) cout << "config file loaded" << endl;
     vector< vector< TH1* > > vectHist;
     multi_array< double, 2 > eventVarVect;
     multi_array< long long int, 2> eventIDVect;
@@ -78,7 +79,7 @@ int main( int argc, char* argv[] ) {
     for ( unsigned int iPlot = 0; iPlot < inputRootFile.size(); iPlot++ ) {
       for ( unsigned int iAdd = 0; iAdd < inputRootFile[iPlot].size(); iAdd ++ ) {
 	TFile inFile( inputRootFile[iPlot][iAdd].c_str() );	
-	cout << iPlot << " " << iAdd << endl;
+	if ( DEBUG ) cout << iPlot << " " << iAdd << endl;
 	switch( atoi(input.GetOption("inputType").c_str()) ) {
 	case 0 : //histograms
 	  if ( !iPlot && !iAdd ) vectHist.push_back( vector< TH1* >() );
@@ -99,7 +100,6 @@ int main( int argc, char* argv[] ) {
 	  break;
 
 	case 1 : {//TTree plotting
-	  cout << iPlot << " " << iAdd << endl;
 	  vector< vector<string> > &varName = input.GetVarName();
 	  vector< double > &varMin  = input.GetVarMin();
 	  vector< double > &varMax  = input.GetVarMax();
@@ -138,9 +138,8 @@ int main( int argc, char* argv[] ) {
 	  }
 
 	  unsigned int nEntries = (unsigned int) inTree->GetEntries();
-	  cout << "nentries : " << nEntries << endl;
 	  if ( !nEntries ) continue;
-
+	  if ( DEBUG ) cout << "nEntries : " << nEntries << endl;
 	  for ( unsigned int iWeight=0; iWeight<varWeight[iPlot].size(); iWeight++ ) {
 	    if ( varWeight[iPlot][iWeight] == "X" ) continue;
 	    weight.push_back(1);
@@ -153,9 +152,9 @@ int main( int argc, char* argv[] ) {
 	      if ( !iEvent ) {
 		//Link tree branches to local variables
 		inTree->SetBranchAddress( varName[iPlot][iHist].c_str(), &varVal[iHist] );
-		if ( !vectHist.size() )  vectHist.push_back( vector<TH1*>() );
-		while ( vectHist.back().size() <= iPlot )  vectHist[iHist].push_back( 0 );
-	      }
+		while ( vectHist.size() <= iHist )  vectHist.push_back( vector<TH1*>() );
+		while ( vectHist[iHist].size() <= iPlot )  vectHist[iHist].push_back( 0 );
+	      }// end iEvent
 	      double totWeight=1;
 	      //Read the tree entry. As we run over all plotted variables, the entry need not to be read several times
 	      if ( !iHist ) {
@@ -163,16 +162,13 @@ int main( int argc, char* argv[] ) {
 		for ( unsigned int iWeight = 0; iWeight < weight.size(); iWeight++ ) {
 		  totWeight *= weight[iWeight];
 		}
-	      }
+	      }// end if iHist
 	       
 	      if ( !vectHist[iHist][iPlot] ) {
 		//Create correspondig histogram
 		unsigned int nBins = atoi(input.GetOption("nComparedEvents").c_str());
 		string dumName = string( TString::Format( "%s_%s_%d", input.GetObjName()[iPlot][iAdd].c_str(), varName[iPlot][iHist].c_str(), iPlot ) );
-		cout << dumName << endl;
-		if ( xBinning.size() <= iHist || !xBinning[iHist].size() ) {
-		  vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), nBins, varMin[iHist], varMax[iHist] );
-		}
+		if ( xBinning.size() <= iHist || !xBinning[iHist].size() ) vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), nBins, varMin[iHist], varMax[iHist] );
 		else vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), (int) xBinning[iHist].size()-1, &xBinning[iHist][0] );
 		vectHist[iHist][iPlot]->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
 		//		vectHist[iHist][iPlot]->GetYaxis()->SetTitle( TString::Format( "# Events / %2.2f", (varMax[iHist]-varMin[iHist])/vectHist[iHist][iPlot]->GetNbinsX()) );
@@ -182,9 +178,8 @@ int main( int argc, char* argv[] ) {
 	      }
 
 	      //if created fill it
-	      cout << varVal[0]  << endl;
+	      //	      cout << varVal[0]  << endl;
 	      vectHist[iHist][iPlot]->Fill( varVal[iHist], totWeight );
-	      
 	    }// End iHist
 	  }// end iEvent
 	  delete inTree; inTree = 0;

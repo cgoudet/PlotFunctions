@@ -51,6 +51,7 @@ int main() {
   }
   WriteLatexMinipage( stream, plotNames, 2 );
   stream  << endl;
+  plotNames.clear();
   for ( unsigned int iCut = 0; iCut <= ptCuts.size(); iCut++ ) {
     for ( unsigned int iGain = 0; iGain < 3; iGain++ ) {
       plotNames.push_back( string( TString::Format( "/sps/atlas/c/cgoudet/Plots/ZMassPtCut_gain%d_pt_1%s_m12", iGain, !iCut ? "" : string( "_" + std::to_string(ptCuts[iCut-1])).c_str() ) ) );

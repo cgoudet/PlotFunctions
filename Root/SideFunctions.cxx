@@ -68,14 +68,14 @@ int FindFitBestRange( TH1D *hist, int &binMin, int &binMax, double chiMinLow, do
 //=============================================
 
 //=============================================
-void WriteLatexHeader( fstream &latexStream, string author ) {
+void WriteLatexHeader( fstream &latexStream, string title, string author ) {
 
   latexStream << "\\documentclass[a4paper,12pt]{article}" << endl;
   latexStream << "\\usepackage{graphicx}" << endl;
   latexStream << "\\usepackage{xcolor}" << endl;
   latexStream << "\\usepackage[a4paper, textwidth=0.9\\paperwidth, textheight=0.9\\paperheight]{geometry}" << endl;
   latexStream << "\\usepackage[toc]{multitoc}" << endl;
-  latexStream << "\\title{Scale Factor Extraction}" << endl;
+  latexStream << "\\title{" << title << "}" << endl;
   latexStream << "\\author{" << author << "}" << endl;
   latexStream << "\\date{\\today}" <<endl;
   latexStream << "\\begin{document}\\maketitle" << endl;

@@ -330,18 +330,21 @@ int DrawPlot( vector< TH1* > inHist,
 
     }// end iHist
 
-    if ( DEBUG ) cout << "plot ratio" << endl;
-    //Plot all the ratio plots
-    ratio.front()->GetYaxis()->SetRangeUser( minValRatio - (maxValRatio-minValRatio)*0.05, maxValRatio+(maxValRatio-minValRatio)*0.05 );
-    if ( rangeUserX.size() == 2 ) ratio.front()->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
-    else if ( mapOptionsInt["centerZoom"] ) ratio.front()->GetXaxis()->SetRangeUser( minX, maxX );
+    if ( ratio.size() ) {
+      if ( DEBUG ) cout << "ratio ranges " << endl;
+      //Plot all the ratio plots
+      ratio.front()->GetYaxis()->SetRangeUser( minValRatio - (maxValRatio-minValRatio)*0.05, maxValRatio+(maxValRatio-minValRatio)*0.05 );
+      if ( rangeUserX.size() == 2 ) ratio.front()->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
+      else if ( mapOptionsInt["centerZoom"] ) ratio.front()->GetXaxis()->SetRangeUser( minX, maxX );
       //    if ( mapOptionsInt["centerZoom"] ) ratio.front()->GetXaxis()->SetRangeUser( inHist[refHist]->GetXaxis()->GetXmin(), inHist[refHist]->GetYaxis()->GetXmax() );
-    for ( unsigned int iHist = 0; iHist < ratio.size(); iHist++ ) {
-      ratio[iHist]->Draw( ( iHist ) ? "e,same" : "e" );
+      if ( DEBUG ) cout << "plot ratio" << endl;
+      for ( unsigned int iHist = 0; iHist < ratio.size(); iHist++ ) {
+	ratio[iHist]->Draw( ( iHist ) ? "e,same" : "e" );
+      }
+      //Create a line at 0 to visualize deviations
+      line->DrawLine( mapOptionsInt["centerZoom"] ? minX : ratio.front()->GetXaxis()->GetXmin(), 0, mapOptionsInt["centerZoom"] ? maxX :ratio.front()->GetXaxis()->GetXmax(), 0);
     }
-    //Create a line at 0 to visualize deviations
-    line->DrawLine( mapOptionsInt["centerZoom"] ? minX : ratio.front()->GetXaxis()->GetXmin(), 0, mapOptionsInt["centerZoom"] ? maxX :ratio.front()->GetXaxis()->GetXmax(), 0);
-  }//end doRatio
+    }//end doRatio
 
   if ( DEBUG ) cout << "saving" << endl;
   canvas.SaveAs( TString(outName) + ".pdf" );

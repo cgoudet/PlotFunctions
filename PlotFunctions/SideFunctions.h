@@ -47,7 +47,7 @@ int FindFitBestRange( TH1D *hist, int &binMin, int &binMax, double chiMinLow=9, 
    \param latexStream streamer to the output file
    \param author text to put in author option
  */
-void WriteLatexHeader( fstream &latexStream, string author );
+void WriteLatexHeader( fstream &latexStream, string title, string author="Christophe Goudet" );
 
 /**\brief Remove suffix and prefix from a string
    \param inString string to be modified. 

@@ -138,7 +138,15 @@ int main( int argc, char* argv[] ) {
 	  }
 
 	  unsigned int nEntries = (unsigned int) inTree->GetEntries();
-	  if ( !nEntries ) continue;
+	  if ( !nEntries )  {
+	  //Make the number of legend and histogram match by adding 0 histograms (which will not be printed)
+	  if ( iPlot == inputRootFile.size() -1 ) {
+	    for ( unsigned int iHist = 0; iHist < vectHist.size(); iHist++ ) 
+	      while ( vectHist[iHist].size() < inputRootFile.size() ) vectHist[iHist].push_back( 0 );
+	  }
+	  continue;
+	  }
+
 	  if ( DEBUG ) cout << "nEntries : " << nEntries << endl;
 	  for ( unsigned int iWeight=0; iWeight<varWeight[iPlot].size(); iWeight++ ) {
 	    if ( varWeight[iPlot][iWeight] == "X" ) continue;
@@ -182,6 +190,8 @@ int main( int argc, char* argv[] ) {
 	      vectHist[iHist][iPlot]->Fill( varVal[iHist], totWeight );
 	    }// End iHist
 	  }// end iEvent
+
+
 	  delete inTree; inTree = 0;
 	  break;
 	}//end case TTree
@@ -574,7 +584,7 @@ int main( int argc, char* argv[] ) {
       }// end iAdd
     }//end iPlot
 
-    cout << "nHist : " << vectHist.size() << endl;
+    if ( DEBUG ) cout << "nHist : " << vectHist.size() << endl;
     for ( unsigned int iHist = 0; iHist < vectHist.size(); iHist++ ) {
       DrawPlot( vectHist[iHist], 
 		plotPath + input.GetOutName()+ ( input.GetVarName().size() && input.GetVarName().front().size() ? "_" + input.GetVarName().front()[iHist] : "" ),

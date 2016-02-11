@@ -43,7 +43,7 @@ int DrawPlot( vector< TH1* > inHist,
   mapOptionsInt["centerZoom"]=0;
   mapOptionsInt["drawStyle"]=0;
   mapOptionsInt["line"]=-99;
-  mapOptionsInt["logy"]=-99;
+  mapOptionsInt["logy"]=0;
   mapOptionsInt["stack"]=-99;
   map<string, double > mapOptionsDouble;
   mapOptionsDouble["extendUp"]=0;

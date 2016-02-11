@@ -62,9 +62,9 @@ template< typename Type1 > void WriteLatexMinipage( Type1 &latexStream, vector<s
   if ( !nPlotPerWidth ) nPlotPerWidth = vect.size();
 
   for ( unsigned int iPlot = 0; iPlot < vect.size(); iPlot++ ) {
-    vect[iPlot]+=".pdf";
+    //    vect[iPlot]+=".pdf";
     latexStream << "\\begin{minipage}{" << 1./nPlotPerWidth -0.01 << "\\linewidth} " << endl;
-    latexStream << "\\includegraphics[width=\\linewidth]{" << vect[iPlot] << "}\\\\" << endl;
+    if ( vect[iPlot] != "" ) latexStream << "\\includegraphics[width=\\linewidth]{" << vect[iPlot] << ".pdf}\\\\" << endl;
     TString dum = vect[iPlot].substr( vect[iPlot].find_last_of( "/" )+1 );
     dum = string(dum).substr( 0, string(dum).find_last_of( "." ) );
     dum.ReplaceAll( "_", "\\_" );

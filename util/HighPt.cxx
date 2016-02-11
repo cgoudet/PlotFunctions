@@ -25,7 +25,7 @@ int main() {
   // ParseVector( DataObjLine, DataOjName );
 
   vector<int> ptCuts = { 0, 100, 200, 300, 500 };
-  vector<string> etaCut = { "barrel", "crack", "endcap" };
+  vector<string> etaCut = { "centralBarrel", "forwardBarrel", "crack", "endcap" };
   vector<string> plotNames;
 
   string outFile = "/sps/atlas/c/cgoudet/Plots/HighPT_doc.tex";
@@ -38,7 +38,9 @@ int main() {
   plotNames.clear();
   for ( unsigned int iCut = 0; iCut <= ptCuts.size(); iCut++ ) {
     for ( unsigned int iEta = 0; iEta <= etaCut.size(); iEta++ ) {
-      plotNames.push_back( string( TString::Format( "/sps/atlas/c/cgoudet/Plots/ZMassPtCut_%spt_1%s_m12", iEta ? string( etaCut[iEta-1] + "_" ).c_str() : "" , !iCut ? "" : string( "_" + std::to_string(ptCuts[iCut-1])).c_str() ) ) );
+      string dumName = string( TString::Format( "/sps/atlas/c/cgoudet/Plots/ZMassPtCut_%spt_1%s_m12", iEta ? string( etaCut[iEta-1] + "_" ).c_str() : "" , !iCut ? "" : string( "_" + std::to_string(ptCuts[iCut-1])).c_str() ) );
+      bool isLocal = system( ("ls " + dumName + ".pdf").c_str() );    
+      plotNames.push_back( !isLocal ? dumName : ""  );
     }
   }
   WriteLatexMinipage( stream, plotNames, 2 );
@@ -47,14 +49,22 @@ int main() {
   stream << "\\section{Gain Study}" << endl;
   plotNames.clear();
   for ( unsigned int iCut = 0; iCut <= ptCuts.size(); iCut++ ) {
-    plotNames.push_back( string( TString::Format( "/sps/atlas/c/cgoudet/Plots/ZMassPtCut_gain_pt_1%s_m12", !iCut ? "" : string( "_" + std::to_string(ptCuts[iCut-1])).c_str() ) ) );
+    for ( unsigned int iEta = 0; iEta <= etaCut.size(); iEta++ ) {
+      string dumName = string( TString::Format( "/sps/atlas/c/cgoudet/Plots/ZMassPtCut_gain_%spt_1%s_m12", !iEta ? "" : string(etaCut[iEta-1] + "_").c_str(), !iCut ? "" : string( "_" + std::to_string(ptCuts[iCut-1])).c_str() ) );
+      bool isLocal = system( ("ls " + dumName + ".pdf").c_str() );    
+      plotNames.push_back( !isLocal ? dumName : "" );
+    }
   }
   WriteLatexMinipage( stream, plotNames, 2 );
   stream  << endl;
   plotNames.clear();
   for ( unsigned int iCut = 0; iCut <= ptCuts.size(); iCut++ ) {
     for ( unsigned int iGain = 0; iGain < 3; iGain++ ) {
-      plotNames.push_back( string( TString::Format( "/sps/atlas/c/cgoudet/Plots/ZMassPtCut_gain%d_pt_1%s_m12", iGain, !iCut ? "" : string( "_" + std::to_string(ptCuts[iCut-1])).c_str() ) ) );
+      for ( unsigned int iEta = 0; iEta <= etaCut.size(); iEta++ ) {
+	string dumName = string( TString::Format( "/sps/atlas/c/cgoudet/Plots/ZMassPtCut_gain%d_%spt_1%s_m12", iGain, !iEta ? "" : string(etaCut[iEta-1] + "_").c_str(), !iCut ? "" : string( "_" + std::to_string(ptCuts[iCut-1])).c_str() ) );
+	bool isLocal = system( ("ls " + dumName + ".pdf" ).c_str() );    
+	plotNames.push_back( !isLocal ? dumName : "" );
+      }
     }
   }
   WriteLatexMinipage( stream, plotNames, 3 );

@@ -143,6 +143,8 @@ int main( int argc, char* argv[] ) {
 	  if ( iPlot == inputRootFile.size() -1 ) {
 	    for ( unsigned int iHist = 0; iHist < vectHist.size(); iHist++ ) 
 	      while ( vectHist[iHist].size() < inputRootFile.size() ) vectHist[iHist].push_back( 0 );
+	    delete inTree; inTree = 0;
+	    inFile.Close( "R" );
 	  }
 	  continue;
 	  }

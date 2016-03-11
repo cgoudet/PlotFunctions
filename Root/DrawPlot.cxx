@@ -101,6 +101,15 @@ int fillColors[] = { 3, 5 };
    stack=1\n
    Stack histograms instead of superimposing them. 
    Does not work with logy yet.
+
+   Additional key woords can be put into the legend : \n
+   __MEAN is replaced with the mean of the histogram
+   __STDEV is replaced with the histogram standard deviation
+   __FILL will modify the plotting options of histogram to fill between error bars
+   __NOPOINT will make the histogram plotted without marker
+   __HASHTAG is replaced with a # otherwise comment caracter
+   __ENTRIES is replaced by the number of entries in the histo
+   __INTEGRAL is replaced by the integral
  */
 
 

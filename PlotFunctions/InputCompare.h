@@ -80,25 +80,6 @@ class InputCompare
   string m_outName ;
   vector< string > m_latexOpt;
   
-  /**\brief Type of object that will be plotted
-    0 : TH1
-    1 : TTree
-    2 : comparison event by event
-    eventID : names of branches that identify an event
-    varName : names of the branches to compare
-    nComparedEvents : number of events to be compared
-    lengend : name of the column in csv file
-
-    3 : plot text files
-    4 : merging some histograms into 1 root file
-    5 : separate a set of tree into two subTree according to a selection
-    6 : cmopare all bins of histograms ( of the same size )  as a function of the legend (as label)
-    7 : Compare TMatrixD
-    8 : TProfile
-    varName : xAxis yAxis yAxis ....
-    
-  */
-
   /**\brief string of selection for tree events
    */
   vector< string > m_selectionCut;

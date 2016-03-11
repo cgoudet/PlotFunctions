@@ -79,11 +79,11 @@ void SaveTree( TTree *inTree, string prefix );
 
 void DiffSystematics( string inFileName, unsigned int mode =0, bool update=0 );
 void VarOverTime( string inFileName, bool update=0);
-void LinkTreeBranches( TTree *inTree, TTree *outTree, 
-		       map<string, double> &mapDouble, 
-		       map<string, int> &mapInt, 
-		       map<string, long long int > &mapLongLong
-		       );
+/* void LinkTreeBranches( TTree *inTree, TTree *outTree,  */
+/* 		       map<string, double> &mapDouble,  */
+/* 		       map<string, int> &mapInt,  */
+/* 		       map<string, long long int > &mapLongLong */
+/* 		       ); */
 void RescaleStack( THStack *stack, double integral );
 #endif
 

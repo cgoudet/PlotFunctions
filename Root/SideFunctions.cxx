@@ -11,7 +11,10 @@
 #include "TKey.h"
 #include "TFile.h"
 #include <memory>
+#include "THStack.h"
+#include "TObject.h"
 
+#define DEBUG 1
 using std::unique_ptr;
 using std::vector;
 using std::cout;
@@ -114,6 +117,7 @@ void ParseLegend( TH1* hist, string &legend ) {
   dumString.ReplaceAll( "__FILL", "" );
   dumString.ReplaceAll("__NOPOINT", "" );
   dumString.ReplaceAll("__ATLAS", "" );
+  dumString.ReplaceAll("__STACK", "" );
   dumString.ReplaceAll("ETA_CALO", "#eta_{CALO}" );
 
   legend = dumString;
@@ -247,29 +251,33 @@ void SaveTree( TTree *inTree, string prefix) {
 }
 
 //================================
-void DiffSystematics( string inFileName, bool update ) {
+void DiffSystematics( string inFileName, unsigned int mode, bool update ) {
 
   TFile *outFile = 0;
   TH1D *totSyst = 0;
   TH1D* baseValue = 0;
 
+
+  //Variables to create uncertainties
   fstream inStream;
   inStream.open( inFileName, fstream::in );
   if ( !inStream.is_open() ) {
     cout << inFileName << " does not exist." << endl;
     exit(0);
   }
+
   string rootFileName, histName, systName, outSystName;
   unsigned int counterSyst=0;
-
   while ( inStream >> rootFileName >> histName >> systName ) {
+    //remove commentaries
     if ( TString( rootFileName).Contains("#") ) continue;
     if ( !outFile ) {
       outFile = new TFile( rootFileName.c_str(), update ? "UPDATE" : "RECREATE" );
       outSystName = histName;
       totSyst = (TH1D*) outFile->Get( histName.c_str() );
-      continue;
+      continue; //counterSyst remains at 0 
     }
+    unsigned int tempMode = mode;
 
     TFile *inFile = new TFile( rootFileName.c_str() );
     if ( !inFile ) {
@@ -277,57 +285,77 @@ void DiffSystematics( string inFileName, bool update ) {
       exit(0);
     }
     inFile->cd();
-    if ( !counterSyst ) {
-      baseValue = (TH1D*) inFile->Get( histName.c_str() )->Clone();
-      cout << "base Value : " << baseValue->GetBinContent(3) << endl;
-      baseValue->SetDirectory(0);
-      outFile->cd();
-      baseValue->Write( systName.c_str(), TObject::kOverwrite );
 
-      if ( !totSyst ) {
-	totSyst = (TH1D*) baseValue->Clone();
-	totSyst->Add( totSyst, -1 );
-	totSyst->SetName( outSystName.c_str() );
-	for ( int i = 1; i<totSyst->GetNbinsX()+1; i++ ) {
-	  totSyst->SetBinContent( i, fabs( totSyst->GetBinContent(i) ) );
-	  totSyst->SetBinError( i, 0 );
-	}
-	totSyst->SetName( outSystName.c_str() );
-	totSyst->SetTitle( totSyst->GetName() );
-	totSyst->SetDirectory(0);
+    if ( !counterSyst && ( tempMode/10==0 || tempMode/10==2 ) ) {
+	//Get base Value
+	baseValue = (TH1D*) inFile->Get( histName.c_str() )->Clone();
+	baseValue->SetDirectory(0);
+	outFile->cd();
+	if ( systName != "dum" ) baseValue->Write( systName.c_str(), TObject::kOverwrite );
+	if ( DEBUG ) cout << "baseValue defined : " << baseValue << endl;	
       }
-
-    }//end !counterSyst
     else {
       TH1D* inHist = (TH1D*) inFile->Get( histName.c_str() );
       if ( !inHist ) {
 	cout << histName << " does not exist within " << inFile->GetName() << endl;
 	exit(0);
       }
+
+      if ( TString( systName ).Contains( "__STAT" ) ) {
+	systName = string(TString( systName ).ReplaceAll( "__STAT", "" ));
+	for ( int iBin=1; iBin<=inHist->GetNbinsX(); iBin++ ) inHist->SetBinContent( iBin, inHist->GetBinError( iBin ) );
+	tempMode = 10 + ( mode % 10 );
+	cout << "mode : " << tempMode << endl;
+      }
+
       systName = "syst_" + systName;
       inHist->SetName( systName.c_str() );
-      inHist->SetDirectory(0);
-
       inHist->SetTitle( inHist->GetName() );
-      cout << "hist : " << inHist->GetBinContent(3) << " " << baseValue->GetBinContent(3) << " ";
-      inHist->Add( baseValue, -1 );
-      cout << inHist->GetBinContent(3) << endl;
+      inHist->SetDirectory(0);
+      if ( DEBUG ) cout << "inHist found : " << inFile->GetName() << " " << inHist->GetName() << endl;
+
+      //Create the systematic histogram to add
+      switch ( tempMode/10 ) {
+      case 0 :
+	inHist->Add( baseValue, -1 );
+	break;
+      case 2 : {
+	for ( int iBin = 1; iBin<= inHist->GetNbinsX()/2; iBin++ ) {
+	  double symDiff = ( inHist->GetBinContent(iBin) + inHist->GetBinContent( inHist->GetNbinsX() - iBin+1 ) - baseValue->GetBinContent(iBin) - baseValue->GetBinContent( baseValue->GetNbinsX() - iBin+1 ) )/2.;
+	  if ( DEBUG ) cout << "symDiff " << iBin << " : " << symDiff << " " << inHist->GetBinContent(iBin) << " " << inHist->GetBinContent( inHist->GetNbinsX() - iBin+1 ) << " "  << baseValue->GetBinContent(iBin) << " " << baseValue->GetBinContent( baseValue->GetNbinsX() - iBin+1 ) << endl;
+	  inHist->SetBinContent( iBin, symDiff );
+	  inHist->SetBinContent( inHist->GetNbinsX() - iBin+1, symDiff );
+	}
+	break;
+      }
+      }//end switch
 
       outFile->cd();
       cout << "inHist name : " << inHist->GetName() << endl;
       inHist->Write( "", TObject::kOverwrite );
 
+      if ( DEBUG ) cout << "Add systematic to the model" << endl;
+      if ( !totSyst ) totSyst = new TH1D( outSystName.c_str(), outSystName.c_str(), inHist->GetNbinsX(), inHist->GetXaxis()->GetXbins()->GetArray() );
       for ( int iBin = 1; iBin<totSyst->GetNbinsX()+1; iBin++ ) {
-	cout << "values : " << totSyst->GetBinContent(iBin) << " " << inHist->GetBinContent(iBin) << " ";
-	totSyst->SetBinContent( iBin,
+	switch( tempMode % 10 ) {
+	case 1 :
+	  totSyst->SetBinContent( iBin,
+				  totSyst->GetBinContent( iBin ) + fabs( inHist->GetBinContent( iBin ) ) );
+	  break;
+	default :
+	  totSyst->SetBinContent( iBin,
 				  sqrt(totSyst->GetBinContent( iBin )*totSyst->GetBinContent( iBin ) + inHist->GetBinContent( iBin )*inHist->GetBinContent( iBin ) ) );
-      }
+	  break;
+
+	}//end switch
+
+      }//end for
+      cout << inHist->GetBinContent(12) << " " << totSyst->GetBinContent( 12 ) << endl;
       delete inHist; inHist=0;
     }//end else
 
     outFile->cd();
-    totSyst->Write( "", TObject::kOverwrite );
-
+    if ( totSyst ) totSyst->Write( "", TObject::kOverwrite );
     delete inFile;
     counterSyst++;
   }//end while
@@ -426,7 +454,7 @@ void VarOverTime( string inFileName, bool update) {
   delete outFile;
 }
 //=====================================
-void LinkTreeBranches( TTree *inTree, TTree *outTree, map<string, double> &mapDouble, map<string, long long int > &mapLongLong ) {
+void LinkTreeBranches( TTree *inTree, TTree *outTree, map<string, double> &mapDouble,map<string, int> &mapInt, map<string, long long int > &mapLongLong ) {
 
   TObjArray *branches = inTree->GetListOfBranches();
   TClass *expectedClass;
@@ -446,6 +474,15 @@ void LinkTreeBranches( TTree *inTree, TTree *outTree, map<string, double> &mapDo
 	  else outTree->SetBranchAddress( name.c_str(), &mapDouble[name] );
 	}
 	break;}
+      case 3 : {//int
+	mapInt[name] = 0;
+	inTree->SetBranchAddress( name.c_str(), &mapInt[name] );
+	if ( outTree ) {
+	  if ( !outTree->FindBranch( name.c_str()) ) outTree->Branch( name.c_str(), &mapInt[name] );
+	  else outTree->SetBranchAddress( name.c_str(), &mapInt[name] );
+	}
+	break;}
+
       case 16 :
 	mapLongLong[ name ] = 0;
 	inTree->SetBranchAddress( name.c_str(), &mapLongLong[name] );
@@ -464,3 +501,20 @@ void LinkTreeBranches( TTree *inTree, TTree *outTree, map<string, double> &mapDo
 
 
 //===================================
+void RescaleStack( THStack *stack, double integral ) {
+  TIter iter(stack->GetHists());
+  TH1 *hist = 0;
+  double totIntegral=0;
+  while ( hist ) {
+    cout << "integral : " << hist->Integral() << endl;
+    totIntegral += hist->Integral();
+    hist = (TH1*) iter.Next();
+  }
+  cout << "totIntegral : " << totIntegral << endl;
+  iter.Reset();
+  while ( (hist = (TH1*) iter.Next()) ) {
+    hist->Scale( 1./totIntegral * integral );
+    hist = (TH1*) iter.Next();
+  }
+
+}

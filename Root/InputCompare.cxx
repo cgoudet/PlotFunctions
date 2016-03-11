@@ -10,25 +10,6 @@ using std::ifstream;
 
 InputCompare::InputCompare() 
 {
-  m_mapOptions["inputType"]="";
-  m_mapOptions["doRatio"]="";
-  m_mapOptions["normalize"]="";
-  m_mapOptions["doChi2"]="";
-  m_mapOptions["centerZoom"]="";
-  m_mapOptions["drawStyle"]="";
-  m_mapOptions["shiftColor"]="";
-  m_mapOptions["nComparedEvents"]="100";
-  m_mapOptions["legendPos"]="";
-  m_mapOptions["rangeUserX"]="";
-  m_mapOptions["rangeUserY"]="";
-  m_mapOptions["line"]="";
-  m_mapOptions["diagonalize"]="";
-  m_mapOptions["extendUp"]="";
-  m_mapOptions["xTitle"]="";
-  m_mapOptions["yTitle"]="";
-  m_mapOptions["doTabular"]="0";
-  m_mapOptions["logy"]="0";
-  m_mapOptions["stack"]="0";
 }
 
 //##################################
@@ -37,11 +18,12 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
   LoadFile( fileName );
   string name = m_outName;
   while( m_loadFiles.size() ) {
-    string dumName = m_loadFiles.back();
-    m_loadFiles.pop_back();
+    string dumName = m_loadFiles.front();
+    m_loadFiles.erase( m_loadFiles.begin() );
     LoadFile( dumName );
   }
-  m_outName=name;
+    m_outName=name;
+    cout << "rootFileName : " << m_rootFileName.size() << endl;
 }
 
 //###########################
@@ -69,7 +51,7 @@ void  InputCompare::LoadFile( string fileName ) {
     ( "drawStyle", po::value< string >( &m_mapOptions["drawStyle"] ), "" )
     ( "selectionCut", po::value< vector< string > >( & m_selectionCut ), "TFormula to select tree events" )
     ( "eventID", po::value< string >( &eventID ), "" )
-    ( "nComparedEvents", po::value< string >( &m_mapOptions["nComparedEvents"] ), "" )
+    ( "nComparedEvents", po::value< string >( &m_mapOptions["nComparedEvents"] )->default_value("100"), "" )
     ( "varWeight", po::value< vector<string> >(&varWeight)->multitoken(), "" )
     ( "shiftColor", po::value< string >( &m_mapOptions["shiftColor"] ), "" )
     ( "line", po::value<string>( &m_mapOptions["line"] ), "" )
@@ -82,6 +64,7 @@ void  InputCompare::LoadFile( string fileName ) {
     ( "doTabular", po::value<string>( &m_mapOptions["doTabular"] ), "" )
     ( "logy", po::value<string>( &m_mapOptions["logy"] ), "" )
     ( "stack", po::value<string>( &m_mapOptions["stack"]), "" )
+    ( "removeVal", po::value<string>( &m_mapOptions["removeVal"] ), "" )
     ;
   
   po::variables_map vm;
@@ -90,16 +73,16 @@ void  InputCompare::LoadFile( string fileName ) {
   po::notify( vm );
 
   m_outName = StripString( fileName );
-
+  
 
   for ( unsigned int iHist = 0; iHist < rootFileName.size(); iHist++ ) {
     m_rootFileName.push_back( vector< string >() );
-    ParseVector( rootFileName[iHist], m_rootFileName[iHist], 0 );
+    ParseVector( rootFileName[iHist], m_rootFileName.back(), 0 );
   }
   
   for ( unsigned int iHist = 0; iHist < objName.size(); iHist++ ) {
     m_objName.push_back( vector< string >() );
-    ParseVector( objName[iHist], m_objName[iHist], 0 );
+    ParseVector( objName[iHist], m_objName.back(), 0 );
   }
 
 

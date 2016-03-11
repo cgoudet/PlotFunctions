@@ -24,7 +24,7 @@ using boost::extents;
 
 namespace po = boost::program_options;
 
-#define DEBUG 0
+#define DEBUG 1
 
 /**
    \param inFiles Name of the input configuration files
@@ -78,10 +78,15 @@ int main( int argc, char* argv[] ) {
 
     for ( unsigned int iPlot = 0; iPlot < inputRootFile.size(); iPlot++ ) {
       for ( unsigned int iAdd = 0; iAdd < inputRootFile[iPlot].size(); iAdd ++ ) {
+	string dumString = inputRootFile[iPlot][iAdd];
+	
+	if ( !TString( inputRootFile[iPlot][iAdd] ).Contains( ".root" ) )
+	  cout << system( ("ls " + dumString).c_str() ) << endl;
+
 	TFile inFile( inputRootFile[iPlot][iAdd].c_str() );	
 	if ( DEBUG ) cout << iPlot << " " << iAdd << endl;
 	switch( atoi(input.GetOption("inputType").c_str()) ) {
-	case 0 : //histograms
+	case 0 : {//histograms
 	  if ( !iPlot && !iAdd ) vectHist.push_back( vector< TH1* >() );
 	  if ( !iAdd ) vectHist.back().push_back( 0 );
 	  if ( !vectHist.back().back() ) {
@@ -91,14 +96,14 @@ int main( int argc, char* argv[] ) {
 	      cout << "histogram not found : " << inputObjName[iPlot][iAdd] << " in file " << inputRootFile[iPlot][iAdd] << endl;
 	      return 1 ;
 	    }
-	    cout << "vectHist :" << vectHist.front().back() << endl;
 	    vectHist.front().back()->SetName( TString::Format( "%s_%d", inputObjName[iPlot][iAdd].c_str(), iPlot ) );
 	    vectHist.front().back()->SetDirectory( 0 );  
 	  }
 	  //If the histogram have already been created, we have to add the new one.
 	  else vectHist.front().back()->Add( (TH1D*) inFile.Get( inputObjName[iPlot][iAdd].c_str() ) );
-	  break;
 
+	  break;
+	}
 	case 1 : {//TTree plotting
 	  vector< vector<string> > &varName = input.GetVarName();
 	  vector< double > &varMin  = input.GetVarMin();
@@ -156,39 +161,39 @@ int main( int argc, char* argv[] ) {
 	    //	    inTree->Show(0);
 	    inTree->SetBranchAddress( varWeight[iPlot][iWeight].c_str(), &weight[iWeight] );
 	  }
+
 	  for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {
 	    //	    if ( iEvent % 500000 == 0 ) cout << iEvent << endl;
-	    for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
-	      if ( !iEvent ) {
+	    if ( !iEvent ) {
+	      for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
 		//Link tree branches to local variables
 		inTree->SetBranchAddress( varName[iPlot][iHist].c_str(), &varVal[iHist] );
 		while ( vectHist.size() <= iHist )  vectHist.push_back( vector<TH1*>() );
 		while ( vectHist[iHist].size() <= iPlot )  vectHist[iHist].push_back( 0 );
+	      }//end for iHist
 	      }// end iEvent
 	      double totWeight=1;
 	      //Read the tree entry. As we run over all plotted variables, the entry need not to be read several times
-	      if ( !iHist ) {
-		inTree->GetEntry( iEvent );
-		for ( unsigned int iWeight = 0; iWeight < weight.size(); iWeight++ ) {
-		  totWeight *= weight[iWeight];
-		}
-	      }// end if iHist
-	       
-	      if ( !vectHist[iHist][iPlot] ) {
-		//Create correspondig histogram
-		unsigned int nBins = atoi(input.GetOption("nComparedEvents").c_str());
-		string dumName = string( TString::Format( "%s_%s_%d", input.GetObjName()[iPlot][iAdd].c_str(), varName[iPlot][iHist].c_str(), iPlot ) );
-		if ( xBinning.size() <= iHist || !xBinning[iHist].size() ) vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), nBins, varMin[iHist], varMax[iHist] );
-		else vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), (int) xBinning[iHist].size()-1, &xBinning[iHist][0] );
-		vectHist[iHist][iPlot]->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
-		//		vectHist[iHist][iPlot]->GetYaxis()->SetTitle( TString::Format( "# Events / %2.2f", (varMax[iHist]-varMin[iHist])/vectHist[iHist][iPlot]->GetNbinsX()) );
-		vectHist[iHist][iPlot]->GetYaxis()->SetTitle( "# Events" );
-		vectHist[iHist][iPlot]->SetDirectory( 0 );
-		vectHist[iHist][iPlot]->Sumw2();
+	      inTree->GetEntry( iEvent );
+	      for ( unsigned int iWeight = 0; iWeight < weight.size(); iWeight++ ) {
+		totWeight *= weight[iWeight];
 	      }
-
+	       
+	      for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
+		if ( !vectHist[iHist][iPlot] ) {
+		  //Create correspondig histogram
+		  unsigned int nBins = atoi(input.GetOption("nComparedEvents").c_str());
+		  string dumName = string( TString::Format( "%s_%s_%d", input.GetObjName()[iPlot][iAdd].c_str(), varName[iPlot][iHist].c_str(), iPlot ) );
+		  if ( xBinning.size() <= iHist || !xBinning[iHist].size() ) vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), nBins, varMin[iHist], varMax[iHist] );
+		  else vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), (int) xBinning[iHist].size()-1, &xBinning[iHist][0] );
+		  vectHist[iHist][iPlot]->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
+		  //		vectHist[iHist][iPlot]->GetYaxis()->SetTitle( TString::Format( "# Events / %2.2f", (varMax[iHist]-varMin[iHist])/vectHist[iHist][iPlot]->GetNbinsX()) );
+		  vectHist[iHist][iPlot]->GetYaxis()->SetTitle( "# Events" );
+		  vectHist[iHist][iPlot]->SetDirectory( 0 );
+		  vectHist[iHist][iPlot]->Sumw2();
+		}
+		
 	      //if created fill it
-	      //	      cout << varVal[0]  << endl;
 	      vectHist[iHist][iPlot]->Fill( varVal[iHist], totWeight );
 	    }// End iHist
 	  }// end iEvent
@@ -463,7 +468,7 @@ int main( int argc, char* argv[] ) {
 	      bin++;
 	    }
 	  }
-
+	  vectHist.front().back()->SetLineWidth( 1 );
 	  vectHist.front().back()->LabelsOption("v" );
 	  vectHist.front().back()->GetXaxis()->SetTitle( "Line_Column" );
 	  break;
@@ -600,7 +605,11 @@ int main( int argc, char* argv[] ) {
       for ( int iBin = 0; iBin <= vectHist.front().front()->GetNbinsX(); iBin++ ) {
 	for ( unsigned int iPlot = 0; iPlot <= vectHist.front().size(); iPlot++ ) {
 	  if ( !iBin ) {
-	    if ( iPlot ) stream << string( input.GetLegend().size() ? input.GetLegend()[iPlot-1] : vectHist.front()[iPlot-1]->GetName() );
+	    if ( iPlot ) {
+	      string name = string( input.GetLegend().size() ? input.GetLegend()[iPlot-1] : vectHist.front()[iPlot-1]->GetName() ) ;
+	      stream << name;
+	      if ( atoi(input.GetOption("doTabular").c_str()) ==2 ) stream << "," << name + " err";
+	    }
 	    else {
 	      TString colName = vectHist.front().front()->GetXaxis()->GetTitle();
 	      colName=colName.ReplaceAll("_", "" ).ReplaceAll("#", "" ) ;
@@ -608,10 +617,13 @@ int main( int argc, char* argv[] ) {
 	    }
 	  }
 	  else {
-	    if ( iPlot ) stream << vectHist.front()[iPlot-1]->GetBinContent( iBin );
+	    if ( iPlot ) { 
+	      stream << vectHist.front()[iPlot-1]->GetBinContent( iBin );
+	      if ( atoi(input.GetOption("doTabular").c_str()) ==2 ) stream << "," << vectHist.front()[iPlot-1]->GetBinError( iBin );
+		}	 
 	    else stream << string( TString::Format( "] %2.2f : %2.2f]", vectHist.front().front()->GetXaxis()->GetBinLowEdge( iBin ), vectHist.front().front()->GetXaxis()->GetBinUpEdge( iBin ) ) );
-	  }
-	  if ( iPlot != vectHist.front().size() ) stream << ", ";
+	  } 
+	  if ( iPlot != vectHist.front().size() ) stream << ",";
 	}
 	stream << endl;
       }

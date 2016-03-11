@@ -25,7 +25,8 @@ int main( ) {
   double inputConstantValue = 0.0062348;
   double inputConstantError = 0.001;
   unsigned int readMatrix = 1;
-  TFile inFile( "/sps/atlas/c/cgoudet/Calibration/ScaleResults/FinalGRLNewPU/DataOff_13TeV_25ns_dataScaled.root" );
+  TFile inFile( "/sps/atlas/c/cgoudet/Calibration/PreRec/Results/TestFitMethod.root" );
+  //  TFile inFile( "/sps/atlas/c/cgoudet/Calibration/ScaleResults/160217/DataOff_13TeV_25ns_68Bins_c24.root" );
   string matrixName, matrixErrName;
   switch ( inputType ) {
   case 0 : 
@@ -72,6 +73,7 @@ int main( ) {
   vector< int > fitMethod = { 0, 1, 11, 12};
   
   for (  unsigned int iProc = 1; iProc < legend.size(); iProc++ ) {
+    if ( iProc != 2 ) continue;
     if ( !iProc  )   {
       histVect.push_back( (TH1D*) inFile.Get( "inputScale_c" )->Clone() );
       histVect.back()->SetName( TString::Format( "hist_%d", (int) histVect.size() ) );
@@ -92,13 +94,18 @@ int main( ) {
     options.push_back( "legend=" + legend[iProc] );
   }
 
+  TFile *outFile = new TFile( "/sps/atlas/c/cgoudet/Calibration/ScaleResults/160217/Inversion.root", "recreate" );
+  for ( auto hist : histVect ) hist->Write( "", TObject::kOverwrite );
+  outFile->Close("R" );
+  delete outFile;
 
   options.push_back( "legendPos=0.4 0.85" );
   options.push_back( "line=0" );
   string inFileName = inFile.GetName();
   options.push_back( "latex="+StripString( inFileName ) );
   options.push_back( "latexOpt=0.4 0.9" );
-  options.push_back( "rangeUserY=0 0.035" );
+  //  options.push_back("doRatio=1");
+  //  options.push_back( "rangeUserY=0 0.035" );
   DrawPlot( histVect, "/sps/atlas/c/cgoudet/Plots/InversionStudy", options );
   return 0;
 }

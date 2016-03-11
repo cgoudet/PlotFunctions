@@ -1,6 +1,6 @@
 #ifndef SIDEFUNCTIONS_H
 #define SIDEFUNCTIONS_H
-
+#include "THStack.h"
 #include "TH1D.h"
 #include "TTree.h"
 #include <vector>
@@ -77,12 +77,13 @@ string FindDefaultTree( TFile* inFile );
 void AddTree( TTree *treeAdd, TTree *treeAdded );
 void SaveTree( TTree *inTree, string prefix );
 
-void DiffSystematics( string inFileName, bool update=0 );
+void DiffSystematics( string inFileName, unsigned int mode =0, bool update=0 );
 void VarOverTime( string inFileName, bool update=0);
 void LinkTreeBranches( TTree *inTree, TTree *outTree, 
 		       map<string, double> &mapDouble, 
+		       map<string, int> &mapInt, 
 		       map<string, long long int > &mapLongLong
 		       );
-
+void RescaleStack( THStack *stack, double integral );
 #endif
 

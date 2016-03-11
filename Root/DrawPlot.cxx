@@ -24,7 +24,7 @@ using std::max;
 //               kRed   =632, kGreen =416, kBlue=600, kYellow=400, kMagenta=616, kCyan=432,
 //               kOrange=800, kSpring=820, kTeal=840, kAzure =860, kViolet =880, kPink=900 };
 
-int colors[] = {923, 628, 596, 414, 617, 804, 797};
+int colors[] = {923, 628, 596, 414, 617, 804, 797, 594};
 int fillColors[] = { 3, 5 };
 
 int DrawPlot( vector< TH1* > inHist,  
@@ -38,15 +38,15 @@ int DrawPlot( vector< TH1* > inHist,
   map<string, int >  mapOptionsInt;
   mapOptionsInt["doRatio"]=0;
   mapOptionsInt["shiftColor"]=0;
-  mapOptionsInt["normalize"]=0;
   mapOptionsInt["doChi2"]=0;
   mapOptionsInt["centerZoom"]=0;
   mapOptionsInt["drawStyle"]=0;
   mapOptionsInt["line"]=-99;
   mapOptionsInt["logy"]=0;
-  mapOptionsInt["stack"]=-99;
+  mapOptionsInt["stack"]=0;
   map<string, double > mapOptionsDouble;
   mapOptionsDouble["extendUp"]=0;
+  mapOptionsDouble["normalize"]=0;
   vector<string> inLegend, inLatex; 
   vector< vector< double > > latexPos;
   vector< double > legendCoord, rangeUserX, rangeUserY;
@@ -57,10 +57,11 @@ int DrawPlot( vector< TH1* > inHist,
 
     string option = iOption.substr( 0, iOption.find_first_of('=' ) );
     string value = iOption.substr( iOption.find_first_of("=")+1);
-
     if ( mapOptionsInt.find(option) != mapOptionsInt.end() ) mapOptionsInt[option] = atoi( value.c_str() );
     else if ( mapOptionsString.find(option) != mapOptionsString.end() ) mapOptionsString[option] = value;
-    else if ( mapOptionsDouble.find(option) != mapOptionsDouble.end() ) mapOptionsDouble[option] =  (double) std::atof( value.c_str() );
+    else if ( mapOptionsDouble.find(option) != mapOptionsDouble.end() ) {
+      mapOptionsDouble[option] =  (double) std::atof( value.c_str() );
+    }
     else if ( option == "legend" ) inLegend.push_back( value );
     else if ( option == "latex" ) inLatex.push_back( value );
     else if ( option == "latexOpt" ) {
@@ -134,8 +135,9 @@ int DrawPlot( vector< TH1* > inHist,
   //Find the extremum of the histograms to choose rangeUser if not given
   double minVal=0, maxVal=0;
   double minX=0, maxX=0;
-  THStack stack;
+  vector<THStack*> stack;
   int refHist= -1;
+  unsigned int totEventStack=0;
   //  bool isNegativeValue = false;
   for ( unsigned int iHist = 0; iHist < inHist.size(); iHist++ ) {
     if ( !inHist[iHist] ) continue;
@@ -175,7 +177,7 @@ int DrawPlot( vector< TH1* > inHist,
 	inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( inHist[iHist], inHist[refHist] )/inHist[refHist]->GetNbinsX() );
       }
     }
-    if ( mapOptionsInt["normalize"] && inHist[iHist]->Integral() )  inHist[iHist]->Scale( 1./inHist[iHist]->Integral() );
+    if ( mapOptionsDouble["normalize"] && inHist[iHist]->Integral() && !mapOptionsInt["stack"] )  inHist[iHist]->Scale( mapOptionsDouble["normalize"]/inHist[iHist]->Integral() );
     if ( DEBUG ) cout << "Style set" << endl;
     //============ LOOK FOR Y EXTREMAL VALUES AND DEFINE Y RANGE
     if( (int) iHist == refHist ) {
@@ -214,8 +216,14 @@ int DrawPlot( vector< TH1* > inHist,
 
       if ( rangeUserY.size()!=2 ) {
 	rangeUserY.clear();
-	rangeUserY.push_back( minVal - ( maxVal - minVal ) *0.05 );
-	rangeUserY.push_back( maxVal + ( maxVal - minVal ) *0.05 );
+	if ( mapOptionsInt["stack"] == 0 ) {
+	  rangeUserY.push_back( minVal - ( maxVal - minVal ) *0.05 );
+	  rangeUserY.push_back( maxVal + ( maxVal - minVal ) *0.05 );
+	}
+	else {
+	  rangeUserY.push_back( stack.front()->GetMinimum() );
+	  rangeUserY.push_back( stack.front()->GetMaximum() );
+	}
       }
 
       rangeUserY.back() += (rangeUserY.back() - rangeUserY.front()) * mapOptionsDouble["extendUp"];
@@ -223,20 +231,39 @@ int DrawPlot( vector< TH1* > inHist,
       if ( rangeUserX.size() == 2 ) inHist[refHist]->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
       else if ( mapOptionsInt["centerZoom"] ) inHist[refHist]->GetXaxis()->SetRangeUser( minX, maxX );
     }
-    string drawOpt = ( (int) iHist!= refHist) ? "SAME,E" : "E";
+    string drawOpt = (( (int) iHist!= refHist) ? "SAME," : "" ) + string( mapOptionsInt["drawStyle"] == 2 ? "HIST" : "E" ) ;
     if ( inLegend.size() > iHist && TString( inLegend[iHist].c_str() ).Contains( "__NOPOINT" ) ) {
       inHist[iHist]->SetLineColorAlpha( 0, 0 );
       inHist[iHist]->SetMarkerColorAlpha( 0, 0 );
     }
 
+    
     if ( inLegend.size() > iHist && TString( inLegend[iHist].c_str() ).Contains( "__FILL" ) ) {
       drawOpt += "2";
       inHist[iHist]->SetFillColor( fillColors[iHist] );
       //      myBoxText( legendCoord[0], legendCoord[1]-0.05*iHist, 0.05, inHist[iHist]->GetFillColor(), inLegend[iHist].c_str() ); 
     }
+    if ( !mapOptionsInt["stack" ] ) inHist[iHist]->Draw( drawOpt.c_str() );
+    else {
+      inHist[iHist]->SetFillColor( inHist[iHist]->GetLineColor() );
+      if ( inLegend.size() && !TString(inLegend[iHist]).Contains( "__STACK" ) ) {
+	if ( stack.size() ) {
+	  if ( mapOptionsDouble["normalize"]!=0 ) RescaleStack( stack.back(), mapOptionsDouble["normalize"] );
+	  stack.back()->Draw( stack.size()==1 ? "HIST B" : "HIST B same" );
+	}
+	totEventStack = 0;
+	stack.push_back(0);
+	stack.back() = new THStack();
+      }
+      stack.back()->Add( inHist[iHist] );
+      totEventStack += inHist[iHist]->Integral();
+      if ( iHist==inHist.size()-1 ) {
+	if ( mapOptionsDouble["normalize"]!=0 ) RescaleStack( stack.back(), mapOptionsDouble["normalize"] );
+	stack.back()->Draw( stack.size()==1 ? "HIST B" : "HIST B same" );
+      }
+    }
 
-    inHist[iHist]->Draw( drawOpt.c_str() );
-    //    stack.Add( inHist[iHist] );
+
     if( !iHist && mapOptionsInt["line"] != -99 ) {
       double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : (mapOptionsInt["centerZoom"] ? minX : inHist[refHist]->GetXaxis()->GetXmin() );
       double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : ( mapOptionsInt["centerZoom"] ? maxX :inHist[refHist]->GetXaxis()->GetXmax() );
@@ -244,17 +271,21 @@ int DrawPlot( vector< TH1* > inHist,
     }
     //========== ADD HISTOGRAM TO LEGEND
   }//end iHist
+
   if ( DEBUG ) cout << "drawn" << endl;
   //  stack.Draw( mapOptionsInt["stack"] ? "F" : "nostack"  ); 
 
   if ( mapOptionsInt["logy"] ) {
     int topVal = ceil( log10( maxVal ) );
     int lowVal = minVal==0 ? topVal-5 : floor( log10( minVal ) );
-    // cout << "minVal : " << minVal << " " << maxVal << endl;
-    // cout << "lowVal : " << lowVal << " " << topVal << endl;
     if ( rangeUserY[0] < 0 ) rangeUserY[0]=pow( 10, lowVal );
     rangeUserY[1] = pow( 10, topVal + ( topVal - lowVal ) * (0.05 + mapOptionsDouble["extendUp"] ) );
-    inHist[refHist]->GetYaxis()->SetRangeUser( rangeUserY[0], rangeUserY[1] );    
+    if ( mapOptionsDouble["stack"] == 0 ) inHist[refHist]->GetYaxis()->SetRangeUser( rangeUserY[0], rangeUserY[1] );    
+    else {
+      stack.front()->SetMinimum( rangeUserY[0] );
+      stack.front()->SetMaximum( rangeUserY[1] );
+      stack.front()->Draw();
+    }
     if ( mapOptionsInt["doRatio"] ) {
       padUp.SetLogy(1);
     }

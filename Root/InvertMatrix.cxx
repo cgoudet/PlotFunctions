@@ -17,6 +17,8 @@
 #include "PlotFunctions/SideFunctions.h"
 #include "Math/MinimizerOptions.h"
 
+using std::min;
+using std::max;
 using std::copysign;
 using std::string;
 using std::map;
@@ -160,7 +162,7 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
 	    alphaName = TString::Format( "C_%d", iLine );
 	    alphaBin.back() = new RooRealVar( alphaName, alphaName, combinMatrix( iLine, iCol ), 0, 0.1 );
 	  }
-	  if ( iLine == iCol ) alphaBin[iLine]->setVal( combinMatrix[iLine][iLine] );	
+	  if ( iLine == iCol ) alphaBin[iLine]->setVal( min( 0.1, max(0., combinMatrix[iLine][iLine]) ) );	
 	  alphaName = TString::Format( "CConf_%d_%d", iLine, iCol );
 	  alphaConfig[iLine][iCol] = new RooFormulaVar( alphaName, alphaName, "TMath::Sqrt((@0*@0+@1*@1)/2.)", RooArgList( *alphaBin[iLine], *alphaBin[iCol] ) );
 	  alphaName = TString::Format( "CErrConf_%d_%d", iLine, iCol );

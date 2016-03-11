@@ -27,6 +27,83 @@ using std::max;
 int colors[] = {923, 628, 596, 414, 617, 804, 797, 594};
 int fillColors[] = { 3, 5 };
 
+/**
+   Draw a set of histograms on the same plots.
+   \param inHist Vector of histograms.
+   \param outName name of the output plot without the suffix (plot will be in .pdf).
+   \param inOptions list of options using the convention : option=value.
+
+   Supported options : \n
+   - legend= value \n
+   Content of the legend to use for a given histogram. 
+   The number of legend options must be either 0 or the size of inHist.
+   Legend accepts some special code detailed lower.
+   \n
+   \n
+   - legendPos= valueX valueY \n
+   Position in relative coordinates of the top left corner of the legend box.\n
+   \n
+   - rangeUserY(X)= valueMin valueMax \n
+   Ranges to use for the Y(X) axis. \n
+   \n
+   doRatio= value \n
+   Switch to a given type of ratio between plots of inHist. 
+   0 : no ratio, 
+   1 : (h1-h0)/h0,
+   2 : h1-h0\n
+   \n
+   normalize=value \n
+   Normalize all histograms to the integral given by value.\n
+   \n
+   doChi2=1 \n
+   Compte the chi2 test between two histograms. The value will be added to the legend.\n
+   \n
+   centerZoom=1 \n
+   Plot removing the empty bins at the extremities of all histograms. \n
+   \n
+   latex= text \n
+   Add text to your plot with the latex convention of root. Special caracters must bu introduced with #
+   Latex accept the special syntax detailed lower.
+   The position of the text is defined by latexOpt of the same index.
+   Several texts can be displayed using multiple occurences of the latex options.
+   \n
+   \n
+   latexOpt=value1 value2\n
+   Coordiantes in relative values of the top left corner of the latex box.
+   \n
+   \n
+   drawStyle=value\n
+   Decides how to group multiples histograms.
+   0 : all histograms have different colors and same markers. Ratio is performed for each histogram relative to the first one.
+   1 : histograms are group by pair. Each pair has a different color. Markers are different within a pair. Ratio is performed between histograms of the same pair.
+   \n
+   \n
+   shiftColor=value\n
+   Colors of histograms follow an order. shiftColor allows to change the origin of the color vector given above.
+   \n
+   \n
+   line = value\n
+   Draw an horizontal line at Y=value
+   \n
+   \n
+   extendUp=value \n
+   Increase the range on the Y axis by value%, at fixed lower range.
+   \n
+   \n
+   x(y)Title= name \n
+   change the title of the x(y) axis.
+   \n
+   \n
+   logy=1 \n
+   Set the Y axis to log scale
+   \n
+   \n
+   stack=1\n
+   Stack histograms instead of superimposing them. 
+   Does not work with logy yet.
+ */
+
+
 int DrawPlot( vector< TH1* > inHist,  
 	      string outName, 
 	      vector<string> inOptions

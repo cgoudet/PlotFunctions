@@ -78,12 +78,13 @@ int main( int argc, char* argv[] ) {
   
   if (vm.count("help")) {cout << desc; return 0;}
   //=============================================
-  string plotPath = "/sps/atlas/c/cgoudet/Plots/";
+  string plotPath;// = "/sps/atlas/c/cgoudet/Plots/";
 
   for ( unsigned int iFile = 0; iFile < inFiles.size(); iFile++ ) {
     cout << "iFile : " << iFile << " " << inFiles[iFile] << endl;
     InputCompare input( inFiles[iFile] );
     if ( DEBUG ) cout << "config file loaded" << endl;
+    plotPath = input.GetOption("plotDirectory");
     vector< vector< TH1* > > vectHist;
     multi_array< double, 2 > eventVarVect;
     multi_array< long long int, 2> eventIDVect;

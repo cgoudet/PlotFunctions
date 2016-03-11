@@ -100,6 +100,7 @@ class InputCompare
   map<string,string>  m_mapOptions;
   vector<vector<double>> m_xBinning;
   //  bool m_doTabular;
+
 };
 
 #endif

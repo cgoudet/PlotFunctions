@@ -72,8 +72,13 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
    \n
    xBinning= frontier1 frontier2 ... \n
    When plotting a tree, one can decide a non regular binning. Number of bins will be the number of entries in xBinning -1.
+   \n
+   \n
+   path= value \n
+   Directory in which to write the plot
  */
 //###########################
+
 void  InputCompare::LoadFile( string fileName ) {
   string inLatexPos, varMin, varMax, eventID;
   vector< string > rootFileName, objName, varName, varWeight, latex, latexOpt, xBinning;
@@ -112,6 +117,7 @@ void  InputCompare::LoadFile( string fileName ) {
     ( "logy", po::value<string>( &m_mapOptions["logy"] ), "" )
     ( "stack", po::value<string>( &m_mapOptions["stack"]), "" )
     ( "removeVal", po::value<string>( &m_mapOptions["removeVal"] ), "" )
+    ( "plotDirectory", po::value<string>( &m_mapOptions["plotDirectory"] ), "" )
     ;
   
   po::variables_map vm;
@@ -121,6 +127,7 @@ void  InputCompare::LoadFile( string fileName ) {
 
   m_outName = StripString( fileName );
   
+  if ( m_mapOptions["plotDirectory"] != "" && m_mapOptions["plotDirectory"].back() != '/' ) m_mapOptions["plotDirectory"] += "/";
 
   for ( unsigned int iHist = 0; iHist < rootFileName.size(); iHist++ ) {
     m_rootFileName.push_back( vector< string >() );
@@ -193,6 +200,7 @@ vector<string> InputCompare::CreateVectorOptions() {
 	 || it->first == "nComparedEvents" 
 	 || it->first == "diagonalize" 
 	 || it->first == "doTabular" 
+	 || it->first == "plotDirectory" 
 	 ) continue;
     outVect.push_back( it->first +"=" + it->second );
   }

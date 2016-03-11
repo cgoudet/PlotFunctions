@@ -26,6 +26,53 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
     cout << "rootFileName : " << m_rootFileName.size() << endl;
 }
 
+/**
+   Read a configuration file.
+   Options not documented here are documented in DrawPlot.cxx.
+
+   rootFileName= file1 file2 ... \n
+   Names of the rootFiles whose objects will be added.
+   \n
+   \n
+   objName= name1 name2 ... \n
+   Names of the objects to be added.
+   \n
+   \n
+   inputType=number\n
+   Number of the rountine in CompareHist to call. Routines and requirede parameters defined in CompareHist.cxx.
+   \n
+   \n
+   varName= name1 name2 ...\n
+   Names of tree branches to be read
+   \n
+   \n
+   varMin= value1 value2 ... \n
+   Low range limit for histograms when reading a ttre. Several values correspond to different variable/
+   \n
+   \n
+   varMax= value1 value2 ...  \n
+   High range limit for histograms when reading a TTree.
+   \n
+   \n
+   selectionCut= cut \n
+   Perform the given cut on a TTree with same index.
+   \n
+   \n
+   eventID= value1 value2 ...\n
+   branch names of variables used to identify an event.
+   \n
+   \n
+   nComparedEvents=value1 \n
+   Integer with various use depending on routine.
+   \n
+   \n
+   varWeight= var1 var2 ...\n
+   branch names to be used as weights. If several values, they are multiplied.
+   \n
+   \n
+   xBinning= frontier1 frontier2 ... \n
+   When plotting a tree, one can decide a non regular binning. Number of bins will be the number of entries in xBinning -1.
+ */
 //###########################
 void  InputCompare::LoadFile( string fileName ) {
   string inLatexPos, varMin, varMax, eventID;

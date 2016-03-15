@@ -103,7 +103,7 @@ void  InputCompare::LoadFile( string fileName ) {
     ( "drawStyle", po::value< string >( &m_mapOptions["drawStyle"] ), "" )
     ( "selectionCut", po::value< vector< string > >( & m_selectionCut ), "TFormula to select tree events" )
     ( "eventID", po::value< string >( &eventID ), "" )
-    ( "nComparedEvents", po::value< string >( &m_mapOptions["nComparedEvents"] )->default_value("100"), "" )
+    ( "nComparedEvents", po::value< string >( &m_mapOptions["nComparedEvents"] ), "" )
     ( "varWeight", po::value< vector<string> >(&varWeight)->multitoken(), "" )
     ( "shiftColor", po::value< string >( &m_mapOptions["shiftColor"] ), "" )
     ( "line", po::value<string>( &m_mapOptions["line"] ), "" )
@@ -119,7 +119,7 @@ void  InputCompare::LoadFile( string fileName ) {
     ( "removeVal", po::value<string>( &m_mapOptions["removeVal"] ), "" )
     ( "plotDirectory", po::value<string>( &m_mapOptions["plotDirectory"] ), "" )
     ;
-  
+
   po::variables_map vm;
   ifstream ifs( fileName, ifstream::in );
   po::store(po::parse_config_file(ifs, configOptions), vm);

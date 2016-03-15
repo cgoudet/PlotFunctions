@@ -200,6 +200,7 @@ int main( int argc, char* argv[] ) {
 		if ( !vectHist[iHist][iPlot] ) {
 		  //Create correspondig histogram
 		  unsigned int nBins = atoi(input.GetOption("nComparedEvents").c_str());
+		  if ( !nBins ) nBins = 100;
 		  string dumName = string( TString::Format( "%s_%s_%d", input.GetObjName()[iPlot][iAdd].c_str(), varName[iPlot][iHist].c_str(), iPlot ) );
 		  if ( xBinning.size() <= iHist || !xBinning[iHist].size() ) vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), nBins, varMin[iHist], varMax[iHist] );
 		  else vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), (int) xBinning[iHist].size()-1, &xBinning[iHist][0] );

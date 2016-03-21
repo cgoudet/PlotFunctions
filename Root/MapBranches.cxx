@@ -7,6 +7,7 @@
 #include <string>
 #include <map>
 #include "TTree.h"
+#include "PlotFunctions/SideFunctions.h"
 
 using std::string;
 using std::map;
@@ -18,7 +19,7 @@ MapBranches::MapBranches() {
 
 MapBranches::~MapBranches(){}
 
-void MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree ) {
+void MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, vector< string > branchesToLink ) {
 
   TObjArray *branches = inTree->GetListOfBranches();
   TClass *expectedClass;
@@ -27,7 +28,9 @@ void MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree ) {
   for ( unsigned int iBranch = 0; iBranch < (unsigned int) branches->GetEntries(); iBranch++ ) {
     
     ( (TBranch*) (*branches)[iBranch])->GetExpectedType( expectedClass, expectedType );
-    name=(*branches)[iBranch]->GetName();    
+    name=(*branches)[iBranch]->GetName();
+    if ( SearchVectorBin( name, branchesToLink ) == branchesToLink.size() ) continue;
+
     if ( !expectedClass ) {
       switch ( expectedType ) { //documentation at https://root.cern.ch/doc/master/TDataType_8h.html#add4d321bb9cc51030786d53d76b8b0bd
       case 3 : {//int
@@ -46,6 +49,14 @@ void MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree ) {
 	  else outTree->SetBranchAddress( name.c_str(), &m_mapDouble[name] );
 	}
 	break;}
+      case 13 :
+	m_mapUnsigned[ name ] = 0;
+	inTree->SetBranchAddress( name.c_str(), &m_mapUnsigned[name] );
+	if ( outTree ) {
+	  if ( !outTree->FindBranch( name.c_str()) ) outTree->Branch( name.c_str(), &m_mapUnsigned[name] );
+	  else outTree->SetBranchAddress( name.c_str(), &m_mapUnsigned[name] );
+	}
+	break;
       case 16 :
 	m_mapLongLong[ name ] = 0;
 	inTree->SetBranchAddress( name.c_str(), &m_mapLongLong[name] );

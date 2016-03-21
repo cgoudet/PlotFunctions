@@ -329,13 +329,18 @@ void DiffSystematics( string inFileName, unsigned int mode, bool update ) {
 	break;
       }
       }//end switch
-
+      for ( int iBin = 1; iBin<inHist->GetNbinsX()+1; iBin++ ) inHist->SetBinError(iBin, 0 );
       outFile->cd();
       cout << "inHist name : " << inHist->GetName() << endl;
       inHist->Write( "", TObject::kOverwrite );
 
       if ( DEBUG ) cout << "Add systematic to the model" << endl;
-      if ( !totSyst ) totSyst = new TH1D( outSystName.c_str(), outSystName.c_str(), inHist->GetNbinsX(), inHist->GetXaxis()->GetXbins()->GetArray() );
+      if ( !totSyst ) {
+	totSyst = (TH1D*) inHist->Clone();
+	for ( int iBin = 1; iBin<totSyst->GetNbinsX()+1; iBin++ ) totSyst->SetBinContent( iBin, 0 );
+	totSyst->SetName( outSystName.c_str()) ;
+	totSyst->SetTitle( totSyst->GetName() );
+      }
       for ( int iBin = 1; iBin<totSyst->GetNbinsX()+1; iBin++ ) {
 	switch( tempMode % 10 ) {
 	case 1 :
@@ -348,8 +353,8 @@ void DiffSystematics( string inFileName, unsigned int mode, bool update ) {
 	  break;
 
 	}//end switch
-
-      }//end for
+	totSyst->SetBinError( iBin, 0 );
+      }//end for iBin
       cout << inHist->GetBinContent(12) << " " << totSyst->GetBinContent( 12 ) << endl;
       delete inHist; inHist=0;
     }//end else

@@ -205,7 +205,7 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents ) {
 }
 
 //================================================
-string FindDefaultTree( TFile* inFile ) { 
+string FindDefaultTree( TFile* inFile, string  type  ) { 
   if ( !inFile ) return "";
   string inFileName = inFile->GetName();
   StripString( inFileName );
@@ -214,7 +214,7 @@ string FindDefaultTree( TFile* inFile ) {
   TIter nextkey( inFile->GetListOfKeys());
   TKey *key=0;
   while ((key = (TKey*)nextkey())) {
-    if (strcmp( "TTree",key->GetClassName())) continue;
+    if (strcmp( type.c_str(),key->GetClassName())) continue;
     listTreeNames.push_back( key->GetName() );
   }
   delete key; key=0;

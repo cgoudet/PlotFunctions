@@ -475,3 +475,10 @@ int DrawPlot( vector< TH1* > inHist,
 
 //===================================
 
+// int DrawPlot( RooRealVar *frameVar,
+// 	      vector<RooPrintable*> inPlot,
+// 	      vector<string> inOptions
+// 	      ) {
+
+//   return 0;
+// }

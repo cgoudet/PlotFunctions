@@ -9,6 +9,8 @@ using boost::multi_array;
 #include "TH1D.h"
 using std::vector;
 using std::string;
+#include "RooRealVar.h"
+#include "RooPrintable.h"
 
 /**\brief Plot histograms and save them in png format
    \param inHist vector of histograms to be superimposed
@@ -49,6 +51,11 @@ int DrawPlot( vector< TH1* > inHist,
 	      string outName, 
 	      vector<string> inOptions=vector<string>()
 	      );
+
+/* int DrawPlot( RooRealVar *frameVar, */
+/* 	      vector<RooPrintable*> inPlot, */
+/* 	      vector<string> inOptions=vector<string>() */
+/* 	      ); */
 
 
 

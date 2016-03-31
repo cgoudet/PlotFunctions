@@ -29,7 +29,7 @@ void MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, vector< strin
     
     ( (TBranch*) (*branches)[iBranch])->GetExpectedType( expectedClass, expectedType );
     name=(*branches)[iBranch]->GetName();
-    if ( SearchVectorBin( name, branchesToLink ) == branchesToLink.size() ) continue;
+    if ( branchesToLink.size() && SearchVectorBin( name, branchesToLink ) == branchesToLink.size() ) continue;
 
     if ( !expectedClass ) {
       switch ( expectedType ) { //documentation at https://root.cern.ch/doc/master/TDataType_8h.html#add4d321bb9cc51030786d53d76b8b0bd

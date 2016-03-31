@@ -10,7 +10,9 @@ using boost::multi_array;
 using std::vector;
 using std::string;
 #include "RooRealVar.h"
-#include "RooPrintable.h"
+#include "RooAbsPdf.h"
+#include "RooAbsData.h"
+#include "RooCategory.h"
 
 /**\brief Plot histograms and save them in png format
    \param inHist vector of histograms to be superimposed
@@ -52,10 +54,13 @@ int DrawPlot( vector< TH1* > inHist,
 	      vector<string> inOptions=vector<string>()
 	      );
 
-/* int DrawPlot( RooRealVar *frameVar, */
-/* 	      vector<RooPrintable*> inPlot, */
-/* 	      vector<string> inOptions=vector<string>() */
-/* 	      ); */
+int DrawPlot( RooRealVar *frameVar,
+	      vector<TObject*> inObj,
+	      string outName,
+	      vector<string> inOptions=vector<string>()
+	      );
+
+void PlotPerCategory( RooRealVar *varFrame, vector<TObject*> vectObj, RooCategory *cat, string prefix = "" );
 
 
 

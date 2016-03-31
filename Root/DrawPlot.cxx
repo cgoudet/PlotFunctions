@@ -7,6 +7,10 @@
 #include <map>
 #include <TROOT.h>
 #include "THStack.h"
+#include "RooPlot.h"
+#include "RooDataSet.h"
+#include "RooAbsPdf.h"
+#include "RooSimultaneous.h"
 
 using std::map;
 using std::cout;
@@ -475,10 +479,59 @@ int DrawPlot( vector< TH1* > inHist,
 
 //===================================
 
-// int DrawPlot( RooRealVar *frameVar,
-// 	      vector<RooPrintable*> inPlot,
-// 	      vector<string> inOptions
-// 	      ) {
+int DrawPlot( RooRealVar *frameVar,
+	      vector<TObject*> inObj,
+	      string outName,
+	      vector<string> inOptions
+	      ) {
 
-//   return 0;
-// }
+  frameVar->Print();
+  TCanvas *canvas = new TCanvas();
+  RooPlot* frame=frameVar->frame(40);
+  frame->SetTitle(""); //empty title to prevent printing "A RooPlot of ..."
+  frame->SetXTitle(frameVar->GetTitle());
+
+  for ( unsigned int iPlot=0; iPlot<inObj.size(); iPlot++ ) {
+    if ( string(inObj[iPlot]->ClassName() ) == "RooDataSet" ) ( (RooDataSet*) inObj[iPlot])->plotOn( frame );
+    else ( (RooAbsPdf*) inObj[iPlot])->plotOn( frame );
+
+  }
+
+  frame->Draw();
+  canvas->SaveAs( TString( outName + ".pdf") );
+  delete frame;
+  delete canvas; canvas=0;
+  return 0;
+}
+
+
+void PlotPerCategory( RooRealVar *varFrame, vector<TObject*> vectObj, RooCategory *cat, string prefix ) {
+  for ( int iCat = 0; iCat < cat->numTypes(); iCat++ ) {
+    cat->setIndex( iCat );
+    vector<TObject*> outVectObj;
+    for ( unsigned int iObj=0; iObj<vectObj.size(); iObj++ ) {
+
+      if ( string( vectObj[iObj]->ClassName() ) == "RooDataSet" ) {
+	RooAbsData* ds=0;
+	TIterator* dataItr = ((RooDataSet*) vectObj[iObj])->split(*cat, true)->MakeIterator();
+	while ((ds = (RooAbsData*)dataItr->Next())) { // loop over all channels
+	  if ( string( ds->GetName() ) != cat->getLabel() ) continue;
+	  ds->Print();
+	  outVectObj.push_back( ds );
+	  break;
+	}
+      }//end if data
+      else if ( string( vectObj[iObj]->ClassName() ) == "RooSimultaneous" ) {
+	RooSimultaneous *pdf = (RooSimultaneous*) vectObj[iObj];
+	if ( pdf->getPdf( cat->getLabel() ) ) outVectObj.push_back( pdf->getPdf( cat->getLabel() ) );
+      }//end if roosimultaneous
+      else {
+	cout << vectObj[iObj]->ClassName() << " type not planned" << endl;
+	exit(0);
+      }
+    }//end iObj
+
+    string name = prefix + "_" + cat->getLabel();
+    DrawPlot( varFrame, outVectObj, name );
+  }//end iCat
+}

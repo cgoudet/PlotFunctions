@@ -168,6 +168,7 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents ) {
 	    break;
 	  default :
 	    cout << "bootstrap not planned for type : " << expectedType << endl;
+	    cout << "branchName : " << (*branches)[iBranch]->GetName() << endl;
 	    exit(0);
 	  }//end switch
 	}//end if expectedClass

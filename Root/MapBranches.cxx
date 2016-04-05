@@ -65,8 +65,18 @@ void MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, vector< strin
 	  else outTree->SetBranchAddress( name.c_str(), &m_mapLongLong[name] );
 	}
 	break;
+      case 17 :
+	m_mapLongLong[ name ] = 0;
+	inTree->SetBranchAddress( name.c_str(), &m_mapLongLong[name] );
+	if ( outTree ) {
+	  if ( !outTree->FindBranch( name.c_str()) ) outTree->Branch( name.c_str(), &m_mapLongLong[name] );
+	  else outTree->SetBranchAddress( name.c_str(), &m_mapLongLong[name] );
+	}
+	break;
       default :
-	cout << "bootstrap not planned for type : " << expectedType << endl;
+	cout << "LinkTree branches not planned for type : " << expectedType << endl;
+	cout << "branchName : " << name << endl;
+	exit(0);
       }
     }
   }

@@ -263,7 +263,11 @@ int DrawPlot( vector< TH1* > inHist,
 	inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( inHist[iHist], inHist[refHist] )/inHist[refHist]->GetNbinsX() );
       }
     }
-    if ( mapOptionsDouble["normalize"] && inHist[iHist]->Integral() && !mapOptionsInt["stack"] )  inHist[iHist]->Scale( mapOptionsDouble["normalize"]/inHist[iHist]->Integral() );
+    if ( mapOptionsDouble["normalize"] && inHist[iHist]->Integral() && !mapOptionsInt["stack"] )  {
+      inHist[iHist]->Sumw2();
+      inHist[iHist]->Scale( mapOptionsDouble["normalize"]/inHist[iHist]->Integral() );
+
+    }
     if ( DEBUG ) cout << "Style set" << endl;
     //============ LOOK FOR Y EXTREMAL VALUES AND DEFINE Y RANGE
     if( (int) iHist == refHist ) {

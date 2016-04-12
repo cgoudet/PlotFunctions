@@ -10,7 +10,7 @@
 PACKAGE          = PlotFunctions
 
 # the libraries to link with this one:
-PACKAGE_PRELOAD  =  RooFitCore RooFit
+PACKAGE_PRELOAD  =  RooFitCore RooFit RooStats HistFactory
 
 # additional compilation flags to pass (not propagated to dependent packages):
 PACKAGE_CXXFLAGS = 

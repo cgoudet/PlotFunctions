@@ -295,33 +295,45 @@ int DrawPlot( vector< TH1* > inHist,
   }//end iHist
 
   if ( DEBUG ) cout << "drawing" << endl;
+
+  if ( rangeUserY.size()!=2 ) {
+    rangeUserY.clear();
+    if ( mapOptionsInt["stack"] == 0 ) {
+      rangeUserY.push_back( minVal - ( maxVal - minVal ) *0.05 );
+      rangeUserY.push_back( maxVal + ( maxVal - minVal ) *0.05 );
+    }
+    else {
+      rangeUserY.push_back( stack.front()->GetMinimum() );
+      rangeUserY.push_back( stack.front()->GetMaximum() );
+    }
+  }
+  rangeUserY.back() += (rangeUserY.back() - rangeUserY.front()) * mapOptionsDouble["extendUp"];
+
+  cout << "rangeUserX : " << endl;
+  if ( mapOptionsInt["centerZoom"] ) cout << "centerZoom : " << minX << " " << maxX << endl;
+  if ( rangeUserX.size() == 2 ) cout << "vector : " << rangeUserX[0] << " " <<  rangeUserX[1] << endl;
+  if ( rangeUserX.size() == 2 ) inHist[refHist]->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
+  else {
+    rangeUserX.clear();
+    rangeUserX.push_back( minX );
+    rangeUserX.push_back( maxX );
+  }
+
+  TH1F* dumHist = 0;
+  if ( mapOptionsInt["doRatio"] ) dumHist = padUp.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
+  else dumHist = canvas.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
+  dumHist->GetXaxis()->SetTitle( inHist[refHist]->GetXaxis()->GetTitle() );
+  dumHist->GetYaxis()->SetTitle( inHist[refHist]->GetYaxis()->GetTitle() );
+  if (mapOptionsInt["doRatio"]) {
+    dumHist->GetYaxis()->SetTitleOffset( 0.6 );
+    dumHist->GetYaxis()->SetTitleSize( 0.06 );
+  }
+
   //Plotting histograms
   for ( unsigned int iHist = refHist; iHist < inHist.size(); iHist++ ) {
     if ( !inHist[iHist] ) continue;
-    if ( (int) iHist == refHist ) {
-      if (mapOptionsInt["doRatio"]) {
-	inHist[refHist]->GetYaxis()->SetTitleOffset( 0.6 );
-	inHist[refHist]->GetYaxis()->SetTitleSize( 0.06 );
-      }
 
-      if ( rangeUserY.size()!=2 ) {
-	rangeUserY.clear();
-	if ( mapOptionsInt["stack"] == 0 ) {
-	  rangeUserY.push_back( minVal - ( maxVal - minVal ) *0.05 );
-	  rangeUserY.push_back( maxVal + ( maxVal - minVal ) *0.05 );
-	}
-	else {
-	  rangeUserY.push_back( stack.front()->GetMinimum() );
-	  rangeUserY.push_back( stack.front()->GetMaximum() );
-	}
-      }
-
-      rangeUserY.back() += (rangeUserY.back() - rangeUserY.front()) * mapOptionsDouble["extendUp"];
-      inHist[refHist]->GetYaxis()->SetRangeUser( rangeUserY[0], rangeUserY[1] );
-      if ( rangeUserX.size() == 2 ) inHist[refHist]->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
-      else if ( mapOptionsInt["centerZoom"] ) inHist[refHist]->GetXaxis()->SetRangeUser( minX, maxX );
-    }
-    string drawOpt = (( (int) iHist!= refHist) ? "SAME," : "" ) + string( mapOptionsInt["drawStyle"] == 2 ? "HIST" : "E" ) ;
+    string drawOpt =  "SAME," + string( mapOptionsInt["drawStyle"] == 2 ? "HIST" : "E" ) ;
     if ( inLegend.size() > iHist && TString( inLegend[iHist].c_str() ).Contains( "__NOPOINT" ) ) {
       inHist[iHist]->SetLineColorAlpha( 0, 0 );
       inHist[iHist]->SetMarkerColorAlpha( 0, 0 );

@@ -294,7 +294,7 @@ void myBoxText(Double_t x, Double_t y,Double_t boxsize,Int_t mcolor,const char *
   Double_t x2=x-0.3*tsize;
   Double_t x1=x2-boxsize;
 
-  printf("x1= %f x2= %f y1= %f y2= %f \n",x1,x2,y1,y2);
+  //  printf("x1= %f x2= %f y1= %f y2= %f \n",x1,x2,y1,y2);
 
   TPave *mbox= new TPave(x1,y1,x2,y2,0,"NDC");
 
@@ -311,10 +311,29 @@ void myBoxText(Double_t x, Double_t y,Double_t boxsize,Int_t mcolor,const char *
 
 }
 
+void myLineText(Double_t x, Double_t y,Double_t boxsize,Int_t mcolor, Int_t mstyle, const char *text,Float_t msize) {
+  Double_t tsize=msize;
+
+  TLatex l; l.SetTextAlign(12); //
+  l.SetTextSize(tsize); 
+  l.SetNDC();
+  l.DrawLatex(x,y,text);
+
+  Double_t x2=x-0.3*tsize;
+  Double_t x1=x2-boxsize;
+
+  TLine mline;
+  mline.SetLineWidth(1);
+  mline.SetLineColor(mcolor);
+  mline.SetLineStyle(mstyle);
+
+  mline.DrawLineNDC(x1,y,x2,y);
+
+}
 
 void myMarkerText(Double_t x,Double_t y,Int_t color,Int_t mstyle, const char *text,Float_t msize) 
 {
-  Double_t tsize=0.035;
+  Double_t tsize=msize;
   TMarker *marker = new TMarker(x-(0.4*tsize),y,8);
   marker->SetMarkerColor(color);  marker->SetNDC();
   marker->SetMarkerStyle(mstyle);

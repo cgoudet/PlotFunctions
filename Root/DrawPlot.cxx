@@ -22,6 +22,7 @@ using std::max;
 #include "PlotFunctions/AtlasStyle.h"
 #include "PlotFunctions/AtlasUtils.h"
 #include "PlotFunctions/AtlasLabels.h"
+using namespace RooFit;
 
 #define DEBUG 0
 // enum EColor { kWhite =0,   kBlack =1,   kGray=920,
@@ -500,20 +501,83 @@ int DrawPlot( RooRealVar *frameVar,
 	      string outName,
 	      vector<string> inOptions
 	      ) {
+  cout << "DrawPlot frame" << endl;
+  vector<string> inLegend, inLatex; 
+  vector< vector< double > > latexPos;
+  vector< double > legendCoord, rangeUserX, rangeUserY;
+  map<string, int> mapOptionsInt;
+  mapOptionsInt["nComparedEvents"]=100;
+  map<string, double> mapOptionsDouble;
+  map<string, string> mapOptionsString;
+  mapOptionsString["xTitle"]="";
+  mapOptionsString["yTitle"]="";
+  
+  for ( auto iOption : inOptions ) {
+    string option = iOption.substr( 0, iOption.find_first_of('=' ) );
+    string value = iOption.substr( iOption.find_first_of("=")+1);
+    if ( mapOptionsInt.find(option) != mapOptionsInt.end() ) mapOptionsInt[option] = atoi( value.c_str() );
+    else if ( mapOptionsString.find(option) != mapOptionsString.end() ) mapOptionsString[option] = value;
+    else if ( mapOptionsDouble.find(option) != mapOptionsDouble.end() ) mapOptionsDouble[option] =  (double) std::atof( value.c_str() );
+    else if ( option == "legend" ) inLegend.push_back( value );
+    else if ( option == "latex" ) inLatex.push_back( value );
+    else if ( option == "latexOpt" ) {
+      latexPos.push_back( vector<double>() );
+      ParseVector( value, latexPos.back() );
+    }
+    else if ( option == "legendPos" ) ParseVector( value, legendCoord );
+    else if ( option == "rangeUserX" ) ParseVector( value, rangeUserX );
+    else if ( option == "rangeUserY" ) ParseVector( value, rangeUserY );
+    else {
+      cout << "Option : " << option << " not known" << endl;
+    }
+  }
 
-  frameVar->Print();
+  if ( inLegend.size() && inLegend.size()!=inObj.size() ) { cout << "Legend do not match input" << endl;return  1;}
+  if ( inLatex.size() != latexPos.size() ) {cout << "Number of latex names and positions do not match" << endl << inLatex.size() << " " << latexPos.size() << endl; return 2; }
+
+  SetAtlasStyle();
+
+  if ( DEBUG ) cout << "Options read" << endl;
+
+  SetAtlasStyle();
   TCanvas *canvas = new TCanvas();
-  RooPlot* frame=frameVar->frame(40);
+  if ( rangeUserX.size() == 2 ) frameVar->setRange( rangeUserX.front(), rangeUserX.back() );
+  RooPlot* frame=frameVar->frame(mapOptionsInt["nComparedEvents"]);
   frame->SetTitle(""); //empty title to prevent printing "A RooPlot of ..."
   frame->SetXTitle(frameVar->GetTitle());
 
+  vector<map<string,int>> legendInfo;
   for ( unsigned int iPlot=0; iPlot<inObj.size(); iPlot++ ) {
-    if ( string(inObj[iPlot]->ClassName() ) == "RooDataSet" ) ( (RooDataSet*) inObj[iPlot])->plotOn( frame );
-    else ( (RooAbsPdf*) inObj[iPlot])->plotOn( frame );
-
+    legendInfo.push_back( map<string, int>());
+    legendInfo.back()["color"] = colors[iPlot];
+    if ( string(inObj[iPlot]->ClassName() ) == "RooDataSet" ) {
+      ( (RooDataSet*) inObj[iPlot])->plotOn( frame, LineColor(  colors[iPlot] ) );
+      legendInfo.back()["doLine"] = 0;
+      legendInfo.back()["style"] = frame->getAttLine(frame->getObject(iPlot)->GetName())->GetLineStyle();
+    }
+    else {
+      ( (RooAbsPdf*) inObj[iPlot])->plotOn( frame, LineColor(  colors[iPlot] ) );
+      legendInfo.back()["doLine"] = 1;
+      legendInfo.back()["style"] = frame->getAttMarker(frame->getObject(iPlot)->GetName())->GetMarkerStyle();
+    }
   }
 
   frame->Draw();
+  for ( unsigned int iPlot=0; iPlot<inObj.size(); iPlot++ ) {
+    if ( legendInfo[iPlot]["doLine"] )    myMarkerText( 0.7, 0.9-0.05*iPlot, legendInfo[iPlot]["color"], legendInfo[iPlot]["style"], inLegend.size() ? inLegend[iPlot].c_str() : "" ); 
+    else  myLineText( 0.7, 0.9-0.05*iPlot, 0.035, legendInfo[iPlot]["color"], legendInfo[iPlot]["style"], inLegend.size() ? inLegend[iPlot].c_str() : "" ); 
+
+  }
+
+  cout << "latex : " << endl;
+  for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {
+    if ( latexPos[iLatex].size() != 2 ) continue;
+    bool doLabel = TString( inLatex[iLatex] ).Contains("__ATLAS");
+    ParseLegend( 0, inLatex[iLatex] );
+    if ( doLabel ) ATLASLabel( latexPos[iLatex][0], latexPos[iLatex][1], inLatex[iLatex].c_str() );
+    else myText( latexPos[iLatex][0], latexPos[iLatex][1], 1, inLatex[iLatex].c_str() );
+  }
+
   canvas->SaveAs( TString( outName + ".pdf") );
   delete frame;
   delete canvas; canvas=0;

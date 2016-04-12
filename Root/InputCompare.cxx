@@ -197,7 +197,7 @@ vector<string> InputCompare::CreateVectorOptions() {
   for ( map<string, string>::iterator it = m_mapOptions.begin(); it != m_mapOptions.end(); it++) {
     if ( it->second == "" 
 	 || it->first == "inputType" 
-	 || it->first == "nComparedEvents" 
+	 //	 || it->first == "nComparedEvents" 
 	 || it->first == "diagonalize" 
 	 || it->first == "doTabular" 
 	 || it->first == "plotDirectory" 

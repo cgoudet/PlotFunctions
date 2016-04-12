@@ -60,6 +60,7 @@ int  main(int argc, char *argv[]){
   vector<string> var1, var2; 
   vector<string> var3;
   bool save_np, wsyst, justMin;
+  string saveSnapshot; 
 
   desc.add_options()
     ( "help", "Display this help message")
@@ -69,7 +70,7 @@ int  main(int argc, char *argv[]){
     ( "var2", po::value<vector<string>>(&var2), "9-14 : Parameters for second variable")
     ( "profiled", po::value<vector<string>>(&var3), "Names of profiled parameters of interest")
     ( "data", po::value<string>(&data_type)->default_value("obsData_G")->implicit_value("asimovData_muhat"),"Data name")
-    ( "save_np", po::value<bool>(&save_np)->default_value( false ), "Save nuisance parameters")
+    ( "save_np", po::value<bool>(&save_np)->default_value( false )->implicit_value(true), "Save nuisance parameters")
     ( "wsyst", po::value<bool>(&wsyst)->default_value( false )->implicit_value( true ), "Do not profile on nuisance parameters")
     ( "scheme", po::value<int>(&modif_scheme)->default_value(0), "Modification scheme")
     ( "strategy", po::value<int>(&strategy)->default_value(0), "Minimization strategy")
@@ -78,6 +79,7 @@ int  main(int argc, char *argv[]){
     ( "numCores", po::value<int>(&numCores)->default_value(1)->implicit_value(10), "Number of Cores used for minimization")
     ( "justMin", po::value<bool>(&justMin)->default_value(false)->implicit_value(true), "")
     ( "saveCsv", "" )
+    ( "saveSnapshot", po::value<string>(&saveSnapshot), "" )
     ;
 
   //Define options gathered by position
@@ -125,7 +127,7 @@ int  main(int argc, char *argv[]){
   //Find a workspace into the root file and assign it
   cout << "Getting Workspace " << endl;
   TFile *file_input=0;
-  if (vm.count("infile")) file_input = TFile::Open(infile.c_str());
+  if (vm.count("infile")) file_input = TFile::Open(infile.c_str(), vm.count("saveSnapshot") ? "update" : "" );
   else {
     cout << "No input file" << endl; 
     return 1;
@@ -165,19 +167,6 @@ int  main(int argc, char *argv[]){
 
 
 
-  //############################ MODIF WS ######################################
-  cout << "modification" << endl;
-  vector<RooRealVar*> tmpvar;
-  cout << "Modif scheme : " << modif_scheme << endl;
-  switch (modif_scheme % 100) {
-  default : break;
-  }
-
-  switch ( modif_scheme / 100 ) {
-  default : break;
-  }
-
-  cout << "end modification" << endl;
   //########################## END_MODIF ##################################
 
   //Gather the model config and poi
@@ -209,7 +198,6 @@ int  main(int argc, char *argv[]){
 
   // Get the likelihood of the workspace
   RooSimultaneous*  pdf = (RooSimultaneous*) mc->GetPdf();
-
 
   //change nll depending on gaussian constraint
   cout<<"Building NLL"<<endl; 
@@ -244,11 +232,6 @@ int  main(int argc, char *argv[]){
       TIterator* np_itr = np_ptr->createIterator();
       while ((np_var = (RooRealVar*)np_itr->Next())) {  
 	np_var->setConstant( wsyst );
-	if ( 0 && string(np_var->GetName()) == "nui_PER_ATLAS_Hgg_mass" ) {
-	  cout << "foundbkg" << endl;
-	  np_var->setVal(0);
-	  np_var->setConstant(0);
-	}
 
 	if(save_np) {
 	  //Fill the map
@@ -261,6 +244,8 @@ int  main(int argc, char *argv[]){
 	  t_np_af->Branch( (std::string(np_var->GetName())+"_Error").c_str(), &(muErrorMap[std::string(np_var->GetName())+"_Error"]));
 	}}
       
+      // combWS->var( "nui_PER_ATLAS_Hgg_mass" )->setVal(0);
+      // combWS->var( "nui_PER_ATLAS_Hgg_mass" )->setConstant(1);
       //      combWS->var( "slope_VH_dileptons_13TeV")->setVal(-0.01);      
       //      combWS->var( "slope_VH_dileptons_13TeV")->setConstant(1);
       
@@ -282,6 +267,27 @@ int  main(int argc, char *argv[]){
 	combWS->var("dummy")->setConstant(1);
       }
 
+
+      //############################ MODIF WS ######################################
+      cout << "modification" << endl;
+      vector<RooRealVar*> tmpvar;
+      cout << "Modif scheme : " << modif_scheme << endl;
+      switch (modif_scheme % 100) {
+      case 1 : {
+	RooRealVar *dumVar = combWS->var( "nui_ATLAS_MRES_EM_PER" );
+	if ( !dumVar ) { cout << "scheme failed" << endl; exit(0); }
+	dumVar->setVal(0);
+	dumVar->setConstant(1);
+	break;
+      }
+      default : break;
+      }
+      
+      switch ( modif_scheme / 100 ) {
+      default : break;
+      }
+
+      cout << "end modification" << endl;
 
       //  Tree for the poi with one branch per value of poi, error, and constant status
       cout << "poi tree" << endl;
@@ -372,6 +378,16 @@ int  main(int argc, char *argv[]){
 	file_output->Close();
 	cout << "tree written : " << outfile << endl;
 	
+
+	if ( vm.count("saveSnapshot") ) {
+	  RooArgSet saveParameters;
+	  saveParameters.add( *mc->GetParametersOfInterest() );
+	  saveParameters.add( *mc->GetNuisanceParameters() );
+	  combWS->saveSnapshot( saveSnapshot.c_str(), saveParameters );
+	  file_input->cd();
+	  combWS->Write( "", TObject::kOverwrite );
+	}
+
 	if ( vm.count("saveCsv") ) {
 	  fstream stream;
 	  TString csvFile = outfile;
@@ -379,21 +395,11 @@ int  main(int argc, char *argv[]){
 	  stream.open( csvFile, fstream::out | fstream::trunc );
 	  cout << "csvFile : " << csvFile << endl;
 
-	  RooArgSet vars = combWS->allVars();
+	  RooArgSet vars = *mc->GetParametersOfInterest();
+	  vars.add( *mc->GetNuisanceParameters() );
 	  TIterator* iter = vars.createIterator();
 	  while ( RooRealVar* v = (RooRealVar* ) iter->Next() ) {//; v!=0; v = (RooRealVar*)iter->Next() ) {
-	    if ( TString( v->GetName() ).Contains( "GA" ) 
-		 || TString( v->GetName() ).Contains( "CB" )
-		 //		 || TString( v->GetName() ).Contains( "sigYield" ) 
-		 || TString( v->GetName() ).Contains( "invTotYield" ) 
-		 || TString( v->GetName() ).Contains( "yieldVar" ) 
-		 || TString( v->GetName() ).Contains( "sigma" ) 
-		 || TString( v->GetName() ).Contains( "m_yy" ) 
-		 || TString( v->GetName() ).Contains( "glob" ) 
-		 || TString( v->GetName() ).Contains( "one" ) 
-		 ) continue;
-	    stream << v->GetName() << "," << v->getVal() << "," << v->getError() << endl;
-	    // process myobject
+	    stream << v->GetName() << " " << v->getVal() << " " << v->getError() << endl;
 	  }
 	  stream.close();
 

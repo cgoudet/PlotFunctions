@@ -28,7 +28,7 @@ using std::max;
 //               kRed   =632, kGreen =416, kBlue=600, kYellow=400, kMagenta=616, kCyan=432,
 //               kOrange=800, kSpring=820, kTeal=840, kAzure =860, kViolet =880, kPink=900 };
 
-int colors[] = {923, 628, 596, 414, 617, 804, 797, 594};
+int colors[] = {923, 628, 596, 414, 617, 804, 797, 594, 900, 920, 820, 880, 432 };
 int fillColors[] = { 3, 5 };
 
 /**
@@ -268,7 +268,7 @@ int DrawPlot( vector< TH1* > inHist,
       }
     }
     if ( mapOptionsDouble["normalize"] && inHist[iHist]->Integral() && !mapOptionsInt["stack"] )  {
-      inHist[iHist]->Sumw2();
+      //inHist[iHist]->Sumw2();
       inHist[iHist]->Scale( mapOptionsDouble["normalize"]/inHist[iHist]->Integral() );
 
     }

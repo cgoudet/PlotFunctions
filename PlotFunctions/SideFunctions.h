@@ -12,6 +12,7 @@
 using boost::multi_array;
 using boost::extents;
 #include "PlotFunctions/SideFunctionsTpp.h"
+#include "TGraphErrors.h"
 
 using std::map;
 using std::fstream;
@@ -67,6 +68,8 @@ string StripString( string &inString, bool doPrefix=1, bool doSuffix=1 );
 void RemoveExtremalEmptyBins( TH1 *hist );
 
 void ParseLegend( TH1* hist, string &legend );
+void ParseLegend( TGraphErrors *graph, string &legend );
+void ParseLegend( string &legend );
 
 /**\brief Create a boostraped Tree out of inputTrees
    \param inTrees vector of input Trees

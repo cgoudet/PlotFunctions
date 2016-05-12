@@ -54,7 +54,7 @@ int  main(int argc, char *argv[]){
   //TString is not supported by boost::program_options
   //Have to use string
   //  double sigma, mean;
-  int modif_scheme, strategy, numCores, silent;
+  int modif_scheme, strategy, numCores, silent, constraint;
   string data_type, snapshot, outfile;
   string infile;
   vector<string> var1, var2; 
@@ -80,6 +80,7 @@ int  main(int argc, char *argv[]){
     ( "justMin", po::value<bool>(&justMin)->default_value(false)->implicit_value(true), "")
     ( "saveCsv", "" )
     ( "saveSnapshot", po::value<string>(&saveSnapshot), "" )
+    ( "constraint", po::value<int>( &constraint)->default_value(0), "" )
     ;
 
   //Define options gathered by position
@@ -117,6 +118,7 @@ int  main(int argc, char *argv[]){
     }}
   
   //Parametrization of verbal mode of minimizer
+  //ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Migrad");
   ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit2");
   ROOT::Math::MinimizerOptions::SetDefaultStrategy(strategy);
   ROOT::Math::MinimizerOptions::SetDefaultPrintLevel(0);
@@ -138,9 +140,15 @@ int  main(int argc, char *argv[]){
   while ((key = (TKey*)nextkey())) {
     if (strcmp("RooWorkspace",key->GetClassName())) continue;
     cout << "workspace found" << endl;
+    cout << file_input << endl;
+    cout << key << endl;
+    cout << key->GetName() << endl;
+    file_input->ls();
     combWS=(RooWorkspace *) file_input->Get(key->GetName());
+    cout << "got" << endl;
+    cout << combWS << endl;
   }
-
+  combWS->Print();
 
   //Test that the variables actually exist into the workspace
   if ( !combWS->var( var1[0].c_str() ) 
@@ -186,7 +194,6 @@ int  main(int argc, char *argv[]){
   }
 
 
-
   //When dataset is asimov, we need to load a snapshot
   if (data_type.find("asimovData")!=string::npos) {
     cout << "load snapshot : " << snapshot << endl;
@@ -202,7 +209,12 @@ int  main(int argc, char *argv[]){
   //change nll depending on gaussian constraint
   cout<<"Building NLL"<<endl; 
   RooAbsReal* nll = 0 ;
-  nll = pdf->createNLL(*data, CloneData(false)); 
+  if ( constraint == 1 )  nll = pdf->createNLL(*data, CloneData(false), Constrain( *pdf->getParameters( *data ))); 
+  else if ( constraint == 2 ) nll = pdf->createNLL(*data, CloneData(false), Constrain( *mc->GetNuisanceParameters() )); 
+  else if ( constraint == 3 ) nll = pdf->createNLL(*data, CloneData(false), Constrain(*combWS->var("nui_QCDscale_bbH"))); 
+  else if ( constraint == 4 ) nll = pdf->createNLL(*data, CloneData(false), Constrained()); 
+  else nll = pdf->createNLL(*data, CloneData(false) ); 
+
   nll->enableOffsetting( true );
   RooMinimizer *_minuit = new  RooMinimizer(*nll);
   cout << "nll built" << endl;
@@ -214,7 +226,6 @@ int  main(int argc, char *argv[]){
   double yMin = ( vm.count( "var2" ) ) ? (double) strtod( var2[1].c_str(), 0 ) : 0;
   double yMax = ( vm.count( "var2" ) ) ? (double) strtod( var2[2].c_str(), 0 ) : 0;
   unsigned int nYBins = ( !vm.count( "var2" ) || justMin ) ? 1 : (unsigned int) strtod( var2[3].c_str(), 0 );
-
 
   for ( unsigned int iVar1 = 0; iVar1 < nXBins; iVar1++ ) {
     for ( unsigned int iVar2 = 0; iVar2 < nYBins; iVar2++ ) {
@@ -274,11 +285,45 @@ int  main(int argc, char *argv[]){
       cout << "Modif scheme : " << modif_scheme << endl;
       switch (modif_scheme % 100) {
       case 1 : {
-	RooRealVar *dumVar = combWS->var( "nui_ATLAS_MRES_EM_PER" );
+	RooRealVar *dumVar = combWS->var( "nui_pdf_gg_bbH" );
 	if ( !dumVar ) { cout << "scheme failed" << endl; exit(0); }
 	dumVar->setVal(0);
 	dumVar->setConstant(1);
 	break;
+      }
+      case 2 : {
+	RooRealVar *dumVar = combWS->var( "nui_QCDscale_bbH" );
+	if ( !dumVar ) { cout << "scheme failed" << endl; exit(0); }
+	dumVar->setVal(0);
+	dumVar->setConstant(1);
+	break;
+      }
+      case 3 : {
+	RooRealVar *dumVar1 = combWS->var( "nui_pdf_gg_bbH" );
+	RooRealVar *dumVar2 = combWS->var( "nui_QCDscale_bbH" );
+	if ( !dumVar1 || !dumVar2 ) { cout << "scheme failed" << endl; exit(0); }
+	dumVar1->setVal(0);
+	dumVar1->setConstant(1);
+	dumVar2->setVal(0);
+	dumVar2->setConstant(1);
+	break;
+      }
+      case 4 : {
+	TIterator* iter = pdf->getParameters( *data )->createIterator();
+	RooAbsPdf* parg;
+	cout << "importing constraint" << endl;
+	while ( (parg=(RooAbsPdf*)iter->Next()) ) {
+	  TString name = parg->GetName();
+	  if ( !name.Contains( "nui_" ) || name.Contains("glob_") ) continue;
+	  // if ( !name.Contains( "QCDscale" ) && !name.Contains( "pdf" ) ) continue;
+	  // if ( !name.Contains( "_bbH" ) ) continue;
+	  // cout << name << endl;
+	  combWS->var( name )->setVal(0);
+	  combWS->var( name )->setConstant(1);
+	}
+      }
+      case 5 : {
+	combWS->var("m_yy")->setRange(105, 160);
       }
       default : break;
       }
@@ -291,14 +336,14 @@ int  main(int argc, char *argv[]){
 
       //  Tree for the poi with one branch per value of poi, error, and constant status
       cout << "poi tree" << endl;
-      double NLL_value = -99, C2H = -99;
+      double NLL_value = -99.99, C2H = -99;
       int status = -99, Npoint = -99;
       int idata = (data_type=="combData") ? 1 : 0;
       TTree *t = new TTree("nll","nll");
       t->Branch("Npoint", &Npoint, "Npoint/I");
       t->Branch("Data", &idata, "Data/I");
       t->Branch("status",&status,"status/I");
-      t->Branch("NLL",&NLL_value,"NLL/D");
+      t->Branch("NLL",&NLL_value);
       if ( combWS->function("C2H") ) t->Branch( "C2H", &C2H, "C2H/D" );
       
       poi_itr->Reset();
@@ -335,12 +380,19 @@ int  main(int argc, char *argv[]){
       cout << mu1->GetName() << " " <<  iVar1+1 << "/" << nXBins << " " << mu1->getVal() << endl;
       if ( vm.count( "var2" ) )      cout << mu2->GetName() << " " <<  iVar2+1 << "/" << nYBins << " " << mu2->getVal() << endl;
       status = robustMinimize(*nll, *_minuit) ;
+      // cout << "second minimization" << endl;
+      // status = robustMinimize(*nll, *_minuit) ;
+      // cout << "third minimization" << endl;
+      // status = robustMinimize(*nll, *_minuit) ;
       cout << "End Minimize" << endl;
       poi->Print("v");      
       if (!std::isfinite(NLL_value)) continue;
     
       //Save the poi et the nll value
       NLL_value = nll->getVal();
+      cout.precision(10);
+      cout << "nll_value :  " << NLL_value << endl;
+
       if ( combWS->function( "C2H" ) ) C2H = combWS->function( "C2H" )->getVal();
       poi_itr->Reset();
       for ( RooRealVar* v = (RooRealVar*)poi_itr->Next(); v!=0; v = (RooRealVar*)poi_itr->Next() ) {
@@ -405,7 +457,7 @@ int  main(int argc, char *argv[]){
 
   //############################################
 	  csvFile.ReplaceAll(".csv","" );
-	  PlotPerCategory( combWS->var( "m_yy" ), { data, pdf }, (RooCategory*)&pdf->indexCat(), string(csvFile) );
+	  PlotPerCategory( combWS->var( "m_yy" ), { data, pdf }, (RooCategory*)&pdf->indexCat(), string(csvFile), { "legend=" + string(data->GetName()), "legend=" + string(pdf->GetName()), "nComparedEvents=50" } );
 	  
   //##########################################
 	 

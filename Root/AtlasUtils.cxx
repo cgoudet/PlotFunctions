@@ -268,9 +268,8 @@ TGraphErrors* TH1TOTGraph(TH1 *h1){
  return g1;
 }
 
-void myText(Double_t x,Double_t y,Color_t color, const char *text) {
+void myText(Double_t x,Double_t y,Color_t color, const char *text, double tsize) {
 
-  Double_t tsize=0.035;
   TLatex l; //l.SetTextAlign(12);
   l.SetTextSize(tsize); 
   l.SetNDC();

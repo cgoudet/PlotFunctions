@@ -104,6 +104,30 @@ void RemoveExtremalEmptyBins( TH1 *hist ) {
 }
 
 //========================================================
+void ParseLegend( TGraphErrors *graph, string &legend ) {
+  TString dumString = legend;
+  if ( graph ) { 
+    dumString.ReplaceAll( "__ENTRIES", TString::Format( "%1.0f", graph->GetN() ) );
+    dumString.ReplaceAll( "__MEAN", TString::Format( "%1.3e", graph->GetMean() ) );
+    dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", graph->GetRMS() ) );
+  }
+
+  legend = dumString;
+  ParseLegend( legend );
+}
+//================================
+void ParseLegend( string &legend ) {
+  TString dumString = legend;
+  dumString.ReplaceAll( "__HASHTAG", "#" );
+  dumString.ReplaceAll( "__FILL", "" );
+  dumString.ReplaceAll("__NOPOINT", "" );
+  dumString.ReplaceAll("__ATLAS", "" );
+  dumString.ReplaceAll("__STACK", "" );
+  dumString.ReplaceAll("ETA_CALO", "#eta_{CALO}" );
+  legend = dumString;
+}
+
+//============================
 void ParseLegend( TH1* hist, string &legend ) {
 
   TString dumString = legend;
@@ -113,15 +137,9 @@ void ParseLegend( TH1* hist, string &legend ) {
     dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", hist->GetStdDev() ) );
     dumString.ReplaceAll( "__INTEGRAL", TString::Format( "%1.3e", hist->GetSumOfWeights() ) );
   }
-  dumString.ReplaceAll( "__HASHTAG", "#" );
-  dumString.ReplaceAll( "__FILL", "" );
-  dumString.ReplaceAll("__NOPOINT", "" );
-  dumString.ReplaceAll("__ATLAS", "" );
-  dumString.ReplaceAll("__STACK", "" );
-  dumString.ReplaceAll("ETA_CALO", "#eta_{CALO}" );
 
   legend = dumString;
-
+  ParseLegend( legend );
 }
 
 //============================================

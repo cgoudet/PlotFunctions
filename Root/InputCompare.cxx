@@ -81,7 +81,7 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
 
 void  InputCompare::LoadFile( string fileName ) {
   string inLatexPos, varMin, varMax, eventID;
-  vector< string > rootFileName, objName, varName, varWeight, latex, latexOpt, xBinning;
+  vector< string > rootFileName, objName, varName, varWeight, latex, latexOpt, xBinning, varErrX, varErrY;
   po::options_description configOptions("configOptions");
   configOptions.add_options()
     ( "rootFileName", po::value< vector< string > >( &rootFileName )->multitoken(), "" )
@@ -96,6 +96,8 @@ void  InputCompare::LoadFile( string fileName ) {
     ( "doChi2", po::value<string>( &m_mapOptions["doChi2"] ), "" )
     ( "centerZoom", po::value<string>( &m_mapOptions["centerZoom"] ), "" )
     ( "varName", po::value< vector<string> >( &varName )->multitoken(), "" )
+    ( "varErrX", po::value< vector<string> >( &varErrX )->multitoken(), "" )
+    ( "varErrY", po::value< vector<string> >( &varErrY )->multitoken(), "" )
     ( "varMin", po::value< string >( &varMin ), "" )
     ( "varMax", po::value< string >( &varMax ), "" )
     ( "latex", po::value< vector< string > >( &latex )->multitoken(), "" )
@@ -118,6 +120,8 @@ void  InputCompare::LoadFile( string fileName ) {
     ( "stack", po::value<string>( &m_mapOptions["stack"]), "" )
     ( "removeVal", po::value<string>( &m_mapOptions["removeVal"] ), "" )
     ( "plotDirectory", po::value<string>( &m_mapOptions["plotDirectory"] ), "" )
+    ( "offset", po::value<string>( &m_mapOptions["offset"] ), "" )
+    ( "orderX", po::value<string>( &m_mapOptions["orderX"] ), "" )
     ;
 
   po::variables_map vm;
@@ -144,6 +148,8 @@ void  InputCompare::LoadFile( string fileName ) {
     m_varName.push_back( vector<string>() );
     ParseVector( varName[iName], m_varName.back(), 0 );
   }
+  for ( auto vErr : varErrX ) { m_varErrX.push_back( vector<string>() ); ParseVector( vErr, m_varErrX.back(), 0 ); }
+  for ( auto vErr : varErrX ) { m_varErrY.push_back( vector<string>() ); ParseVector( vErr, m_varErrY.back(), 0 ); }
 
   while ( m_varName.size() && m_varName.size() < m_rootFileName.size() ) m_varName.push_back( m_varName.back() );
 

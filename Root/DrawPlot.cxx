@@ -288,6 +288,10 @@ int DrawPlot( vector< TH1* > inHist,
 
     //========== LOOK FOR X EXTREMAL VALUES AND DEFINE X RANGE
     int lowBin = 1, upBin = inHist[iHist]->GetNbinsX();
+
+    // for ( int i = 0; i < inHist[iHist]->GetNbinsX()+2; i++ ) cout << inHist[iHist]->GetBinContent(i) << " ";
+    // cout << endl;
+
     while ( inHist[iHist]->GetBinContent( lowBin ) == 0 && lowBin!=upBin ) lowBin++;
     while ( inHist[iHist]->GetBinContent( upBin ) ==0 && lowBin!=upBin ) upBin--;
     if ( lowBin != upBin ) {

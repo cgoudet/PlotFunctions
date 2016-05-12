@@ -21,12 +21,12 @@ void Style_Christophe();
 
 
 int main( ) {
-  unsigned int inputType = 1;
+  unsigned int inputType = 2;
   double inputConstantValue = 0.0062348;
   double inputConstantError = 0.001;
   unsigned int readMatrix = 1;
-  TFile inFile( "/sps/atlas/c/cgoudet/Calibration/PreRec/Results/TestFitMethod.root" );
-  //  TFile inFile( "/sps/atlas/c/cgoudet/Calibration/ScaleResults/160217/DataOff_13TeV_25ns_68Bins_c24.root" );
+  //  TFile inFile( "/sps/atlas/c/cgoudet/Calibration/PreRec/Results/TestFitMethod.root" );
+  TFile inFile( "/sps/atlas/c/cgoudet/Calibration/ScaleResults/160503/DataOff_13TeV_25ns.root" );
   string matrixName, matrixErrName;
   switch ( inputType ) {
   case 0 : 
@@ -36,6 +36,10 @@ int main( ) {
   case 1 :
     matrixName = "combin_c";
     matrixErrName = "combinErr_c";
+    break;
+  case 2 :
+    matrixName = "combin_alpha";
+    matrixErrName = "combinErr_alpha";
     break;
   }
 
@@ -72,9 +76,9 @@ int main( ) {
   vector<string> options;
   vector< int > fitMethod = { 0, 1, 11, 12};
   
-  for (  unsigned int iProc = 1; iProc < legend.size(); iProc++ ) {
-    if ( iProc != 2 ) continue;
-    if ( !iProc  )   {
+  for (  unsigned int iProc = 0; iProc < legend.size(); iProc++ ) {
+    if ( fitMethod[iProc]  ) continue;
+    if ( !iProc && false )   {
       histVect.push_back( (TH1D*) inFile.Get( "inputScale_c" )->Clone() );
       histVect.back()->SetName( TString::Format( "hist_%d", (int) histVect.size() ) );
       histVect.back()->GetXaxis()->SetTitle( "#eta_{calo}" );

@@ -184,7 +184,9 @@ int main( int argc, char* argv[] ) {
 	    if ( !iEvent ) {
 	      for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
 		//Link tree branches to local variables
-		inTree->SetBranchAddress( varName[iPlot][iHist].c_str(), &varVal[iHist] );
+		cout << varName[iPlot][iHist] << " " << varVal[iHist]<< endl;
+		//		inTree->SetBranchAddress( varName[iPlot][iHist].c_str(), &varVal[iHist] );
+		inTree->SetBranchAddress( varName[iPlot][iHist].c_str() , &varVal[iHist] );
 		while ( vectHist.size() <= iHist )  vectHist.push_back( vector<TH1*>() );
 		while ( vectHist[iHist].size() <= iPlot )  vectHist[iHist].push_back( 0 );
 	      }//end for iHist
@@ -212,7 +214,8 @@ int main( int argc, char* argv[] ) {
 		}
 		
 	      //if created fill it
-	      vectHist[iHist][iPlot]->Fill( varVal[iHist], totWeight );
+		//cout << varVal[iHist] << " " << totWeight << endl;
+		vectHist[iHist][iPlot]->Fill( varVal[iHist], totWeight );
 	    }// End iHist
 	  }// end iEvent
 
@@ -466,7 +469,7 @@ int main( int argc, char* argv[] ) {
 	    cout << inputObjName[iPlot][iAdd].c_str() << " not found in " << inFile.GetName() << endl;
 	    exit(0);
 	  }
-	  matrix->Print();
+	  //	  matrix->Print();
 	  unsigned int nLine = matrix->GetNrows();
 	  unsigned int nCol = matrix->GetNcols();
 	  if ( !iPlot ) vectHist.push_back( vector<TH1*>() );
@@ -483,6 +486,7 @@ int main( int argc, char* argv[] ) {
 	      if ( (*matrix)(iLine, iCol) != 100 ) vectHist.front().back()->SetBinContent( bin, (*matrix)(iLine, iCol) );
 	      vectHist.front().back()->SetBinError( bin, 0 );
 	      vectHist.front().back()->GetXaxis()->SetBinLabel( bin, TString::Format( "%d_%d", iLine, iCol ) );
+	      cout << vectHist.front().back()->GetXaxis()->GetBinLabel( bin )  << endl;
 	      bin++;
 	    }
 	  }

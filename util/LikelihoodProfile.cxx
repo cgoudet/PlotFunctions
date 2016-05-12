@@ -54,12 +54,13 @@ int  main(int argc, char *argv[]){
   //TString is not supported by boost::program_options
   //Have to use string
   //  double sigma, mean;
-  int modif_scheme, strategy, numCores, silent;
+  int modif_scheme, strategy, numCores, silent, constraint;
   string data_type, snapshot, outfile;
   string infile;
   vector<string> var1, var2; 
   vector<string> var3;
   bool save_np, wsyst, justMin;
+  string saveSnapshot; 
 
   desc.add_options()
     ( "help", "Display this help message")
@@ -69,7 +70,7 @@ int  main(int argc, char *argv[]){
     ( "var2", po::value<vector<string>>(&var2), "9-14 : Parameters for second variable")
     ( "profiled", po::value<vector<string>>(&var3), "Names of profiled parameters of interest")
     ( "data", po::value<string>(&data_type)->default_value("obsData_G")->implicit_value("asimovData_muhat"),"Data name")
-    ( "save_np", po::value<bool>(&save_np)->default_value( false ), "Save nuisance parameters")
+    ( "save_np", po::value<bool>(&save_np)->default_value( false )->implicit_value(true), "Save nuisance parameters")
     ( "wsyst", po::value<bool>(&wsyst)->default_value( false )->implicit_value( true ), "Do not profile on nuisance parameters")
     ( "scheme", po::value<int>(&modif_scheme)->default_value(0), "Modification scheme")
     ( "strategy", po::value<int>(&strategy)->default_value(0), "Minimization strategy")
@@ -78,6 +79,8 @@ int  main(int argc, char *argv[]){
     ( "numCores", po::value<int>(&numCores)->default_value(1)->implicit_value(10), "Number of Cores used for minimization")
     ( "justMin", po::value<bool>(&justMin)->default_value(false)->implicit_value(true), "")
     ( "saveCsv", "" )
+    ( "saveSnapshot", po::value<string>(&saveSnapshot), "" )
+    ( "constraint", po::value<int>( &constraint)->default_value(0), "" )
     ;
 
   //Define options gathered by position
@@ -115,6 +118,7 @@ int  main(int argc, char *argv[]){
     }}
   
   //Parametrization of verbal mode of minimizer
+  //ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Migrad");
   ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit2");
   ROOT::Math::MinimizerOptions::SetDefaultStrategy(strategy);
   ROOT::Math::MinimizerOptions::SetDefaultPrintLevel(0);
@@ -125,7 +129,7 @@ int  main(int argc, char *argv[]){
   //Find a workspace into the root file and assign it
   cout << "Getting Workspace " << endl;
   TFile *file_input=0;
-  if (vm.count("infile")) file_input = TFile::Open(infile.c_str());
+  if (vm.count("infile")) file_input = TFile::Open(infile.c_str(), vm.count("saveSnapshot") ? "update" : "" );
   else {
     cout << "No input file" << endl; 
     return 1;
@@ -136,9 +140,15 @@ int  main(int argc, char *argv[]){
   while ((key = (TKey*)nextkey())) {
     if (strcmp("RooWorkspace",key->GetClassName())) continue;
     cout << "workspace found" << endl;
+    cout << file_input << endl;
+    cout << key << endl;
+    cout << key->GetName() << endl;
+    file_input->ls();
     combWS=(RooWorkspace *) file_input->Get(key->GetName());
+    cout << "got" << endl;
+    cout << combWS << endl;
   }
-
+  combWS->Print();
 
   //Test that the variables actually exist into the workspace
   if ( !combWS->var( var1[0].c_str() ) 
@@ -165,19 +175,6 @@ int  main(int argc, char *argv[]){
 
 
 
-  //############################ MODIF WS ######################################
-  cout << "modification" << endl;
-  vector<RooRealVar*> tmpvar;
-  cout << "Modif scheme : " << modif_scheme << endl;
-  switch (modif_scheme % 100) {
-  default : break;
-  }
-
-  switch ( modif_scheme / 100 ) {
-  default : break;
-  }
-
-  cout << "end modification" << endl;
   //########################## END_MODIF ##################################
 
   //Gather the model config and poi
@@ -197,7 +194,6 @@ int  main(int argc, char *argv[]){
   }
 
 
-
   //When dataset is asimov, we need to load a snapshot
   if (data_type.find("asimovData")!=string::npos) {
     cout << "load snapshot : " << snapshot << endl;
@@ -210,11 +206,15 @@ int  main(int argc, char *argv[]){
   // Get the likelihood of the workspace
   RooSimultaneous*  pdf = (RooSimultaneous*) mc->GetPdf();
 
-
   //change nll depending on gaussian constraint
   cout<<"Building NLL"<<endl; 
   RooAbsReal* nll = 0 ;
-  nll = pdf->createNLL(*data, CloneData(false)); 
+  if ( constraint == 1 )  nll = pdf->createNLL(*data, CloneData(false), Constrain( *pdf->getParameters( *data ))); 
+  else if ( constraint == 2 ) nll = pdf->createNLL(*data, CloneData(false), Constrain( *mc->GetNuisanceParameters() )); 
+  else if ( constraint == 3 ) nll = pdf->createNLL(*data, CloneData(false), Constrain(*combWS->var("nui_QCDscale_bbH"))); 
+  else if ( constraint == 4 ) nll = pdf->createNLL(*data, CloneData(false), Constrained()); 
+  else nll = pdf->createNLL(*data, CloneData(false) ); 
+
   nll->enableOffsetting( true );
   RooMinimizer *_minuit = new  RooMinimizer(*nll);
   cout << "nll built" << endl;
@@ -226,7 +226,6 @@ int  main(int argc, char *argv[]){
   double yMin = ( vm.count( "var2" ) ) ? (double) strtod( var2[1].c_str(), 0 ) : 0;
   double yMax = ( vm.count( "var2" ) ) ? (double) strtod( var2[2].c_str(), 0 ) : 0;
   unsigned int nYBins = ( !vm.count( "var2" ) || justMin ) ? 1 : (unsigned int) strtod( var2[3].c_str(), 0 );
-
 
   for ( unsigned int iVar1 = 0; iVar1 < nXBins; iVar1++ ) {
     for ( unsigned int iVar2 = 0; iVar2 < nYBins; iVar2++ ) {
@@ -244,11 +243,6 @@ int  main(int argc, char *argv[]){
       TIterator* np_itr = np_ptr->createIterator();
       while ((np_var = (RooRealVar*)np_itr->Next())) {  
 	np_var->setConstant( wsyst );
-	if ( 0 && string(np_var->GetName()) == "nui_PER_ATLAS_Hgg_mass" ) {
-	  cout << "foundbkg" << endl;
-	  np_var->setVal(0);
-	  np_var->setConstant(0);
-	}
 
 	if(save_np) {
 	  //Fill the map
@@ -261,6 +255,8 @@ int  main(int argc, char *argv[]){
 	  t_np_af->Branch( (std::string(np_var->GetName())+"_Error").c_str(), &(muErrorMap[std::string(np_var->GetName())+"_Error"]));
 	}}
       
+      // combWS->var( "nui_PER_ATLAS_Hgg_mass" )->setVal(0);
+      // combWS->var( "nui_PER_ATLAS_Hgg_mass" )->setConstant(1);
       //      combWS->var( "slope_VH_dileptons_13TeV")->setVal(-0.01);      
       //      combWS->var( "slope_VH_dileptons_13TeV")->setConstant(1);
       
@@ -283,16 +279,71 @@ int  main(int argc, char *argv[]){
       }
 
 
+      //############################ MODIF WS ######################################
+      cout << "modification" << endl;
+      vector<RooRealVar*> tmpvar;
+      cout << "Modif scheme : " << modif_scheme << endl;
+      switch (modif_scheme % 100) {
+      case 1 : {
+	RooRealVar *dumVar = combWS->var( "nui_pdf_gg_bbH" );
+	if ( !dumVar ) { cout << "scheme failed" << endl; exit(0); }
+	dumVar->setVal(0);
+	dumVar->setConstant(1);
+	break;
+      }
+      case 2 : {
+	RooRealVar *dumVar = combWS->var( "nui_QCDscale_bbH" );
+	if ( !dumVar ) { cout << "scheme failed" << endl; exit(0); }
+	dumVar->setVal(0);
+	dumVar->setConstant(1);
+	break;
+      }
+      case 3 : {
+	RooRealVar *dumVar1 = combWS->var( "nui_pdf_gg_bbH" );
+	RooRealVar *dumVar2 = combWS->var( "nui_QCDscale_bbH" );
+	if ( !dumVar1 || !dumVar2 ) { cout << "scheme failed" << endl; exit(0); }
+	dumVar1->setVal(0);
+	dumVar1->setConstant(1);
+	dumVar2->setVal(0);
+	dumVar2->setConstant(1);
+	break;
+      }
+      case 4 : {
+	TIterator* iter = pdf->getParameters( *data )->createIterator();
+	RooAbsPdf* parg;
+	cout << "importing constraint" << endl;
+	while ( (parg=(RooAbsPdf*)iter->Next()) ) {
+	  TString name = parg->GetName();
+	  if ( !name.Contains( "nui_" ) || name.Contains("glob_") ) continue;
+	  // if ( !name.Contains( "QCDscale" ) && !name.Contains( "pdf" ) ) continue;
+	  // if ( !name.Contains( "_bbH" ) ) continue;
+	  // cout << name << endl;
+	  combWS->var( name )->setVal(0);
+	  combWS->var( name )->setConstant(1);
+	}
+      }
+      case 5 : {
+	combWS->var("m_yy")->setRange(105, 160);
+      }
+      default : break;
+      }
+      
+      switch ( modif_scheme / 100 ) {
+      default : break;
+      }
+
+      cout << "end modification" << endl;
+
       //  Tree for the poi with one branch per value of poi, error, and constant status
       cout << "poi tree" << endl;
-      double NLL_value = -99, C2H = -99;
+      double NLL_value = -99.99, C2H = -99;
       int status = -99, Npoint = -99;
       int idata = (data_type=="combData") ? 1 : 0;
       TTree *t = new TTree("nll","nll");
       t->Branch("Npoint", &Npoint, "Npoint/I");
       t->Branch("Data", &idata, "Data/I");
       t->Branch("status",&status,"status/I");
-      t->Branch("NLL",&NLL_value,"NLL/D");
+      t->Branch("NLL",&NLL_value);
       if ( combWS->function("C2H") ) t->Branch( "C2H", &C2H, "C2H/D" );
       
       poi_itr->Reset();
@@ -329,12 +380,19 @@ int  main(int argc, char *argv[]){
       cout << mu1->GetName() << " " <<  iVar1+1 << "/" << nXBins << " " << mu1->getVal() << endl;
       if ( vm.count( "var2" ) )      cout << mu2->GetName() << " " <<  iVar2+1 << "/" << nYBins << " " << mu2->getVal() << endl;
       status = robustMinimize(*nll, *_minuit) ;
+      // cout << "second minimization" << endl;
+      // status = robustMinimize(*nll, *_minuit) ;
+      // cout << "third minimization" << endl;
+      // status = robustMinimize(*nll, *_minuit) ;
       cout << "End Minimize" << endl;
       poi->Print("v");      
       if (!std::isfinite(NLL_value)) continue;
     
       //Save the poi et the nll value
       NLL_value = nll->getVal();
+      cout.precision(10);
+      cout << "nll_value :  " << NLL_value << endl;
+
       if ( combWS->function( "C2H" ) ) C2H = combWS->function( "C2H" )->getVal();
       poi_itr->Reset();
       for ( RooRealVar* v = (RooRealVar*)poi_itr->Next(); v!=0; v = (RooRealVar*)poi_itr->Next() ) {
@@ -372,6 +430,16 @@ int  main(int argc, char *argv[]){
 	file_output->Close();
 	cout << "tree written : " << outfile << endl;
 	
+
+	if ( vm.count("saveSnapshot") ) {
+	  RooArgSet saveParameters;
+	  saveParameters.add( *mc->GetParametersOfInterest() );
+	  saveParameters.add( *mc->GetNuisanceParameters() );
+	  combWS->saveSnapshot( saveSnapshot.c_str(), saveParameters );
+	  file_input->cd();
+	  combWS->Write( "", TObject::kOverwrite );
+	}
+
 	if ( vm.count("saveCsv") ) {
 	  fstream stream;
 	  TString csvFile = outfile;
@@ -379,27 +447,17 @@ int  main(int argc, char *argv[]){
 	  stream.open( csvFile, fstream::out | fstream::trunc );
 	  cout << "csvFile : " << csvFile << endl;
 
-	  RooArgSet vars = combWS->allVars();
+	  RooArgSet vars = *mc->GetParametersOfInterest();
+	  vars.add( *mc->GetNuisanceParameters() );
 	  TIterator* iter = vars.createIterator();
 	  while ( RooRealVar* v = (RooRealVar* ) iter->Next() ) {//; v!=0; v = (RooRealVar*)iter->Next() ) {
-	    if ( TString( v->GetName() ).Contains( "GA" ) 
-		 || TString( v->GetName() ).Contains( "CB" )
-		 //		 || TString( v->GetName() ).Contains( "sigYield" ) 
-		 || TString( v->GetName() ).Contains( "invTotYield" ) 
-		 || TString( v->GetName() ).Contains( "yieldVar" ) 
-		 || TString( v->GetName() ).Contains( "sigma" ) 
-		 || TString( v->GetName() ).Contains( "m_yy" ) 
-		 || TString( v->GetName() ).Contains( "glob" ) 
-		 || TString( v->GetName() ).Contains( "one" ) 
-		 ) continue;
-	    stream << v->GetName() << "," << v->getVal() << "," << v->getError() << endl;
-	    // process myobject
+	    stream << v->GetName() << " " << v->getVal() << " " << v->getError() << endl;
 	  }
 	  stream.close();
 
   //############################################
 	  csvFile.ReplaceAll(".csv","" );
-	  PlotPerCategory( combWS->var( "m_yy" ), { data, pdf }, (RooCategory*)&pdf->indexCat(), string(csvFile) );
+	  PlotPerCategory( combWS->var( "m_yy" ), { data, pdf }, (RooCategory*)&pdf->indexCat(), string(csvFile), { "legend=" + string(data->GetName()), "legend=" + string(pdf->GetName()), "nComparedEvents=50" } );
 	  
   //##########################################
 	 

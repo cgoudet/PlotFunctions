@@ -13,6 +13,7 @@ using std::string;
 #include "RooAbsPdf.h"
 #include "RooAbsData.h"
 #include "RooCategory.h"
+#include "TGraphErrors.h"
 
 /**\brief Plot histograms and save them in png format
    \param inHist vector of histograms to be superimposed
@@ -54,13 +55,18 @@ int DrawPlot( vector< TH1* > inHist,
 	      vector<string> inOptions=vector<string>()
 	      );
 
+int DrawPlot( vector< TGraphErrors* > inGraph,  
+	      string outName, 
+	      vector<string> inOptions=vector<string>()
+	      );
+
 int DrawPlot( RooRealVar *frameVar,
 	      vector<TObject*> inObj,
 	      string outName,
 	      vector<string> inOptions=vector<string>()
 	      );
 
-void PlotPerCategory( RooRealVar *varFrame, vector<TObject*> vectObj, RooCategory *cat, string prefix = "" );
+void PlotPerCategory( RooRealVar *varFrame, vector<TObject*> vectObj, RooCategory *cat, string prefix = "", vector<string> options = vector<string>() );
 
 
 

@@ -20,6 +20,8 @@ class InputCompare
   vector< vector< string > > &GetObjName() { return m_objName; }
   vector< string > &GetLegend() { return m_legend; }
   vector< vector<string> > &GetVarName() { return m_varName; }
+  vector< vector<string> > &GetVarErrX() { return m_varErrX; }
+  vector< vector<string> > &GetVarErrY() { return m_varErrY; }
   vector< double > &GetVarMin() { return m_varMin; }
   vector< double > &GetVarMax() { return m_varMax; }
   vector<vector< double >> &GetXBinning() { return m_xBinning; }
@@ -56,7 +58,8 @@ class InputCompare
   /**\brief List of branches to print in a TTree
    */
   vector< vector<string> > m_varName;
-
+  vector<vector<string> > m_varErrX;
+  vector<vector<string> > m_varErrY;
   /**\brief Vector of latex texts to print
    */
   vector< string > m_latex;

@@ -137,6 +137,7 @@ int DrawPlot( vector< TH1* > inHist,
   map<string, double > mapOptionsDouble;
   mapOptionsDouble["extendUp"]=0;
   mapOptionsDouble["normalize"]=0;
+  mapOptionsDouble["line"]=-99
   vector<string> inLegend, inLatex; 
   vector< vector< double > > latexPos;
   vector< double > legendCoord, rangeUserX, rangeUserY;
@@ -377,7 +378,7 @@ int DrawPlot( vector< TH1* > inHist,
     if( !iHist && mapOptionsInt["line"] != -99 ) {
       double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : (mapOptionsInt["centerZoom"] ? minX : inHist[refHist]->GetXaxis()->GetXmin() );
       double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : ( mapOptionsInt["centerZoom"] ? maxX :inHist[refHist]->GetXaxis()->GetXmax() );
-      line->DrawLine( rangeMin , mapOptionsInt["line"], rangeMax, mapOptionsInt["line"]);
+      line->DrawLine( rangeMin , mapOptionsDouble["line"], rangeMax, mapOptionsDouble["line"]);
     }
     //========== ADD HISTOGRAM TO LEGEND
   }//end iHist

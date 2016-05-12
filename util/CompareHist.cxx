@@ -15,6 +15,7 @@ using std::string;
 using std::cout;
 using std::endl;
 using std::vector;
+#include "TGraphErrors.h"
 
 #include "PlotFunctions/DrawPlot.h"
 #include <boost/program_options.hpp>
@@ -86,6 +87,7 @@ int main( int argc, char* argv[] ) {
     if ( DEBUG ) cout << "config file loaded" << endl;
     plotPath = input.GetOption("plotDirectory");
     vector< vector< TH1* > > vectHist;
+    vector< vector< TGraphErrors* > > vectGraph;
     multi_array< double, 2 > eventVarVect;
     multi_array< long long int, 2> eventIDVect;
     TFile *outFile = 0;    
@@ -102,6 +104,7 @@ int main( int argc, char* argv[] ) {
 
 	TFile inFile( inputRootFile[iPlot][iAdd].c_str() );	
 	if ( DEBUG ) cout << iPlot << " " << iAdd << endl;
+
 	switch( atoi(input.GetOption("inputType").c_str()) ) {
 	case 0 : {//histograms
 	  if ( !iPlot && !iAdd ) vectHist.push_back( vector< TH1* >() );
@@ -604,9 +607,95 @@ int main( int argc, char* argv[] ) {
 	  delete inTree; inTree = 0;
 	  break;
 	}//end case TProfile
+	  
+	  //--------------------------------
+	case 9 : { //TGraphError
+	  cout << "case 9" << endl;
+	  vector< vector<string> > &varName = input.GetVarName();
+	  vector< vector<string> > &varErrX = input.GetVarErrX();
+	  vector< vector<string> > &varErrY = input.GetVarErrY();
+	  vector< vector<string> > &varWeight = input.GetVarWeight();
+
+	  map<string, double> mapVars;
+
+	  //Test inputs
+	  if ( !varName.size() ) { cout << "No variable to be printed in varName" << endl; exit(0); }
+	  //By default, if less names of variables than root files are entered, the last entry will be compied
+	  while ( varName.size() <= iPlot ) varName.push_back( varName.back() );
+	  while ( varWeight.size() < varName.size() ) varWeight.push_back( varWeight.back() );
+	  // if number of x and Y variables are different exit
+	  if ( varName[iPlot].size() != varWeight[iPlot].size() ) { cout << "X (varName) and Y (varWeight) branches have different sizes." << endl; exit(0); }
+	  if ( !varErrX.size() ) varErrX.push_back( vector<string>( varName[iPlot].size(), "X" ) );
+	  while ( varErrX.size() < varName.size() ) varErrX.push_back( varErrX.back() );
+	  if ( !varErrY.size() ) varErrY.push_back( vector<string>( varName[iPlot].size(), "X" ) );
+	  while ( varErrY.size() < varName.size() ) varErrY.push_back( varErrX.back() );
+
+	  cout << "varNameSize : " << varName.size() << endl;
+
+	  TTree *inTree = (TTree*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
+	  if ( !inTree ) { cout << "inTree " << inputObjName[iPlot][iAdd] << " not found in " << inFile.GetName() << endl; exit(0);}
+	  //	  inTree->SetDirectory(0);
+	  if ( input.GetSelectionCut().size() ){
+	    TFile *dumFile = new TFile( "/tmp/cgoudet/dumFile", "RECREATE" );
+	    gROOT->cd();
+	    TTree* dumTree = inTree->CopyTree( input.GetSelectionCut()[iPlot].c_str() );
+	    if ( dumTree ) {
+	      delete inTree;
+	      inTree= dumTree;
+	      inTree->SetDirectory(0);
+	    }
+	    delete dumFile; dumFile=0;
+	  }
+	  //Setting the branches for all branches names
+	  for ( auto vName : varName[iPlot] ) inTree->SetBranchAddress( vName.c_str(), &mapVars[vName] );
+	  for ( auto vName : varWeight[iPlot] ) inTree->SetBranchAddress( vName.c_str(), &mapVars[vName] );
+	  for ( auto vName : varErrX[iPlot] ) inTree->SetBranchAddress( vName.c_str(), &mapVars[vName] );
+	  for ( auto vName : varErrY[iPlot] ) inTree->SetBranchAddress( vName.c_str(), &mapVars[vName] );
+	  mapVars["X"]=0;
+
+
+	  unsigned int nentries = inTree->GetEntries();
+	  for ( unsigned int iEntry = 0; iEntry<nentries; iEntry++ ) {
+
+	    inTree->GetEntry( iEntry );
+
+	    for ( unsigned int iVar = 0; iVar<varName[iPlot].size(); iVar++ ) {
+	      cout << "iVar : " << iVar << endl;
+	      while ( vectGraph.size() <= iVar ) vectGraph.push_back( vector<TGraphErrors*>() );
+	      while ( vectGraph[iVar].size() <= iPlot ) vectGraph[iVar].push_back(0);
+	      cout << vectGraph.size() << endl;
+	      cout << vectGraph[iVar].size() << endl;
+	      cout << vectGraph[iVar][iPlot] << endl;
+	      if ( !vectGraph[iVar][iPlot] ) {
+		vectGraph[iVar][iPlot] = new TGraphErrors( nentries );
+		vectGraph[iVar][iPlot]->SetName( TString::Format( "%s_%s_%s_%s_%d", varName[iPlot][iVar].c_str(), varWeight[iPlot][iVar].c_str(), varErrX[iPlot][iVar].c_str(), varErrY[iPlot][iVar].c_str(), iPlot ) );
+		vectGraph[iVar][iPlot]->GetXaxis()->SetTitle( varName[iPlot][iVar].c_str() );
+		vectGraph[iVar][iPlot]->GetYaxis()->SetTitle( varWeight[iPlot][iVar].c_str() );
+	      }
+	      cout << "created" << endl;
+	      vectGraph[iVar][iPlot]->SetPoint( iEntry, mapVars[varName[iPlot][iVar]], mapVars[varWeight[iPlot][iVar]] );
+	      cout << "error" << endl;
+	      vectGraph[iVar][iPlot]->SetPointError( iEntry, mapVars[varErrX[iPlot][iVar]], mapVars[varErrY[iPlot][iVar]] );
+	      cout.precision(10);
+	      cout << "print" << endl;
+	      cout << varName.size() << " " << iVar << endl;
+	      cout << varName[iVar].size() << " " << iPlot << endl;
+	      cout << varName[iPlot][iVar] << endl;
+	      cout << mapVars[varName[iPlot][iVar]] << endl;
+	      cout << iEntry << " " << mapVars[varName[iPlot][iVar]] << endl;
+	      cout <<  mapVars[varWeight[iPlot][iVar]]  << endl;
+	      cout << mapVars[varErrX[iPlot][iVar]] << endl;
+	      cout << mapVars[varErrY[iPlot][iVar]] << endl;
+	    }//end iVar
+	  }//end foriEntry
+
+	  delete inTree; inTree=0;
+	  break;
+	}//end case TGraphErr (9)
+	  //---------------------------
 
 	default : 
-	  cout << "inputType= " << input.GetOption("inputType") << " is not known." << endl;
+	  cout << "inputType=" << input.GetOption("inputType") << " is not known." << endl;
 	  exit(0);
 	}//end switch inputType
 	inFile.Close("R");	
@@ -680,10 +769,23 @@ int main( int argc, char* argv[] ) {
       cout << "csv file saved" << endl;
     }
 
+    //Plotting graphs
+    cout << "nGraph : " << vectGraph.size() << endl;
+    for ( unsigned int iHist = 0; iHist < vectGraph.size(); iHist++ ) {
+      DrawPlot( vectGraph[iHist], 
+		plotPath + input.GetOutName()+ ( input.GetVarName().size() && input.GetVarName().front().size() ? "_" + input.GetVarName().front()[iHist] : "" ),
+		input.CreateVectorOptions()
+		);
+    }
+
+
     if ( outFile ) {
       outFile->Close("R");
       delete outFile;
     }
+
+
+
 
     //cleaning vectors of pointers
     while ( vectHist.size() ) {
@@ -692,6 +794,14 @@ int main( int argc, char* argv[] ) {
 	vectHist.back().pop_back();
       }
       vectHist.pop_back();
+    }
+
+    while ( vectGraph.size() ) {
+      while ( vectGraph.back().size() ) {
+	if ( vectGraph.back().back() ) delete vectGraph.back().back();
+	vectGraph.back().pop_back();
+      }
+      vectGraph.pop_back();
     }
     
   }// end iFile

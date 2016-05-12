@@ -352,7 +352,7 @@ int DrawPlot( vector< TH1* > inHist,
       inHist[iHist]->SetFillColor( fillColors[iHist] );
       //      myBoxText( legendCoord[0], legendCoord[1]-0.05*iHist, 0.05, inHist[iHist]->GetFillColor(), inLegend[iHist].c_str() ); 
     }
-    cout << "drawOption : " << drawOpt << endl;
+    //    cout << "drawOption : " << drawOpt << endl;
     if ( !mapOptionsInt["stack" ] ) inHist[iHist]->Draw( drawOpt.c_str() );
     else {
       inHist[iHist]->SetFillColor( inHist[iHist]->GetLineColor() );

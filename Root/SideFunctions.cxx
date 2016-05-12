@@ -143,15 +143,17 @@ void ParseLegend( TH1* hist, string &legend ) {
 }
 
 //============================================
-TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents ) {
+TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long int seed ) {
   cout << "Bootstrap" << endl;
   string outTreeName = inTrees.front()->GetName() + string( "_bootstrap" );
   TTree * outTree = new TTree ( outTreeName.c_str(), outTreeName.c_str() );
   outTree->SetDirectory(0);
   TRandom rand;
   high_resolution_clock::time_point t1 = high_resolution_clock::now();
-  unsigned long seed = t1.time_since_epoch().count();
-  rand.SetSeed( seed );
+  if ( seed ) {
+    if ( seed == 1 ) seed = t1.time_since_epoch().count();
+    rand.SetSeed( seed );
+  }
   cout << "bootstrapSeed : " << seed << endl;
   cout << "nEvents : " << nEvents << endl;
   unsigned int totEntry = 0;

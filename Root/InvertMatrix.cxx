@@ -72,6 +72,7 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
  
 	switch ( inversionProcedure%10 ) {
 	case 0 : { // default linear case
+	  cout << "combinErr : " << combinErrMatrix( line, col) << endl;
 	  (*bMatrix)(line, 0 ) += combinMatrix(line, col ) /  combinErrMatrix( line, col) / combinErrMatrix( line, col) * ( 1 + Delta( col, line ) ); 
 	  (*UMatrix)( line, col ) += 1. / 2 / combinErrMatrix( line, col ) / combinErrMatrix( line, col ) * ( 1 +Delta( line, col ) );
 	  (*UMatrix)( line, line ) += 1. / 2 / combinErrMatrix( line, col ) / combinErrMatrix( line, col ) * ( 1 +  Delta( line, col ) );
@@ -94,7 +95,7 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
 	}
 
       }}
-  
+    cout << "inverting" << endl;
     UMatrix->Invert();
     //    UMatrix=2*UMatrix;
     outMatrix = TMatrixD( nBins, 1);
@@ -201,7 +202,8 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
 
     
     RooDataSet* obsData = new RooDataSet("obsData","combined data ",*observables, Index(*channellist), Import(datasetMap)); 
-    combinedPdf->Print();
+    //    combinedPdf->Print();
+    combinedPdf->fitTo( *obsData );
     combinedPdf->fitTo( *obsData );
 
     outMatrix = TMatrixD( nBins, 1 );

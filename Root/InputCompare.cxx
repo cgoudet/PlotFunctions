@@ -132,7 +132,6 @@ void  InputCompare::LoadFile( string fileName ) {
   m_outName = StripString( fileName );
   
   if ( m_mapOptions["plotDirectory"] != "" && m_mapOptions["plotDirectory"].back() != '/' ) m_mapOptions["plotDirectory"] += "/";
-
   for ( unsigned int iHist = 0; iHist < rootFileName.size(); iHist++ ) {
     m_rootFileName.push_back( vector< string >() );
     ParseVector( rootFileName[iHist], m_rootFileName.back(), 0 );
@@ -188,10 +187,10 @@ void  InputCompare::LoadFile( string fileName ) {
     exit(0);
   }
 
-  if ( m_selectionCut.size() && m_selectionCut.size() != m_rootFileName.size() ) {
-    cout << "selectionCuts have non-zero size and diferent from rootFileName" << endl;
-    exit(0);
-  }
+  // if ( m_selectionCut.size() && m_selectionCut.size() != m_rootFileName.size() ) {
+  //   cout << "selectionCuts have non-zero size and diferent from rootFileName : " << m_selectionCut.size() << " " << m_rootFileName.size() << endl;
+  //   exit(0);
+  // }
 
 
 }

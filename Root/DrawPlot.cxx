@@ -137,6 +137,7 @@ int DrawPlot( vector< TH1* > inHist,
   map<string, double > mapOptionsDouble;
   mapOptionsDouble["extendUp"]=0;
   mapOptionsDouble["normalize"]=0;
+  mapOptionsDouble["line"]=-99
   vector<string> inLegend, inLatex; 
   vector< vector< double > > latexPos;
   vector< double > legendCoord, rangeUserX, rangeUserY;
@@ -288,6 +289,10 @@ int DrawPlot( vector< TH1* > inHist,
 
     //========== LOOK FOR X EXTREMAL VALUES AND DEFINE X RANGE
     int lowBin = 1, upBin = inHist[iHist]->GetNbinsX();
+
+    // for ( int i = 0; i < inHist[iHist]->GetNbinsX()+2; i++ ) cout << inHist[iHist]->GetBinContent(i) << " ";
+    // cout << endl;
+
     while ( inHist[iHist]->GetBinContent( lowBin ) == 0 && lowBin!=upBin ) lowBin++;
     while ( inHist[iHist]->GetBinContent( upBin ) ==0 && lowBin!=upBin ) upBin--;
     if ( lowBin != upBin ) {
@@ -377,7 +382,7 @@ int DrawPlot( vector< TH1* > inHist,
     if( !iHist && mapOptionsInt["line"] != -99 ) {
       double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : (mapOptionsInt["centerZoom"] ? minX : inHist[refHist]->GetXaxis()->GetXmin() );
       double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : ( mapOptionsInt["centerZoom"] ? maxX :inHist[refHist]->GetXaxis()->GetXmax() );
-      line->DrawLine( rangeMin , mapOptionsInt["line"], rangeMax, mapOptionsInt["line"]);
+      line->DrawLine( rangeMin , mapOptionsDouble["line"], rangeMax, mapOptionsDouble["line"]);
     }
     //========== ADD HISTOGRAM TO LEGEND
   }//end iHist
@@ -411,7 +416,7 @@ int DrawPlot( vector< TH1* > inHist,
     bool doFill = inLegend.size() > iLegend && TString( inLegend[iLegend].c_str() ).Contains( "__FILL" );
     ParseLegend( inHist[iLegend] , inLegend[iLegend] );
     if ( doFill )  myBoxText( legendCoord[0], legendCoord[1]-0.04*iLegend, 0.02, inHist[iLegend]->GetFillColor(), inLegend[iLegend].c_str() ); 
-    else myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetMarkerColor(), inHist[iLegend]->GetMarkerStyle(), inLegend[iLegend].c_str(), 0.5 ); 
+    else myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetMarkerColor(), inHist[iLegend]->GetMarkerStyle(), inLegend[iLegend].c_str()  ); 
   }
   if ( DEBUG )  cout << "legend drawn" << endl;
   for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {

@@ -416,7 +416,7 @@ int DrawPlot( vector< TH1* > inHist,
     bool doFill = inLegend.size() > iLegend && TString( inLegend[iLegend].c_str() ).Contains( "__FILL" );
     ParseLegend( inHist[iLegend] , inLegend[iLegend] );
     if ( doFill )  myBoxText( legendCoord[0], legendCoord[1]-0.04*iLegend, 0.02, inHist[iLegend]->GetFillColor(), inLegend[iLegend].c_str() ); 
-    else myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetMarkerColor(), inHist[iLegend]->GetMarkerStyle(), inLegend[iLegend].c_str(), 0.5 ); 
+    else myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetMarkerColor(), inHist[iLegend]->GetMarkerStyle(), inLegend[iLegend].c_str()  ); 
   }
   if ( DEBUG )  cout << "legend drawn" << endl;
   for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {

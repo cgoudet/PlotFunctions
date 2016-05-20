@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <cmath>
 
@@ -9,6 +8,9 @@
 #include "TMarker.h"
 #include "TPave.h"
 #include "TH1.h"
+
+using std::cout;
+using std::endl;
 
 void ATLAS_LABEL(Double_t x,Double_t y,Color_t color) 
 {
@@ -310,7 +312,7 @@ void myBoxText(Double_t x, Double_t y,Double_t boxsize,Int_t mcolor,const char *
 
 }
 
-void myLineText(Double_t x, Double_t y,Double_t boxsize,Int_t mcolor, Int_t mstyle, const char *text,Float_t msize) {
+void myLineText(Double_t x, Double_t y, Int_t mcolor, Int_t mstyle, const char *text,Float_t msize) {
   Double_t tsize=msize;
 
   TLatex l; l.SetTextAlign(12); //
@@ -319,7 +321,7 @@ void myLineText(Double_t x, Double_t y,Double_t boxsize,Int_t mcolor, Int_t msty
   l.DrawLatex(x,y,text);
 
   Double_t x2=x-0.3*tsize;
-  Double_t x1=x2-boxsize;
+  Double_t x1=x2-tsize;
 
   TLine mline;
   mline.SetLineWidth(1);
@@ -332,11 +334,13 @@ void myLineText(Double_t x, Double_t y,Double_t boxsize,Int_t mcolor, Int_t msty
 
 void myMarkerText(Double_t x,Double_t y,Int_t color,Int_t mstyle, const char *text,Float_t msize) 
 {
+  cout << msize << " " << color << " " << mstyle << endl;
   Double_t tsize=msize;
-  TMarker *marker = new TMarker(x-(0.4*tsize),y,8);
+  //  TMarker *marker = new TMarker(0,0,mstyle);
+  TMarker *marker = new TMarker(x-tsize,y,8);
   marker->SetMarkerColor(color);  marker->SetNDC();
   marker->SetMarkerStyle(mstyle);
-  marker->SetMarkerSize(msize);
+  marker->SetMarkerSize(1);
   marker->Draw();
 
   TLatex l; l.SetTextAlign(12); 

@@ -122,6 +122,7 @@ void  InputCompare::LoadFile( string fileName ) {
     ( "plotDirectory", po::value<string>( &m_mapOptions["plotDirectory"] ), "" )
     ( "offset", po::value<string>( &m_mapOptions["offset"] ), "" )
     ( "orderX", po::value<string>( &m_mapOptions["orderX"] ), "" )
+    ( "clean", po::value<string>( &m_mapOptions["clean"] ), "" )
     ;
 
   po::variables_map vm;

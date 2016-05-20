@@ -80,7 +80,7 @@ string FindDefaultTree( TFile* inFile, string type = "TTree" );
 void AddTree( TTree *treeAdd, TTree *treeAdded );
 void SaveTree( TTree *inTree, string prefix );
 
-void DiffSystematics( string inFileName, unsigned int mode =0, bool update=0 );
+void DiffSystematics( string inFileName, bool update=0 );
 void VarOverTime( string inFileName, bool update=0);
 /* void LinkTreeBranches( TTree *inTree, TTree *outTree,  */
 /* 		       map<string, double> &mapDouble,  */
@@ -89,6 +89,7 @@ void VarOverTime( string inFileName, bool update=0);
 /* 		       ); */
 void RescaleStack( THStack *stack, double integral );
 
-
+void RebinHist( vector<TH1*> &vectHist );
+void CleanTMatrixHist( vector<TH1*> &vect, double removeVal );
 #endif
 

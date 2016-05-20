@@ -13,6 +13,8 @@
 #include <memory>
 #include "THStack.h"
 #include "TObject.h"
+#include <set>
+#include "TArrayD.h"
 
 #define DEBUG 1
 using std::unique_ptr;
@@ -20,7 +22,37 @@ using std::vector;
 using std::cout;
 using std::endl;
 using std::stringstream;
+using std::set;
 using namespace std::chrono;
+
+void RebinHist( vector<TH1*> &vectHist ) {
+  set<double> s;
+  for ( auto vHist : vectHist ) {
+    auto array  = vHist->GetXaxis()->GetXbins();
+    for ( int iBin = 0; iBin < array->GetSize(); iBin++ ) {
+      s.insert( array->At( iBin ) );
+    }
+  }
+  vector<double> axisLimits;
+  axisLimits.assign( s.begin(), s.end() );
+  cout << axisLimits.size() << endl;
+  PrintVector( axisLimits );
+  for ( unsigned int iHist = 0; iHist < vectHist.size(); iHist++ ) {
+    if ( (int) axisLimits.size()-1 == vectHist[iHist]->GetNbinsX() ) continue;
+    TH1* dumHist = vectHist[iHist];
+    TString dumName = dumHist->GetName();
+    vectHist[iHist] = new TH1D( dumName+"_dum", dumName+"_dum", axisLimits.size()-1, &axisLimits[0] );
+    for ( int iBin =1; iBin <= vectHist[iHist]->GetNbinsX(); iBin++ ) {
+      double centralValueBin = vectHist[iHist]->GetXaxis()->GetBinCenter( iBin );
+      vectHist[iHist]->SetBinContent( iBin, dumHist->GetBinContent( dumHist->FindFixBin( centralValueBin ) ) );
+      vectHist[iHist]->SetBinError( iBin, 0 );
+    }
+    delete dumHist; dumHist=0;
+    vectHist[iHist]->SetName( dumName );
+  }
+}
+//==============================================================
+
 double ComputeChi2( TH1 *MCHist, TH1 *DataHist ) {
 
   if ( MCHist->GetNbinsX() != DataHist->GetNbinsX() 
@@ -107,7 +139,7 @@ void RemoveExtremalEmptyBins( TH1 *hist ) {
 void ParseLegend( TGraphErrors *graph, string &legend ) {
   TString dumString = legend;
   if ( graph ) { 
-    dumString.ReplaceAll( "__ENTRIES", TString::Format( "%1.0f", graph->GetN() ) );
+    dumString.ReplaceAll( "__ENTRIES", TString::Format( "%1.0d", graph->GetN() ) );
     dumString.ReplaceAll( "__MEAN", TString::Format( "%1.3e", graph->GetMean() ) );
     dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", graph->GetRMS() ) );
   }
@@ -272,13 +304,12 @@ void SaveTree( TTree *inTree, string prefix) {
 }
 
 //================================
-void DiffSystematics( string inFileName, unsigned int mode, bool update ) {
+void DiffSystematics( string inFileName, bool update ) {
 
   TFile *outFile = 0;
   TH1D *totSyst = 0;
   TH1D* baseValue = 0;
-
-
+  unsigned int mode = 0;
   //Variables to create uncertainties
   fstream inStream;
   inStream.open( inFileName, fstream::in );
@@ -289,8 +320,9 @@ void DiffSystematics( string inFileName, unsigned int mode, bool update ) {
 
   string rootFileName, histName, systName, outSystName;
   unsigned int counterSyst=0;
-  while ( inStream >> rootFileName >> histName >> systName ) {
+  while ( inStream >> rootFileName >> histName >> systName >> mode ) {
     //remove commentaries
+    cout << rootFileName << endl;
     if ( TString( rootFileName).Contains("#") ) continue;
     if ( !outFile ) {
       outFile = new TFile( rootFileName.c_str(), update ? "UPDATE" : "RECREATE" );
@@ -301,33 +333,30 @@ void DiffSystematics( string inFileName, unsigned int mode, bool update ) {
     unsigned int tempMode = mode;
 
     TFile *inFile = new TFile( rootFileName.c_str() );
-    if ( !inFile ) {
-      cout << rootFileName << " does not exist." << endl;
-      exit(0);
-    }
+    if ( !inFile ) { cout << rootFileName << " does not exist." << endl; exit(0); }
     inFile->cd();
 
+
     if ( !counterSyst && ( tempMode/10==0 || tempMode/10==2 ) ) {
-	//Get base Value
+	//Get nominal Value
 	baseValue = (TH1D*) inFile->Get( histName.c_str() )->Clone();
 	baseValue->SetDirectory(0);
 	outFile->cd();
 	if ( systName != "dum" ) baseValue->Write( systName.c_str(), TObject::kOverwrite );
-	if ( DEBUG ) cout << "baseValue defined : " << baseValue << endl;	
+       	if ( DEBUG ) cout << "baseValue defined : " << baseValue << endl;	
       }
     else {
       TH1D* inHist = (TH1D*) inFile->Get( histName.c_str() );
-      if ( !inHist ) {
-	cout << histName << " does not exist within " << inFile->GetName() << endl;
-	exit(0);
-      }
-
+      if ( !inHist ) { cout << histName << " does not exist within " << inFile->GetName() << endl; exit(0); }
+      cout << inHist->GetName() << endl;
+      //If stat appears in the name, use the error bars as the systematic
       if ( TString( systName ).Contains( "__STAT" ) ) {
 	systName = string(TString( systName ).ReplaceAll( "__STAT", "" ));
 	for ( int iBin=1; iBin<=inHist->GetNbinsX(); iBin++ ) inHist->SetBinContent( iBin, inHist->GetBinError( iBin ) );
 	tempMode = 10 + ( mode % 10 );
 	cout << "mode : " << tempMode << endl;
       }
+
 
       systName = "syst_" + systName;
       inHist->SetName( systName.c_str() );
@@ -343,25 +372,33 @@ void DiffSystematics( string inFileName, unsigned int mode, bool update ) {
       case 2 : {
 	for ( int iBin = 1; iBin<= inHist->GetNbinsX()/2; iBin++ ) {
 	  double symDiff = ( inHist->GetBinContent(iBin) + inHist->GetBinContent( inHist->GetNbinsX() - iBin+1 ) - baseValue->GetBinContent(iBin) - baseValue->GetBinContent( baseValue->GetNbinsX() - iBin+1 ) )/2.;
-	  if ( DEBUG ) cout << "symDiff " << iBin << " : " << symDiff << " " << inHist->GetBinContent(iBin) << " " << inHist->GetBinContent( inHist->GetNbinsX() - iBin+1 ) << " "  << baseValue->GetBinContent(iBin) << " " << baseValue->GetBinContent( baseValue->GetNbinsX() - iBin+1 ) << endl;
+	  //	  if ( DEBUG ) cout << "symDiff " << iBin << " : " << symDiff << " " << inHist->GetBinContent(iBin) << " " << inHist->GetBinContent( inHist->GetNbinsX() - iBin+1 ) << " "  << baseValue->GetBinContent(iBin) << " " << baseValue->GetBinContent( baseValue->GetNbinsX() - iBin+1 ) << endl;
 	  inHist->SetBinContent( iBin, symDiff );
 	  inHist->SetBinContent( inHist->GetNbinsX() - iBin+1, symDiff );
 	}
 	break;
-      }
+      }//end case 2
       }//end switch
+
+     
       for ( int iBin = 1; iBin<inHist->GetNbinsX()+1; iBin++ ) inHist->SetBinError(iBin, 0 );
       outFile->cd();
       cout << "inHist name : " << inHist->GetName() << endl;
-      inHist->Write( "", TObject::kOverwrite );
+      //      inHist->Write( "", TObject::kOverwrite );
 
       if ( DEBUG ) cout << "Add systematic to the model" << endl;
+      //in case totSyst does not exists in the output file, create it
       if ( !totSyst ) {
 	totSyst = (TH1D*) inHist->Clone();
 	for ( int iBin = 1; iBin<totSyst->GetNbinsX()+1; iBin++ ) totSyst->SetBinContent( iBin, 0 );
 	totSyst->SetName( outSystName.c_str()) ;
 	totSyst->SetTitle( totSyst->GetName() );
       }
+      vector<TH1*> hists = { totSyst, inHist };
+      RebinHist( hists );
+      inHist = (TH1D*) hists[1];
+      totSyst = (TH1D*) hists[0];
+      inHist->Write( "", TObject::kOverwrite );
       for ( int iBin = 1; iBin<totSyst->GetNbinsX()+1; iBin++ ) {
 	switch( tempMode % 10 ) {
 	case 1 :
@@ -376,18 +413,17 @@ void DiffSystematics( string inFileName, unsigned int mode, bool update ) {
 	}//end switch
 	totSyst->SetBinError( iBin, 0 );
       }//end for iBin
-      cout << inHist->GetBinContent(12) << " " << totSyst->GetBinContent( 12 ) << endl;
+
       delete inHist; inHist=0;
     }//end else
 
     outFile->cd();
     if ( totSyst ) totSyst->Write( "", TObject::kOverwrite );
-    delete inFile;
+    if ( inFile ) delete inFile; inFile =0;
     counterSyst++;
   }//end while
-
-  delete totSyst;
-  delete baseValue; baseValue=0;
+  if ( totSyst ) delete totSyst; totSyst=0;
+  if ( baseValue ) delete baseValue; baseValue=0;
   cout << "outFile : " << outFile->GetName() << endl;
   delete outFile;
 }//EndDiffSystematic
@@ -409,7 +445,7 @@ void VarOverTime( string inFileName, bool update) {
   vector<double> valVect;
   multi_array<double, 3> scales;
 
-  while ( inStream >> rootFileName >> histName >> val ) {
+  while ( inStream >> rootFileName >> histName >> val  ) {
 
     if ( outFileName == "" ) {
       outFileName = rootFileName;
@@ -543,4 +579,47 @@ void RescaleStack( THStack *stack, double integral ) {
     hist = (TH1*) iter.Next();
   }
 
+}
+
+void CleanTMatrixHist( vector<TH1*> &vect, double removeVal ) {
+  cout << "removeVal : " << removeVal << endl;
+  cout << "NBins : " << vect.front()->GetNbinsX() << endl;
+  //Check which bins must be kept
+  vector<int> keptBins;
+  for ( int iBin = 1; iBin<=vect.front()->GetNbinsX(); iBin++ ) {
+    bool keepBin=true;
+    for ( unsigned int iVect = 0; iVect<vect.size(); iVect++ ) {
+      if ( vect[iVect]->GetBinContent(iBin) == removeVal ) {
+	keepBin = false;
+	break;
+      }
+    }
+    if ( keepBin ) keptBins.push_back( iBin );
+  }
+  cout << "keptBinsSize : " << keptBins.size() << endl;
+  int Nbins = keptBins.size();
+    //If a least one bin is 
+  if ( keptBins.size() == vect.size() ) return;
+  vector<TH1*> outVect;
+  for ( unsigned int iVect = 0; iVect<vect.size(); iVect++ ) {
+    outVect.push_back(0);
+    outVect.back() = new TH1D( vect[iVect]->GetName(), vect[iVect]->GetTitle(), (int) keptBins.size(), 0.5, keptBins.size()+0.5 );
+    outVect.back()->SetDirectory(0);
+    //outVect.back() = new TH1D( vect[iVect]->GetName(), vect[iVect]->GetTitle(), Nbins, 0.5, Nbins+0.5 );
+    }
+  cout << "created" << endl;
+    //Fill new histograms with old values
+    for ( unsigned int iBin=0; iBin<keptBins.size(); iBin++ ) {
+      for ( unsigned int iVect = 0; iVect<vect.size(); iVect++ ) {
+	outVect[iVect]->SetBinContent( iBin+1, vect[iVect]->GetBinContent(keptBins[iBin] ) );
+	outVect[iVect]->SetBinError( iBin+1, 0 );
+	outVect[iVect]->GetXaxis()->SetBinLabel( iBin+1, vect[iVect]->GetXaxis()->GetBinLabel( keptBins[iBin] ) );
+      }
+    }
+
+    for ( unsigned int iVect = 0; iVect<vect.size(); iVect++ ) {
+      delete vect[iVect];
+      vect[iVect] = outVect[iVect];
+    }
+      
 }

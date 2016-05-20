@@ -10,6 +10,11 @@ using std::string;
 using std::cout;
 using std::endl;
 
+
+template< typename Type1 > void PrintVector( vector< Type1 > &vect ) {
+  for ( auto vVal : vect ) cout << vVal << " ";
+  cout << endl;
+}
 /**\brief Search for the bin number of an element in a vector
    \param val value to be searched
    \param vect vector to look into

@@ -31,7 +31,7 @@ void myText(Double_t x,Double_t y,Color_t color,const char *text, double tsize =
 
 void myBoxText(Double_t x, Double_t y,Double_t boxsize,Int_t mcolor,const char *text);
 
-void myLineText(Double_t x, Double_t y,Double_t boxsize,Int_t mcolor,Int_t mstyle,const char *text,Float_t msize=0.04);
+void myLineText(Double_t x, Double_t y, Int_t mcolor,Int_t mstyle,const char *text,Float_t msize=0.035);
 
 void myMarkerText(Double_t x,Double_t y,Int_t color,Int_t mstyle,const char *text,Float_t msize=0.035); 
 

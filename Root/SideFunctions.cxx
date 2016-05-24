@@ -42,6 +42,9 @@ void RebinHist( vector<TH1*> &vectHist ) {
     TH1* dumHist = vectHist[iHist];
     TString dumName = dumHist->GetName();
     vectHist[iHist] = new TH1D( dumName+"_dum", dumName+"_dum", axisLimits.size()-1, &axisLimits[0] );
+    vectHist[iHist]->GetXaxis()->SetTitle( dumHist->GetXaxis()->GetTitle() );
+    vectHist[iHist]->GetYaxis()->SetTitle( dumHist->GetYaxis()->GetTitle() );
+
     for ( int iBin =1; iBin <= vectHist[iHist]->GetNbinsX(); iBin++ ) {
       double centralValueBin = vectHist[iHist]->GetXaxis()->GetBinCenter( iBin );
       vectHist[iHist]->SetBinContent( iBin, dumHist->GetBinContent( dumHist->FindFixBin( centralValueBin ) ) );
@@ -393,11 +396,13 @@ void DiffSystematics( string inFileName, bool update ) {
 	for ( int iBin = 1; iBin<totSyst->GetNbinsX()+1; iBin++ ) totSyst->SetBinContent( iBin, 0 );
 	totSyst->SetName( outSystName.c_str()) ;
 	totSyst->SetTitle( totSyst->GetName() );
+	totSyst->GetYaxis()->SetTitle( "#delta" + TString(inHist->GetYaxis()->GetTitle() ) );
       }
       vector<TH1*> hists = { totSyst, inHist };
       RebinHist( hists );
       inHist = (TH1D*) hists[1];
       totSyst = (TH1D*) hists[0];
+      if ( !TString( inHist->GetYaxis()->GetTitle() ).Contains("#delta") ) inHist->GetYaxis()->SetTitle( "#delta" + TString( inHist->GetYaxis()->GetTitle() ) );
       inHist->Write( "", TObject::kOverwrite );
       for ( int iBin = 1; iBin<totSyst->GetNbinsX()+1; iBin++ ) {
 	switch( tempMode % 10 ) {
@@ -597,6 +602,7 @@ void CleanTMatrixHist( vector<TH1*> &vect, double removeVal ) {
     if ( keepBin ) keptBins.push_back( iBin );
   }
   cout << "keptBinsSize : " << keptBins.size() << endl;
+
   int Nbins = keptBins.size();
     //If a least one bin is 
   if ( keptBins.size() == vect.size() ) return;
@@ -620,6 +626,7 @@ void CleanTMatrixHist( vector<TH1*> &vect, double removeVal ) {
     for ( unsigned int iVect = 0; iVect<vect.size(); iVect++ ) {
       delete vect[iVect];
       vect[iVect] = outVect[iVect];
+      //      delete outVect[iVect];
     }
       
 }

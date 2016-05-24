@@ -121,7 +121,6 @@ int main( int argc, char* argv[] ) {
 	  }
 	  //If the histogram have already been created, we have to add the new one.
 	  else vectHist.front().back()->Add( (TH1D*) inFile.Get( inputObjName[iPlot][iAdd].c_str() ) );
-
 	  break;
 	}
 	case 1 : {//TTree plotting
@@ -466,7 +465,6 @@ int main( int argc, char* argv[] ) {
 	  
 	case 7 : {
 	  if ( iAdd )  continue;
-	  cout << inputObjName[iPlot][iAdd] << endl;
 	  TMatrixD *matrix = ( TMatrixD*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
 	  if ( !matrix ) {
 	    cout << inputObjName[iPlot][iAdd].c_str() << " not found in " << inFile.GetName() << endl;
@@ -489,7 +487,6 @@ int main( int argc, char* argv[] ) {
 	      if ( (*matrix)(iLine, iCol) != 100 ) vectHist.front().back()->SetBinContent( bin, (*matrix)(iLine, iCol) );
 	      vectHist.front().back()->SetBinError( bin, 0 );
 	      vectHist.front().back()->GetXaxis()->SetBinLabel( bin, TString::Format( "%d_%d", iLine, iCol ) );
-	      cout << vectHist.front().back()->GetXaxis()->GetBinLabel( bin )  << endl;
 	      bin++;
 	    }
 	  }
@@ -732,7 +729,7 @@ int main( int argc, char* argv[] ) {
 	      stream << vectHist.front()[iPlot-1]->GetBinContent( iBin );
 	      if ( atoi(input.GetOption("doTabular").c_str()) ==2 ) stream << "," << vectHist.front()[iPlot-1]->GetBinError( iBin );
 		}	 
-	    else stream << string( TString::Format( "] %2.2f : %2.2f]", vectHist.front().front()->GetXaxis()->GetBinLowEdge( iBin ), vectHist.front().front()->GetXaxis()->GetBinUpEdge( iBin ) ) );
+	    else stream << ( strcmp( vectHist.front().front()->GetXaxis()->GetBinLabel(iBin), "" ) ? TString(vectHist.front().front()->GetXaxis()->GetBinLabel(iBin)) :  TString::Format( "] %2.2f : %2.2f]", vectHist.front().front()->GetXaxis()->GetBinLowEdge( iBin ), vectHist.front().front()->GetXaxis()->GetBinUpEdge( iBin ) ) );
 	  } 
 	  if ( iPlot != vectHist.front().size() ) stream << ",";
 	}

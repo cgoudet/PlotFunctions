@@ -124,119 +124,117 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
     RooArgSet *observables = new RooArgSet( RooArgSet( *alpha ), "observables" );
     map< string, RooDataSet*> datasetMap;
     
-    vector<RooRealVar*> alphaBin;
-    multi_array<RooFormulaVar*, 2> alphaConfig;
-    multi_array<RooConstVar*, 2> alphaErrConfig;
+    multi_array<RooRealVar*, 2> alphaBin( boost::extents[combinMatrix.GetNrows()][combinMatrix.GetNcols()] );
+    multi_array<RooFormulaVar*, 2> alphaConfig( boost::extents[combinMatrix.GetNrows()][combinMatrix.GetNcols()] );
+    multi_array<RooConstVar*, 2> alphaErrConfig( boost::extents[combinMatrix.GetNrows()][combinMatrix.GetNcols()] );
     RooCategory* channellist = new RooCategory("channellist","channellist");
     RooSimultaneous *combinedPdf = new RooSimultaneous("CombinedPdf","",*channellist); 
     vector< RooGaussian*> configPdf;
     cout << "header" << endl;
     for (unsigned int iLine = 0; iLine < (unsigned int) combinMatrix.GetNrows(); iLine ++) {
-      alphaBin.push_back(0);
-      alphaConfig.resize( extents[iLine+1][iLine+1] );
-      alphaErrConfig.resize( extents[iLine+1][iLine+1] );
+      for ( unsigned iCol = 0; iCol<(unsigned int) combinMatrix.GetNcols() ; iCol++ ) {
 
-      for ( unsigned iCol = 0; iCol<=iLine ; iCol++ ) {
+	//For a regular inverstion, we just need a triangular matrix
+	if ( inversionProcedure %10 <= 2 && iCol > iLine ) continue;
+    	//Create the roorealvar for bin iLine
 
-	//Create the roorealvar for bin iLine
-	TString configName = TString::Format( "Config_%d_%d", iLine, iCol );      
-	channellist->defineType( configName );
-	TString alphaName;
-	switch ( inversionProcedure%10 ) {
-	case 0 : //alpha
-	  if ( !alphaBin.back() ) {
-	    alphaName = TString::Format( "alpha_%d", iLine );
-	    alphaBin.back() = new RooRealVar( alphaName, alphaName, 0, -0.1, 0.1 );
-	  }
-	  if ( iLine == iCol ) alphaBin[iLine]->setVal( combinMatrix[iLine][iLine] );	
-	  alphaName = TString::Format( "alphaConf_%d_%d", iLine, iCol );
-	  alphaConfig[iLine][iCol] = new RooFormulaVar( alphaName, alphaName, "(@0+@1)/2.", RooArgList( *alphaBin[iLine], *alphaBin[iCol] ) );
-	  alphaName = TString::Format( "alphaErrConf_%d_%d", iLine, iCol );
-	  alphaErrConfig[iLine][iCol] = new RooConstVar( alphaName, alphaName, combinErrMatrix( iLine, iCol ) );
+    	TString configName = TString::Format( "Config_%d_%d", iLine, iCol );      
+    	channellist->defineType( configName );
+    	TString alphaName;
 
-	  alpha->setVal( combinMatrix(iLine, iCol) );
+    	switch ( inversionProcedure%10 ) {
+    	case 0 : //alpha
+    	  if ( !alphaBin[iLine][0] ) {
+    	    alphaName = TString::Format( "alpha_%d", iLine );
+    	    alphaBin[iLine][0] = new RooRealVar( alphaName, alphaName, 0, -0.1, 0.1 );
+    	  }
+    	  if ( iLine == iCol ) alphaBin[iLine][0]->setVal( combinMatrix[iLine][iLine] );	
+    	  alphaName = TString::Format( "alphaConf_%d_%d", iLine, iCol );
+    	  alphaConfig[iLine][iCol] = new RooFormulaVar( alphaName, alphaName, "(@0+@1)/2.", RooArgList( *alphaBin[iLine][0], *alphaBin[iCol][0] ) );
+    	  alphaName = TString::Format( "alphaErrConf_%d_%d", iLine, iCol );
+    	  alphaErrConfig[iLine][iCol] = new RooConstVar( alphaName, alphaName, combinErrMatrix( iLine, iCol ) );
 
-	  break;
+    	  alpha->setVal( combinMatrix(iLine, iCol) );
+    	  break;
 
-	case 1 : {//constant term
-	  if ( !alphaBin.back() ) {
-	    alphaName = TString::Format( "C_%d", iLine );
-	    alphaBin.back() = new RooRealVar( alphaName, alphaName, combinMatrix( iLine, iCol ), 0, 0.1 );
-	  }
-	  if ( iLine == iCol ) alphaBin[iLine]->setVal( min( 0.1, max(0., combinMatrix[iLine][iLine]) ) );	
-	  alphaName = TString::Format( "CConf_%d_%d", iLine, iCol );
-	  alphaConfig[iLine][iCol] = new RooFormulaVar( alphaName, alphaName, "TMath::Sqrt((@0*@0+@1*@1)/2.)", RooArgList( *alphaBin[iLine], *alphaBin[iCol] ) );
-	  alphaName = TString::Format( "CErrConf_%d_%d", iLine, iCol );
-	  alphaErrConfig[iLine][iCol] = new RooConstVar( alphaName, alphaName, combinErrMatrix( iLine, iCol ) );
-	  alpha->setVal( combinMatrix(iLine, iCol) );
-	  break;}
-	case 2 : {
-	  if ( !alphaBin.back() ) {
-	    alphaName = TString::Format( "C2_%d", iLine );
-	    alphaBin.back() = new RooRealVar( alphaName, alphaName, combinMatrix( iLine, iCol ), 0, 0.1 );
-	  }
-	  if ( iLine == iCol ) alphaBin[iLine]->setVal( combinMatrix[iLine][iLine]*combinMatrix[iLine][iLine] );	
-	  alphaName = TString::Format( "C2Conf_%d_%d", iLine, iCol );
-	  alphaConfig[iLine][iCol] = new RooFormulaVar( alphaName, alphaName, "(@0+@1)/2.", RooArgList( *alphaBin[iLine], *alphaBin[iCol] ) );
-	  alphaName = TString::Format( "C2ErrConf_%d_%d", iLine, iCol );
-	  alphaErrConfig[iLine][iCol] = new RooConstVar( alphaName, alphaName, 2*combinErrMatrix( iLine, iCol )*combinMatrix( iLine, iCol )+combinErrMatrix( iLine, iCol )*combinErrMatrix( iLine, iCol ) );
-	  alpha->setVal( combinMatrix(iLine, iCol)*combinMatrix(iLine, iCol) );
-	  break;}
-	default :
-	  cout << "Not supporting inversionProcedure : " << inversionProcedure << endl;
-	  return;
-	}// end switch inputType
+    	case 1 : {//constant term
+    	  if ( !alphaBin[iLine][0] ) {
+    	    alphaName = TString::Format( "C_%d", iLine );
+    	    alphaBin[iLine][0] = new RooRealVar( alphaName, alphaName, combinMatrix( iLine, iCol ), 0, 0.1 );
+    	  }
+    	  if ( iLine == iCol ) alphaBin[iLine][0]->setVal( min( 0.1, max(0., combinMatrix[iLine][iLine]) ) );	
+    	  alphaName = TString::Format( "CConf_%d_%d", iLine, iCol );
+    	  alphaConfig[iLine][iCol] = new RooFormulaVar( alphaName, alphaName, "TMath::Sqrt((@0*@0+@1*@1)/2.)", RooArgList( *alphaBin[iLine][0], *alphaBin[iCol][0] ) );
+    	  alphaName = TString::Format( "CErrConf_%d_%d", iLine, iCol );
+    	  alphaErrConfig[iLine][iCol] = new RooConstVar( alphaName, alphaName, combinErrMatrix( iLine, iCol ) );
+    	  alpha->setVal( combinMatrix(iLine, iCol) );
+    	  break;}
 
-	//Create the model for the configuration
-	configPdf.push_back( 0 );
-	configPdf.back() = new RooGaussian( "Gauss_" + configName, "Gauss_" + configName , *alpha, *alphaConfig[iLine][iCol], *alphaErrConfig[iLine][iCol] ); 	
-	combinedPdf->addPdf( *configPdf.back(), configName );
-	//Create the dataset
+    	case 2 : {
+    	  if ( !alphaBin[iLine][0] ) {
+    	    alphaName = TString::Format( "C2_%d", iLine );
+    	    alphaBin[iLine][0] = new RooRealVar( alphaName, alphaName, combinMatrix( iLine, iCol ), 0, 0.1 );
+    	  }
+    	  if ( iLine == iCol ) alphaBin[iLine][0]->setVal( combinMatrix[iLine][iLine]*combinMatrix[iLine][iLine] );	
+    	  alphaName = TString::Format( "C2Conf_%d_%d", iLine, iCol );
+    	  alphaConfig[iLine][iCol] = new RooFormulaVar( alphaName, alphaName, "(@0+@1)/2.", RooArgList( *alphaBin[iLine][0], *alphaBin[iCol][0] ) );
+    	  alphaName = TString::Format( "C2ErrConf_%d_%d", iLine, iCol );
+    	  alphaErrConfig[iLine][iCol] = new RooConstVar( alphaName, alphaName, 2*combinErrMatrix( iLine, iCol )*combinMatrix( iLine, iCol )+combinErrMatrix( iLine, iCol )*combinErrMatrix( iLine, iCol ) );
+    	  alpha->setVal( combinMatrix(iLine, iCol)*combinMatrix(iLine, iCol) );
+    	  break;
+    	}
 
-	RooDataSet *configData = new RooDataSet( "Data_" + configName, "Data_" + configName, *observables );
-	configData->add( *observables );
-	//	configData->Print("v");
-	datasetMap[string(configName)] = configData;
+    	default :
+    	  cout << "Not supporting inversionProcedure : " << inversionProcedure << endl;
+    	  return;
+    	}// end switch inputType
+	
+    	//Create the model for the configuration
+    	configPdf.push_back( 0 );
+    	configPdf.back() = new RooGaussian( "Gauss_" + configName, "Gauss_" + configName , *alpha, *alphaConfig[iLine][iCol], *alphaErrConfig[iLine][iCol] ); 	
+    	combinedPdf->addPdf( *configPdf.back(), configName );
+    	//Create the dataset
+	
+    	RooDataSet *configData = new RooDataSet( "Data_" + configName, "Data_" + configName, *observables );
+    	configData->add( *observables );
+    	//	configData->Print("v");
+    	datasetMap[string(configName)] = configData;
       }//end iCol
     }// end iLine
 
     
     RooDataSet* obsData = new RooDataSet("obsData","combined data ",*observables, Index(*channellist), Import(datasetMap)); 
-    //    combinedPdf->Print();
-    combinedPdf->fitTo( *obsData );
     combinedPdf->fitTo( *obsData );
 
-    outMatrix = TMatrixD( nBins, 1 );
-    outErrMatrix = TMatrixD( nBins, 1 );
+    unsigned int nCols = 1;
+    if ( inversionProcedure%10 > 2 ) nCols = combinMatrix.GetNcols();
+    outMatrix = TMatrixD( nBins, nCols );
+    outErrMatrix = TMatrixD( nBins, nCols );
     //FillThe result Matrix
     for (unsigned int iLine = 0; iLine < nBins; iLine ++) {
-      switch ( inversionProcedure%10 ) {
-      case 0 : //alpha
-	outMatrix(iLine, 0) = alphaBin[iLine]->getVal();
-	outErrMatrix(iLine, 0) = alphaBin[iLine]->getError();
-	break;
-      case 1 ://sigma
-	outMatrix(iLine, 0) = alphaBin[iLine]->getVal();
-	outErrMatrix(iLine, 0) = alphaBin[iLine]->getError();
-	break;
-      case 2 :
-	outMatrix(iLine, 0) = SignSquare( alphaBin[iLine]->getVal() );
-	outErrMatrix(iLine, 0) = ErrC( outMatrix(iLine, 0), alphaBin[iLine]->getError() );
-	break;
-      }//end switch inversionprocedure%10
+      for ( unsigned int iCol = 0; iCol < nCols; iCol++ ) {
+	if ( inversionProcedure%10 == 2  ) {
+	  outMatrix(iLine, iCol) = SignSquare( alphaBin[iLine][iCol]->getVal() );
+	  outErrMatrix(iLine, iCol) = ErrC( outMatrix(iLine, iCol), alphaBin[iLine][iCol]->getError() );
+	}
+	else {
+	  outMatrix(iLine, iCol) = alphaBin[iLine][iCol]->getVal();
+	  outErrMatrix(iLine, iCol) = alphaBin[iLine][iCol]->getError();
+	}
+      } //end for
     }//end for
 
     delete alpha;
     delete observables;
     for ( auto ent1 : datasetMap) delete ent1.second;
-    for ( auto bin : alphaBin ) delete bin;
     delete channellist;
     for(auto pdf : configPdf) delete pdf;
     delete combinedPdf;
     for ( unsigned int iLine = 0; iLine < alphaConfig.size(); iLine++ ) {
       for ( unsigned int iCol = 0; iCol < alphaConfig[iLine].size(); iCol++ ) {
-    	delete alphaConfig[iLine][iCol];
-	delete alphaErrConfig[iLine][iCol];
+    	delete alphaBin[iLine][iCol];
+	delete alphaConfig[iLine][iCol];
+    	delete alphaErrConfig[iLine][iCol];
       }}
     break;
   }//end case 1 invettionProcedure

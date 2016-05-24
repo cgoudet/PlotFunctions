@@ -123,7 +123,7 @@ int fillColors[] = { 3, 5 };
  */
 
 
-int DrawPlot( vector< TH1* > inHist,  
+int DrawPlot( vector< TH1* > &inHist,  
 	      string outName, 
 	      vector<string> inOptions
 	       ) {
@@ -324,21 +324,26 @@ int DrawPlot( vector< TH1* > inHist,
   }
 
   TH1F* dumHist = 0;
-  if ( mapOptionsInt["doRatio"] ) dumHist = padUp.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
-  else dumHist = canvas.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
-  dumHist->GetXaxis()->SetTitle( inHist[refHist]->GetXaxis()->GetTitle() );
-  dumHist->GetYaxis()->SetTitle( inHist[refHist]->GetYaxis()->GetTitle() );
+  if ( !strcmp( inHist[refHist]->GetXaxis()->GetBinLabel(1), "" ) ) {
+    if ( mapOptionsInt["doRatio"] ) dumHist = padUp.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
+    else dumHist = canvas.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
+    dumHist->GetXaxis()->SetTitle( inHist[refHist]->GetXaxis()->GetTitle() );
+    dumHist->GetYaxis()->SetTitle( inHist[refHist]->GetYaxis()->GetTitle() );
 
-  if (mapOptionsInt["doRatio"]) {
-    dumHist->GetYaxis()->SetTitleOffset( 0.6 );
-    dumHist->GetYaxis()->SetTitleSize( 0.06 );
+    if (mapOptionsInt["doRatio"]) {
+      dumHist->GetYaxis()->SetTitleOffset( 0.6 );
+      dumHist->GetYaxis()->SetTitleSize( 0.06 );
+    }
+  }
+  else {
+    inHist[refHist]->GetYaxis()->SetRangeUser( rangeUserY.front(), rangeUserY.back() );
   }
 
   //Plotting histograms
   for ( unsigned int iHist = refHist; iHist < inHist.size(); iHist++ ) {
     if ( !inHist[iHist] ) continue;
 
-    string drawOpt =  "SAME,";
+    string drawOpt = strcmp( inHist[refHist]->GetXaxis()->GetBinLabel(1), "" ) && (int)iHist==refHist ?  "" :"SAME,";
     switch ( mapOptionsInt["drawStyle"] ){
     case 2 : drawOpt += "HIST"; break;
     case 3 : drawOpt += "HISTL"; break;

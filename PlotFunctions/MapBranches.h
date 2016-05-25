@@ -18,7 +18,8 @@ class MapBranches {
 
   map< string, int > &GetMapInt() { return m_mapInt; }
   map< string, double > &GetMapDouble() { return m_mapDouble; }
-  map< string, unsigned long long > &GetMapLongLong() { return m_mapLongLong; }
+  map< string, unsigned long long > &GetMapULongLong() { return m_mapULongLong; }
+  map< string, long long > &GetMapLongLong() { return m_mapLongLong; }
   map< string, unsigned int > &GetMapUnsigned() { return m_mapUnsigned; }
 
   void LinkTreeBranches( TTree *inTree, TTree *outTree = 0, vector<string> branchesToLink = vector<string>() );
@@ -29,9 +30,12 @@ class MapBranches {
 
 
  private : 
+  void ClearMaps();
+
   map< string, int > m_mapInt;
   map< string, double > m_mapDouble;
-  map< string, unsigned long long > m_mapLongLong;
+  map< string, long long > m_mapLongLong;
+  map< string, unsigned long long > m_mapULongLong;
   map< string, unsigned int > m_mapUnsigned;
 
 

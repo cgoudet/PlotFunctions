@@ -315,10 +315,12 @@ int DrawPlot( vector< TH1* > &inHist,
   while ( rangeUserY.size() < 2 ) rangeUserY.push_back( pow(-1, rangeUserY.size()+1)*0.99 );
   if ( rangeUserY.front() == -0.99 ) rangeUserY.front() = minVal - ( maxVal - minVal ) *0.05;
   if ( rangeUserY.back() == 0.99 ) rangeUserY.back() = maxVal + ( maxVal - minVal ) *0.05;
+  cout << rangeUserY.front()<< " " <<  rangeUserY.back() << endl;
   rangeUserY.back() += (rangeUserY.back() - rangeUserY.front()) * mapOptionsDouble["extendUp"];
   if ( rangeUserX.size() == 2 ) inHist[refHist]->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
   else {
     rangeUserX.clear();
+    if ( minX==maxX ) maxX = minX+1;
     rangeUserX.push_back( minX );
     rangeUserX.push_back( maxX );
   }

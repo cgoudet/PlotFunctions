@@ -20,6 +20,7 @@ MapBranches::MapBranches() {
 MapBranches::~MapBranches(){}
 
 void MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, vector< string > branchesToLink ) {
+  ClearMaps();
 
   TObjArray *branches = inTree->GetListOfBranches();
   TClass *expectedClass;
@@ -66,11 +67,11 @@ void MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, vector< strin
 	}
 	break;
       case 17 :
-	m_mapLongLong[ name ] = 0;
-	inTree->SetBranchAddress( name.c_str(), &m_mapLongLong[name] );
+	m_mapULongLong[ name ] = 0;
+	inTree->SetBranchAddress( name.c_str(), &m_mapULongLong[name] );
 	if ( outTree ) {
-	  if ( !outTree->FindBranch( name.c_str()) ) outTree->Branch( name.c_str(), &m_mapLongLong[name] );
-	  else outTree->SetBranchAddress( name.c_str(), &m_mapLongLong[name] );
+	  if ( !outTree->FindBranch( name.c_str()) ) outTree->Branch( name.c_str(), &m_mapULongLong[name] );
+	  else outTree->SetBranchAddress( name.c_str(), &m_mapULongLong[name] );
 	}
 	break;
       default :
@@ -78,7 +79,17 @@ void MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, vector< strin
 	cout << "branchName : " << name << endl;
 	exit(0);
       }
+
     }
   }
   return ;
+}
+
+//==============================================
+void MapBranches::ClearMaps() {
+  m_mapInt.clear();
+  m_mapDouble.clear();
+  m_mapLongLong.clear();
+  m_mapULongLong.clear();
+  m_mapUnsigned.clear();
 }

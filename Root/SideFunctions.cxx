@@ -521,53 +521,6 @@ void VarOverTime( string inFileName, bool update) {
   delete outFile;
 }
 //=====================================
-// void LinkTreeBranches( TTree *inTree, TTree *outTree, map<string, double> &mapDouble,map<string, int> &mapInt, map<string, long long int > &mapLongLong ) {
-
-//   TObjArray *branches = inTree->GetListOfBranches();
-//   TClass *expectedClass;
-//   EDataType expectedType;
-//   string name;
-//   for ( unsigned int iBranch = 0; iBranch < (unsigned int) branches->GetEntries(); iBranch++ ) {
-    
-//     ( (TBranch*) (*branches)[iBranch])->GetExpectedType( expectedClass, expectedType );
-//     name=(*branches)[iBranch]->GetName();    
-//     if ( !expectedClass ) {
-//       switch ( expectedType ) { //documentation at https://root.cern.ch/doc/master/TDataType_8h.html#add4d321bb9cc51030786d53d76b8b0bd
-//       case 8 : {//double
-// 	mapDouble[name] = 0;
-// 	inTree->SetBranchAddress( name.c_str(), &mapDouble[name] );
-// 	if ( outTree ) {
-// 	  if ( !outTree->FindBranch( name.c_str()) ) outTree->Branch( name.c_str(), &mapDouble[name] );
-// 	  else outTree->SetBranchAddress( name.c_str(), &mapDouble[name] );
-// 	}
-// 	break;}
-//       case 3 : {//int
-// 	mapInt[name] = 0;
-// 	inTree->SetBranchAddress( name.c_str(), &mapInt[name] );
-// 	if ( outTree ) {
-// 	  if ( !outTree->FindBranch( name.c_str()) ) outTree->Branch( name.c_str(), &mapInt[name] );
-// 	  else outTree->SetBranchAddress( name.c_str(), &mapInt[name] );
-// 	}
-// 	break;}
-
-//       case 16 :
-// 	mapLongLong[ name ] = 0;
-// 	inTree->SetBranchAddress( name.c_str(), &mapLongLong[name] );
-// 	if ( outTree ) {
-// 	  if ( !outTree->FindBranch( name.c_str()) ) outTree->Branch( name.c_str(), &mapLongLong[name] );
-// 	  else outTree->SetBranchAddress( name.c_str(), &mapLongLong[name] );
-// 	}
-// 	break;
-//       default :
-// 	cout << "bootstrap not planned for type : " << expectedType << endl;
-//       }
-//     }
-//   }
-//   return ;
-// }
-
-
-//===================================
 void RescaleStack( THStack *stack, double integral ) {
   TIter iter(stack->GetHists());
   TH1 *hist = 0;

@@ -93,3 +93,14 @@ void MapBranches::ClearMaps() {
   m_mapULongLong.clear();
   m_mapUnsigned.clear();
 }
+
+//============================================
+double MapBranches::GetVal( string name ) {
+  for ( auto vMap : m_mapInt ) if ( vMap.first == name ) return (double) vMap.second;
+  for ( auto vMap : m_mapDouble ) if ( vMap.first == name ) return (double) vMap.second;
+  for ( auto vMap : m_mapULongLong ) if ( vMap.first == name ) return (double) vMap.second;
+  for ( auto vMap : m_mapLongLong ) if ( vMap.first == name ) return (double) vMap.second;
+  for ( auto vMap : m_mapUnsigned ) if ( vMap.first == name ) return (double) vMap.second;
+
+  return 0;
+}

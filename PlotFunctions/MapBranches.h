@@ -28,6 +28,8 @@ class MapBranches {
   void SetVal( string label, unsigned long long val ) { m_mapLongLong[label] = val; }
   void SetVal( string label, unsigned int val ) { m_mapUnsigned[label] = val; }
 
+  double GetVal( string name );
+
 
  private : 
   void ClearMaps();

@@ -50,7 +50,8 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
   // cout << "combinErrMatrix" << endl;
   // combinErrMatrix.Print();
   cout << "inversion method : " << inversionProcedure << endl;
-
+  combinMatrix.Print();
+  combinErrMatrix.Print();
   unsigned int nBins = (unsigned int ) combinMatrix.GetNrows();
 
   switch ( inversionProcedure/10 ) {
@@ -120,7 +121,7 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
     // method with likeliood fit
     //Defining observables
     RooRealVar *alpha = new RooRealVar( "alpha", "alpha", -0.1, 0.1 );
-    //    RooRealVar *alphaErr = new RooRealVar( "alphaErr", "alphaErr", 0, 1e3 );
+    RooRealVar *alphaTot = new RooRealVar( "alphaTot", "alphaTot", -0.1, 0.1 );
     RooArgSet *observables = new RooArgSet( RooArgSet( *alpha ), "observables" );
     map< string, RooDataSet*> datasetMap;
     
@@ -184,10 +185,40 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
     	  break;
     	}
 
+    	case 3 : {//constant term
+    	  if ( !alphaBin[iLine][iCol] ) {
+    	    alphaName = TString::Format( "alpha_%d_%d", iLine, iCol );
+    	    alphaBin[iLine][iCol] = new RooRealVar( alphaName, alphaName, combinMatrix( iLine, iCol ), -0.1, 0.1 );
+    	  }
+	  alphaBin[iLine][iCol]->setVal( 2*combinMatrix[iLine][iCol] );	
+    	  alphaName = TString::Format( "alphaConf_%d_%d", iLine, iCol );
+    	  alphaConfig[iLine][iCol] = new RooFormulaVar( alphaName, alphaName, "(@0+@1)/2.", RooArgList( *alphaBin[iLine][iCol], *alphaTot ) );
+
+    	  alphaName = TString::Format( "alphaErrConf_%d_%d", iLine, iCol );
+    	  alphaErrConfig[iLine][iCol] = new RooConstVar( alphaName, alphaName, combinErrMatrix( iLine, iCol ) );
+    	  alpha->setVal( combinMatrix(iLine, iCol) );
+	  cout << alphaConfig[iLine][iCol]->GetName() << " " << alphaConfig[iLine][iCol]->getVal() << " " << alphaErrConfig[iLine][iCol]->getVal() << " " << alpha->getVal() << endl;
+    	  break;}
+
+    	case 4 : {//constant term
+    	  if ( !alphaBin[iLine][0] ) {
+    	    alphaName = TString::Format( "C_%d", iLine );
+    	    alphaBin[iLine][0] = new RooRealVar( alphaName, alphaName, combinMatrix( iLine, iCol ), 0, 0.1 );
+    	  }
+	  alphaBin[iLine][iCol]->setVal( combinMatrix[iLine][iLine] );	
+	  alphaName = TString::Format( "CConf_%d_%d", iLine, iCol );
+    	  alphaConfig[iLine][iCol] = new RooFormulaVar( alphaName, alphaName, "TMath::Sqrt((@0*@0+@1*@1)/2.)", RooArgList( *alphaBin[iLine][iCol], *alphaTot ) );
+    	  alphaName = TString::Format( "CErrConf_%d_%d", iLine, iCol );
+    	  alphaErrConfig[iLine][iCol] = new RooConstVar( alphaName, alphaName, combinErrMatrix( iLine, iCol ) );
+    	  alpha->setVal( combinMatrix(iLine, iCol) );
+
+    	  break;}
+
     	default :
     	  cout << "Not supporting inversionProcedure : " << inversionProcedure << endl;
     	  return;
     	}// end switch inputType
+
 	
     	//Create the model for the configuration
     	configPdf.push_back( 0 );
@@ -206,8 +237,7 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
     RooDataSet* obsData = new RooDataSet("obsData","combined data ",*observables, Index(*channellist), Import(datasetMap)); 
     combinedPdf->fitTo( *obsData );
 
-    unsigned int nCols = 1;
-    if ( inversionProcedure%10 > 2 ) nCols = combinMatrix.GetNcols();
+    unsigned int nCols = inversionProcedure%10 > 2 ? combinMatrix.GetNcols() : 1;
     outMatrix = TMatrixD( nBins, nCols );
     outErrMatrix = TMatrixD( nBins, nCols );
     //FillThe result Matrix

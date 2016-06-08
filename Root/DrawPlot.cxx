@@ -124,7 +124,7 @@ int fillColors[] = { 3, 5 };
  */
 
 
-int DrawPlot( vector< TH1* > inHist,  
+int DrawPlot( vector< TH1* > &inHist,  
 	      string outName, 
 	      vector<string> inOptions
 	       ) {
@@ -232,7 +232,7 @@ int DrawPlot( vector< TH1* > inHist,
   //============ LOOP OTHER INPUT HIST
   //Find the extremum of the histograms to choose rangeUser if not given
   double minVal=0, maxVal=0;
-  double minX=0, maxX=0;
+  double minX=-0.99, maxX=0.99;
   vector<THStack*> stack;
   int refHist= -1;
   unsigned int totEventStack=0;
@@ -280,10 +280,10 @@ int DrawPlot( vector< TH1* > inHist,
       }
     }
     if ( mapOptionsDouble["normalize"] && inHist[iHist]->Integral() && !mapOptionsInt["stack"] )  {
-      //inHist[iHist]->Sumw2();
+      inHist[iHist]->Sumw2();
       inHist[iHist]->Scale( mapOptionsDouble["normalize"]/inHist[iHist]->Integral() );
-
     }
+
     if ( DEBUG ) cout << "Style set" << endl;
     //============ LOOK FOR Y EXTREMAL VALUES AND DEFINE Y RANGE
     if( (int) iHist == refHist ) {
@@ -296,17 +296,24 @@ int DrawPlot( vector< TH1* > inHist,
       maxVal = max( inHist[iHist]->GetBinContent( bin ) + inHist[iHist]->GetBinError( bin ), maxVal );
       //  if ( inHist[iHist]->GetBinContent( bin ) < 0 ) isNegativeValue = true;
     }
-    if ( DEBUG ) cout << "extremal Y values defined and set " << endl;
+     if ( DEBUG ) cout << "extremal Y values defined and set " << endl;
 
-    //========== LOOK FOR X EXTREMAL VALUES AND DEFINE X RANGE
-    int lowBin = 1, upBin = inHist[iHist]->GetNbinsX();
+     //========== LOOK FOR X EXTREMAL VALUES AND DEFINE X RANGE
+     //initialize minX and maxX
 
-    while ( inHist[iHist]->GetBinContent( lowBin ) == 0 && lowBin!=upBin ) lowBin++;
-    while ( inHist[iHist]->GetBinContent( upBin ) ==0 && lowBin!=upBin ) upBin--;
-    if ( lowBin != upBin ) {
-      if ( !iHist || minX > inHist[iHist]->GetXaxis()->GetBinLowEdge( lowBin ) ) minX = inHist[iHist]->GetXaxis()->GetBinLowEdge( lowBin );
-      if ( !iHist || maxX < inHist[iHist]->GetXaxis()->GetBinUpEdge( upBin ) ) maxX = inHist[iHist]->GetXaxis()->GetBinUpEdge( upBin );
-    }
+     //widen x axis in nominal case
+     if ( !mapOptionsInt["centerZoom"] ) {
+       minX = minX==-0.99 ? inHist[iHist]->GetXaxis()->GetXmin() : min( minX, inHist[iHist]->GetXaxis()->GetXmin() );
+       maxX = maxX==0.99  ? inHist[iHist]->GetXaxis()->GetXmax() :  max( maxX, inHist[iHist]->GetXaxis()->GetXmax() );
+     }
+     else {
+       //get smaller interva in bin unit withoutextremal 0
+       int lowBin = 1, upBin = inHist[iHist]->GetNbinsX();
+       while ( inHist[iHist]->GetBinContent( lowBin ) == 0 && lowBin!=upBin ) lowBin++;
+       while ( inHist[iHist]->GetBinContent( upBin ) ==0 && lowBin!=upBin ) upBin--;
+       minX = minX==-0.99 ? inHist[iHist]->GetXaxis()->GetBinLowEdge( lowBin ) : min( minX, inHist[iHist]->GetXaxis()->GetBinLowEdge( lowBin ) );
+       maxX = maxX==0.99 ? inHist[iHist]->GetXaxis()->GetBinUpEdge( upBin ) : max( maxX, inHist[iHist]->GetXaxis()->GetBinUpEdge( upBin ) );
+     }
 
     if ( DEBUG ) cout << "X ranges defined" << endl;
   }//end iHist
@@ -317,29 +324,37 @@ int DrawPlot( vector< TH1* > inHist,
   if ( rangeUserY.front() == -0.99 ) rangeUserY.front() = minVal - ( maxVal - minVal ) *0.05;
   if ( rangeUserY.back() == 0.99 ) rangeUserY.back() = maxVal + ( maxVal - minVal ) *0.05;
   rangeUserY.back() += (rangeUserY.back() - rangeUserY.front()) * mapOptionsDouble["extendUp"];
+
+
   if ( rangeUserX.size() == 2 ) inHist[refHist]->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
   else {
     rangeUserX.clear();
+    if ( minX==maxX ) maxX = minX+1;
     rangeUserX.push_back( minX );
     rangeUserX.push_back( maxX );
   }
 
   TH1F* dumHist = 0;
-  if ( mapOptionsInt["doRatio"] ) dumHist = padUp.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
-  else dumHist = canvas.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
-  dumHist->GetXaxis()->SetTitle( inHist[refHist]->GetXaxis()->GetTitle() );
-  dumHist->GetYaxis()->SetTitle( inHist[refHist]->GetYaxis()->GetTitle() );
+  if ( !strcmp( inHist[refHist]->GetXaxis()->GetBinLabel(1), "" ) ) {
+    if ( mapOptionsInt["doRatio"] ) dumHist = padUp.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
+    else dumHist = canvas.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
+    dumHist->GetXaxis()->SetTitle( inHist[refHist]->GetXaxis()->GetTitle() );
+    dumHist->GetYaxis()->SetTitle( inHist[refHist]->GetYaxis()->GetTitle() );
 
-  if (mapOptionsInt["doRatio"]) {
-    dumHist->GetYaxis()->SetTitleOffset( 0.6 );
-    dumHist->GetYaxis()->SetTitleSize( 0.06 );
+    if (mapOptionsInt["doRatio"]) {
+      dumHist->GetYaxis()->SetTitleOffset( 0.6 );
+      dumHist->GetYaxis()->SetTitleSize( 0.06 );
+    }
+  }
+  else {
+    inHist[refHist]->GetYaxis()->SetRangeUser( rangeUserY.front(), rangeUserY.back() );
   }
 
   //Plotting histograms
   for ( unsigned int iHist = refHist; iHist < inHist.size(); iHist++ ) {
     if ( !inHist[iHist] ) continue;
 
-    string drawOpt =  "SAME,";
+    string drawOpt = strcmp( inHist[refHist]->GetXaxis()->GetBinLabel(1), "" ) && (int)iHist==refHist ?  "" :"SAME,";
     switch ( mapOptionsInt["drawStyle"] ){
     case 2 : drawOpt += "HIST"; break;
     case 3 : drawOpt += "HISTL"; break;

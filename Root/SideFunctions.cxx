@@ -15,6 +15,7 @@
 #include "TObject.h"
 #include <set>
 #include "TArrayD.h"
+#include "PlotFunctions/MapBranches.h"
 
 #define DEBUG 1
 using std::unique_ptr;
@@ -42,6 +43,9 @@ void RebinHist( vector<TH1*> &vectHist ) {
     TH1* dumHist = vectHist[iHist];
     TString dumName = dumHist->GetName();
     vectHist[iHist] = new TH1D( dumName+"_dum", dumName+"_dum", axisLimits.size()-1, &axisLimits[0] );
+    vectHist[iHist]->GetXaxis()->SetTitle( dumHist->GetXaxis()->GetTitle() );
+    vectHist[iHist]->GetYaxis()->SetTitle( dumHist->GetYaxis()->GetTitle() );
+
     for ( int iBin =1; iBin <= vectHist[iHist]->GetNbinsX(); iBin++ ) {
       double centralValueBin = vectHist[iHist]->GetXaxis()->GetBinCenter( iBin );
       vectHist[iHist]->SetBinContent( iBin, dumHist->GetBinContent( dumHist->FindFixBin( centralValueBin ) ) );
@@ -191,67 +195,38 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long 
   unsigned int totEntry = 0;
   for ( unsigned int iTree = 0; iTree < inTrees.size(); iTree++ ) totEntry += inTrees[iTree]->GetEntries();
   if ( !nEvents ) nEvents = totEntry;
+
   cout << "nEvents : " << nEvents << endl;
 
-  TClass *expectedClass;
-  EDataType expectedType;
+  vector<unsigned int > totEntriesIndex, selectedEventsIndex;
+  for ( unsigned int i =0; i<totEntriesIndex.size(); i++ ) totEntriesIndex.push_back( i );
 
-  do {  
-    for ( unsigned int iTree = 0; iTree < inTrees.size(); iTree++ ) {
-      cout << "iTree : " << iTree << endl;
-      TObjArray *branches = inTrees[iTree]->GetListOfBranches();
-
-      vector< double > varDouble( branches->GetEntries(), 0 );
-      vector< long long int > varLongLong( branches->GetEntries(), 0 );
-
-      for ( unsigned int iBranch = 0; iBranch < (unsigned int) branches->GetEntries(); iBranch++ ) {
-
-	( (TBranch*) (*branches)[iBranch])->GetExpectedType( expectedClass, expectedType );
-
-	if ( !expectedClass ) {
-	  switch ( expectedType ) { //documentation at https://root.cern.ch/doc/master/TDataType_8h.html#add4d321bb9cc51030786d53d76b8b0bd
-	  case 8 : {//double
-	    inTrees[iTree]->SetBranchAddress( (*branches)[iBranch]->GetName(), &varDouble[iBranch] );
-	    if ( !iTree ) outTree->Branch( (*branches)[iBranch]->GetName(), &varDouble[iBranch] );
-	    break;}
-	  case 16 :
-	    inTrees[iTree]->SetBranchAddress( (*branches)[iBranch]->GetName(), &varLongLong[iBranch] );
-	    if ( !iTree ) outTree->Branch( (*branches)[iBranch]->GetName(), &varLongLong[iBranch] );
-	    break;
-	  default :
-	    cout << "bootstrap not planned for type : " << expectedType << endl;
-	    cout << "branchName : " << (*branches)[iBranch]->GetName() << endl;
-	    exit(0);
-	  }//end switch
-	}//end if expectedClass
-	else {
-	  cout << "bootstrap not planned for handmade classes" << endl;
-	  exit(0);
-	}
-	//	if ( expectedClass )  delete expectedClass; expectedClass=0;
-      }//end iBranch
-
-      unsigned int nEntries = inTrees[iTree]->GetEntries();
-      for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {
-	if ( outTree->GetEntries() >= nEvents ) {
-	  cout << "nEvents : " << nEvents << endl;
-	  cout << "iEvent : " << iEvent << endl;
-	  break;
-	}
-	inTrees[iTree]->GetEntry( iEvent );
-
-	unsigned int nUse = rand.Poisson( 1.0*nEvents/totEntry );
-	//  cout << "nUse : " << nUse << endl;
-	for ( unsigned int iUse = 0; iUse < nUse; iUse++ ) outTree->Fill();
-
-      }//end for iEvent
-
-    }//end iTree
+  for ( unsigned int iEvent=0; iEvent<nEvents; iEvent++ ) {
+    unsigned int xEntry = floor( rand.Uniform( totEntriesIndex.size() ) );
+    selectedEventsIndex.push_back( totEntriesIndex[xEntry] );
+    totEntriesIndex[xEntry] = totEntriesIndex.back();
+    totEntriesIndex.pop_back();
   }
-  while ( outTree->GetEntries() < nEvents );
+  sort( selectedEventsIndex.begin(), selectedEventsIndex.end() );
+  reverse( selectedEventsIndex.begin(), selectedEventsIndex.end() );
 
-  //  outTree->Print();
-  cout << "entries : " << outTree->GetEntries() << endl;
+  MapBranches mapB;
+  unsigned int counter=0;
+  for ( auto vTree : inTrees ) {
+    mapB.LinkTreeBranches( vTree, outTree );
+    
+    unsigned int nEntries = vTree->GetEntries();
+    for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {
+
+      while ( selectedEventsIndex.back() < counter ) selectedEventsIndex.pop_back();
+      while ( selectedEventsIndex.back() == counter ) {
+	outTree->Fill();
+	selectedEventsIndex.pop_back();
+      }
+
+      counter ++;
+    }
+  }
 
   return outTree;
 
@@ -393,11 +368,13 @@ void DiffSystematics( string inFileName, bool update ) {
 	for ( int iBin = 1; iBin<totSyst->GetNbinsX()+1; iBin++ ) totSyst->SetBinContent( iBin, 0 );
 	totSyst->SetName( outSystName.c_str()) ;
 	totSyst->SetTitle( totSyst->GetName() );
+	totSyst->GetYaxis()->SetTitle( "#delta" + TString(inHist->GetYaxis()->GetTitle() ) );
       }
       vector<TH1*> hists = { totSyst, inHist };
       RebinHist( hists );
       inHist = (TH1D*) hists[1];
       totSyst = (TH1D*) hists[0];
+      if ( !TString( inHist->GetYaxis()->GetTitle() ).Contains("#delta") ) inHist->GetYaxis()->SetTitle( "#delta" + TString( inHist->GetYaxis()->GetTitle() ) );
       inHist->Write( "", TObject::kOverwrite );
       for ( int iBin = 1; iBin<totSyst->GetNbinsX()+1; iBin++ ) {
 	switch( tempMode % 10 ) {
@@ -516,53 +493,6 @@ void VarOverTime( string inFileName, bool update) {
   delete outFile;
 }
 //=====================================
-// void LinkTreeBranches( TTree *inTree, TTree *outTree, map<string, double> &mapDouble,map<string, int> &mapInt, map<string, long long int > &mapLongLong ) {
-
-//   TObjArray *branches = inTree->GetListOfBranches();
-//   TClass *expectedClass;
-//   EDataType expectedType;
-//   string name;
-//   for ( unsigned int iBranch = 0; iBranch < (unsigned int) branches->GetEntries(); iBranch++ ) {
-    
-//     ( (TBranch*) (*branches)[iBranch])->GetExpectedType( expectedClass, expectedType );
-//     name=(*branches)[iBranch]->GetName();    
-//     if ( !expectedClass ) {
-//       switch ( expectedType ) { //documentation at https://root.cern.ch/doc/master/TDataType_8h.html#add4d321bb9cc51030786d53d76b8b0bd
-//       case 8 : {//double
-// 	mapDouble[name] = 0;
-// 	inTree->SetBranchAddress( name.c_str(), &mapDouble[name] );
-// 	if ( outTree ) {
-// 	  if ( !outTree->FindBranch( name.c_str()) ) outTree->Branch( name.c_str(), &mapDouble[name] );
-// 	  else outTree->SetBranchAddress( name.c_str(), &mapDouble[name] );
-// 	}
-// 	break;}
-//       case 3 : {//int
-// 	mapInt[name] = 0;
-// 	inTree->SetBranchAddress( name.c_str(), &mapInt[name] );
-// 	if ( outTree ) {
-// 	  if ( !outTree->FindBranch( name.c_str()) ) outTree->Branch( name.c_str(), &mapInt[name] );
-// 	  else outTree->SetBranchAddress( name.c_str(), &mapInt[name] );
-// 	}
-// 	break;}
-
-//       case 16 :
-// 	mapLongLong[ name ] = 0;
-// 	inTree->SetBranchAddress( name.c_str(), &mapLongLong[name] );
-// 	if ( outTree ) {
-// 	  if ( !outTree->FindBranch( name.c_str()) ) outTree->Branch( name.c_str(), &mapLongLong[name] );
-// 	  else outTree->SetBranchAddress( name.c_str(), &mapLongLong[name] );
-// 	}
-// 	break;
-//       default :
-// 	cout << "bootstrap not planned for type : " << expectedType << endl;
-//       }
-//     }
-//   }
-//   return ;
-// }
-
-
-//===================================
 void RescaleStack( THStack *stack, double integral ) {
   TIter iter(stack->GetHists());
   TH1 *hist = 0;
@@ -597,6 +527,7 @@ void CleanTMatrixHist( vector<TH1*> &vect, double removeVal ) {
     if ( keepBin ) keptBins.push_back( iBin );
   }
   cout << "keptBinsSize : " << keptBins.size() << endl;
+
   int Nbins = keptBins.size();
     //If a least one bin is 
   if ( keptBins.size() == vect.size() ) return;
@@ -620,6 +551,7 @@ void CleanTMatrixHist( vector<TH1*> &vect, double removeVal ) {
     for ( unsigned int iVect = 0; iVect<vect.size(); iVect++ ) {
       delete vect[iVect];
       vect[iVect] = outVect[iVect];
+      //      delete outVect[iVect];
     }
       
 }

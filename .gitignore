@@ -33,3 +33,4 @@ Plots/
 Inputs/
 html/
 latex/
+*.pyc

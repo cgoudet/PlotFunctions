@@ -50,7 +50,7 @@ using std::string;
 
 
  */
-int DrawPlot( vector< TH1* > inHist,  
+int DrawPlot( vector< TH1* > &inHist,  
 	      string outName, 
 	      vector<string> inOptions=vector<string>()
 	      );

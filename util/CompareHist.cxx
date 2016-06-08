@@ -8,6 +8,7 @@
 #include "TTree.h"
 #include "PlotFunctions/InputCompare.h"
 #include "PlotFunctions/SideFunctions.h"
+#include "PlotFunctions/MapBranches.h"
 #include <TROOT.h>
 #include "TMatrixD.h"
 #include "TProfile.h"
@@ -90,10 +91,12 @@ int main( int argc, char* argv[] ) {
     vector< vector< TGraphErrors* > > vectGraph;
     multi_array< double, 2 > eventVarVect;
     multi_array< long long int, 2> eventIDVect;
+
     TFile *outFile = 0;    
     vector< vector< string > > inputRootFile = input.GetRootFileName();
     vector< vector< string > > inputObjName = input.GetObjName();
     TTree *treePassSel=0, *treeRejSel=0;
+    MapBranches mapBranch;
 
     for ( unsigned int iPlot = 0; iPlot < inputRootFile.size(); iPlot++ ) {
       for ( unsigned int iAdd = 0; iAdd < inputRootFile[iPlot].size(); iAdd ++ ) {
@@ -121,9 +124,10 @@ int main( int argc, char* argv[] ) {
 	  }
 	  //If the histogram have already been created, we have to add the new one.
 	  else vectHist.front().back()->Add( (TH1D*) inFile.Get( inputObjName[iPlot][iAdd].c_str() ) );
-
 	  break;
 	}
+	  
+	  //############################################
 	case 1 : {//TTree plotting
 	  vector< vector<string> > &varName = input.GetVarName();
 	  vector< double > &varMin  = input.GetVarMin();
@@ -134,22 +138,20 @@ int main( int argc, char* argv[] ) {
 
 	  if ( !xBinning.size() && ( varMin.size() != varMax.size() || ( varName.size()>iPlot && varName[iPlot].size() != varMin.size() ) ) ) {
 	    cout << "varMin and varMax sizes matching : " << varMin.size() << " " << varMax.size() << endl;
-	    //cout << "varName size and iPlot : " << varName.size() << " " << iPlot << endl;
 	    if ( varName.size()>iPlot ) cout << "varName[iPlot].size() : "  << varName[iPlot].size() << endl;
 	    return 1;
 	  }
 
+	  //define the weight vector
 	  vector<string> dumVect( 1, "X" );
-	  if ( !varWeight.size() ) varWeight.push_back( dumVect );
-	  while ( varWeight.size()<=iPlot ) varWeight.push_back( varWeight.back() );
-	  vector<double> weight;
-	  TTree *inTree = 0;
-	  inFile.GetObject( inputObjName[iPlot][iAdd].c_str(), inTree );
-	  if ( !inTree ) {
-	    cout << inputObjName[iPlot][iAdd] << " does not exist in " << inFile.GetName() << endl;
-	    exit(0);
-	  }
+	  while ( varWeight.size()<=iPlot ) varWeight.push_back( varWeight.size() ? varWeight.back() : dumVect );
+
+
+	  TTree *inTree = (TTree*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
+	  if ( !inTree ) { cout << inputObjName[iPlot][iAdd] << " does not exist in " << inFile.GetName() << endl; exit(0); }
 	  inTree->SetDirectory(0);
+
+	  //if requested perform a selection on the tree using copyTree
 	  if ( input.GetSelectionCut().size() ){
 	    TFile *dumFile = new TFile( "/tmp/cgoudet/dumFile", "RECREATE" );
 	    gROOT->cd();
@@ -162,64 +164,53 @@ int main( int argc, char* argv[] ) {
 	    delete dumFile; dumFile=0;
 	  }
 
-	  unsigned int nEntries = (unsigned int) inTree->GetEntries();
-	  if ( !nEntries )  {
-	  //Make the number of legend and histogram match by adding 0 histograms (which will not be printed)
-	  if ( iPlot == inputRootFile.size() -1 ) {
-	    for ( unsigned int iHist = 0; iHist < vectHist.size(); iHist++ ) 
-	      while ( vectHist[iHist].size() < inputRootFile.size() ) vectHist[iHist].push_back( 0 );
-	    delete inTree; inTree = 0;
-	    inFile.Close( "R" );
-	  }
-	  continue;
-	  }
 
+	  unsigned int nEntries = (unsigned int) inTree->GetEntries();
 	  if ( DEBUG ) cout << "nEntries : " << nEntries << endl;
-	  for ( unsigned int iWeight=0; iWeight<varWeight[iPlot].size(); iWeight++ ) {
-	    if ( varWeight[iPlot][iWeight] == "X" ) continue;
-	    weight.push_back(1);
-	    //	    inTree->Show(0);
-	    inTree->SetBranchAddress( varWeight[iPlot][iWeight].c_str(), &weight[iWeight] );
+	  //Make the number of legend and histogram match by adding 0 histograms (which will not be printed)
+	  if ( !vectHist.size() ) vectHist = vector< vector< TH1* > >( varName[iPlot].size(), vector<TH1*>() );
+	  for ( unsigned int iHist = 0; iHist < vectHist.size(); iHist++ ) {
+	    while ( vectHist[iHist].size() <= iPlot )  vectHist[iHist].push_back( 0 );
 	  }
+	  if ( !nEntries ) { delete inTree; inTree = 0; inFile.Close( "R" ); }
+
+	  //create a vector to store all branches names to be linked
+	  vector<string> linkedVariables;
+	  for ( unsigned int iWeight=0; iWeight<varWeight[iPlot].size(); iWeight++ ) 
+	    if ( varWeight[iPlot][iWeight] != "X" ) linkedVariables.push_back( varWeight[iPlot][iWeight] );
+	  for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) 
+	    if ( varName[iPlot][iHist] != "X" ) linkedVariables.push_back( varName[iPlot][iHist] );
+	  mapBranch.LinkTreeBranches( inTree, 0, linkedVariables );
+
 
 	  for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {
-	    //	    if ( iEvent % 500000 == 0 ) cout << iEvent << endl;
-	    if ( !iEvent ) {
-	      for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
-		//Link tree branches to local variables
-		cout << varName[iPlot][iHist] << " " << varVal[iHist]<< endl;
-		//		inTree->SetBranchAddress( varName[iPlot][iHist].c_str(), &varVal[iHist] );
-		inTree->SetBranchAddress( varName[iPlot][iHist].c_str() , &varVal[iHist] );
-		while ( vectHist.size() <= iHist )  vectHist.push_back( vector<TH1*>() );
-		while ( vectHist[iHist].size() <= iPlot )  vectHist[iHist].push_back( 0 );
-	      }//end for iHist
-	      }// end iEvent
-	      double totWeight=1;
-	      //Read the tree entry. As we run over all plotted variables, the entry need not to be read several times
-	      inTree->GetEntry( iEvent );
-	      for ( unsigned int iWeight = 0; iWeight < weight.size(); iWeight++ ) {
-		totWeight *= weight[iWeight];
+	    //	    if ( vectHist.front()[iPlot] && vectHist.front()[iPlot]->GetEntries() > 20 ) continue;
+	    double totWeight=1;
+	    //Read the tree entry. As we run over all plotted variables, the entry need not to be read several times
+	    inTree->GetEntry( iEvent );
+
+	    for ( auto vWeightName : varWeight[iPlot] )  totWeight *= vWeightName == "X" ? 1 : mapBranch.GetVal( vWeightName );
+
+	    for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
+	      if ( !vectHist[iHist][iPlot] ) {
+		//Create correspondig histogram
+		unsigned int nBins = atoi(input.GetOption("nComparedEvents").c_str());
+		if ( !nBins ) nBins = 100;
+		
+		string dumName = string( TString::Format( "%s_%s_%d", input.GetObjName()[iPlot][iAdd].c_str(), varName[iPlot][iHist].c_str(), iPlot ) );
+		if ( xBinning.size() <= iHist || !xBinning[iHist].size() ) vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), nBins, varMin[iHist], varMax[iHist] );
+		else vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), (int) xBinning[iHist].size()-1, &xBinning[iHist][0] );
+		vectHist[iHist][iPlot]->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
+		//		  vectHist[iHist][iPlot]->GetYaxis()->SetTitle( TString::Format( "# Events / %2.2f", (varMax[iHist]-varMin[iHist])/vectHist[iHist][iPlot]->GetNbinsX()) );
+		vectHist[iHist][iPlot]->GetYaxis()->SetTitle( "# Events" );
+		vectHist[iHist][iPlot]->SetDirectory( 0 );
+		vectHist[iHist][iPlot]->Sumw2();
 	      }
-	       
-	      for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
-		if ( !vectHist[iHist][iPlot] ) {
-		  //Create correspondig histogram
-		  unsigned int nBins = atoi(input.GetOption("nComparedEvents").c_str());
-		  if ( !nBins ) nBins = 100;
-		  string dumName = string( TString::Format( "%s_%s_%d", input.GetObjName()[iPlot][iAdd].c_str(), varName[iPlot][iHist].c_str(), iPlot ) );
-		  if ( xBinning.size() <= iHist || !xBinning[iHist].size() ) vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), nBins, varMin[iHist], varMax[iHist] );
-		  else vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), (int) xBinning[iHist].size()-1, &xBinning[iHist][0] );
-		  vectHist[iHist][iPlot]->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
-		  //		vectHist[iHist][iPlot]->GetYaxis()->SetTitle( TString::Format( "# Events / %2.2f", (varMax[iHist]-varMin[iHist])/vectHist[iHist][iPlot]->GetNbinsX()) );
-		  vectHist[iHist][iPlot]->GetYaxis()->SetTitle( "# Events" );
-		  vectHist[iHist][iPlot]->SetDirectory( 0 );
-		  vectHist[iHist][iPlot]->Sumw2();
-		}
 		
 	      //if created fill it
-		//cout << varVal[iHist] << " " << totWeight << endl;
-		vectHist[iHist][iPlot]->Fill( varVal[iHist], totWeight );
+	      vectHist[iHist][iPlot]->Fill( mapBranch.GetVal(varName[iPlot][iHist] ) , totWeight );
 	    }// End iHist
+	    if ( iEvent < 10 ) cout << totWeight << endl;
 	  }// end iEvent
 
 
@@ -466,7 +457,6 @@ int main( int argc, char* argv[] ) {
 	  
 	case 7 : {
 	  if ( iAdd )  continue;
-	  cout << inputObjName[iPlot][iAdd] << endl;
 	  TMatrixD *matrix = ( TMatrixD*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
 	  if ( !matrix ) {
 	    cout << inputObjName[iPlot][iAdd].c_str() << " not found in " << inFile.GetName() << endl;
@@ -489,7 +479,6 @@ int main( int argc, char* argv[] ) {
 	      if ( (*matrix)(iLine, iCol) != 100 ) vectHist.front().back()->SetBinContent( bin, (*matrix)(iLine, iCol) );
 	      vectHist.front().back()->SetBinError( bin, 0 );
 	      vectHist.front().back()->GetXaxis()->SetBinLabel( bin, TString::Format( "%d_%d", iLine, iCol ) );
-	      cout << vectHist.front().back()->GetXaxis()->GetBinLabel( bin )  << endl;
 	      bin++;
 	    }
 	  }
@@ -732,7 +721,7 @@ int main( int argc, char* argv[] ) {
 	      stream << vectHist.front()[iPlot-1]->GetBinContent( iBin );
 	      if ( atoi(input.GetOption("doTabular").c_str()) ==2 ) stream << "," << vectHist.front()[iPlot-1]->GetBinError( iBin );
 		}	 
-	    else stream << string( TString::Format( "] %2.2f : %2.2f]", vectHist.front().front()->GetXaxis()->GetBinLowEdge( iBin ), vectHist.front().front()->GetXaxis()->GetBinUpEdge( iBin ) ) );
+	    else stream << ( strcmp( vectHist.front().front()->GetXaxis()->GetBinLabel(iBin), "" ) ? TString(vectHist.front().front()->GetXaxis()->GetBinLabel(iBin)) :  TString::Format( "] %2.2f : %2.2f]", vectHist.front().front()->GetXaxis()->GetBinLowEdge( iBin ), vectHist.front().front()->GetXaxis()->GetBinUpEdge( iBin ) ) );
 	  } 
 	  if ( iPlot != vectHist.front().size() ) stream << ",";
 	}
@@ -785,16 +774,19 @@ int main( int argc, char* argv[] ) {
     }
 
 
-
+    TFile *dumFile=0;
+    if ( atoi(input.GetOption("inputType").c_str()) == 1 ) dumFile = new TFile( "/sps/atlas/c/cgoudet/Calibration/Test/dumFile.cxx", "recreate" );
 
     //cleaning vectors of pointers
     while ( vectHist.size() ) {
       while ( vectHist.back().size() ) {
+	if ( dumFile ) vectHist.back().back()->Write( "", TObject::kOverwrite );
 	if ( vectHist.back().back() ) delete vectHist.back().back();
 	vectHist.back().pop_back();
       }
       vectHist.pop_back();
     }
+    if ( dumFile ) dumFile->Close();
 
     while ( vectGraph.size() ) {
       while ( vectGraph.back().size() ) {

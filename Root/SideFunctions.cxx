@@ -190,8 +190,7 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long 
     if ( seed == 1 ) seed = t1.time_since_epoch().count();
     rand.SetSeed( seed );
   }
-  cout << "bootstrapSeed : " << seed << endl;
-  cout << "nEvents : " << nEvents << endl;
+
   unsigned int totEntry = 0;
   for ( unsigned int iTree = 0; iTree < inTrees.size(); iTree++ ) totEntry += inTrees[iTree]->GetEntries();
   if ( !nEvents ) nEvents = totEntry;
@@ -199,10 +198,11 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long 
   cout << "nEvents : " << nEvents << endl;
 
   vector<unsigned int > totEntriesIndex, selectedEventsIndex;
-  for ( unsigned int i =0; i<totEntriesIndex.size(); i++ ) totEntriesIndex.push_back( i );
+  for ( unsigned int i =0; i<totEntry; i++ ) totEntriesIndex.push_back( i );
 
   for ( unsigned int iEvent=0; iEvent<nEvents; iEvent++ ) {
     unsigned int xEntry = floor( rand.Uniform( totEntriesIndex.size() ) );
+    cout << xEntry << " " << totEntriesIndex.size() << endl;
     selectedEventsIndex.push_back( totEntriesIndex[xEntry] );
     totEntriesIndex[xEntry] = totEntriesIndex.back();
     totEntriesIndex.pop_back();
@@ -214,10 +214,9 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long 
   unsigned int counter=0;
   for ( auto vTree : inTrees ) {
     mapB.LinkTreeBranches( vTree, outTree );
-    
     unsigned int nEntries = vTree->GetEntries();
     for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {
-
+      if ( !selectedEventsIndex.size() ) break;
       while ( selectedEventsIndex.back() < counter ) selectedEventsIndex.pop_back();
       while ( selectedEventsIndex.back() == counter ) {
 	outTree->Fill();
@@ -227,7 +226,6 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long 
       counter ++;
     }
   }
-
   return outTree;
 
 }

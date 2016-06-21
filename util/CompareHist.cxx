@@ -490,33 +490,28 @@ int main( int argc, char* argv[] ) {
 
 	case 8 : {//TTree into TProfile
 	  vector< vector<string> > &varName = input.GetVarName();
-	  if ( varName.size() == iPlot ) {
-	    vector<string> dumVect= varName.back();
-	    varName.push_back( dumVect );
-	  }
+	  while ( iPlot && varName.size() <= iPlot ) varName.push_back( varName.back() );
+
 	  vector< double > varMin  = input.GetVarMin();
 	  vector< double > varMax  = input.GetVarMax();
 	  vector< vector<string> > varWeight = input.GetVarWeight();
-	  vector< double > varVal( varName[iPlot].size(), 0 );
+	  MapBranches mapB;
 	  vector< vector<double> > xBinning = input.GetXBinning();
-	  while ( xBinning.size() <= iPlot ) xBinning.push_back( xBinning.back() );
+	  if ( xBinning.size() ) while ( xBinning.size() <= iPlot ) xBinning.push_back( xBinning.back() );
 
 	  if ( !xBinning.size() && ( varMin.size() != varMax.size() || !varMin.size() ) ) {
 	    cout << "varMin and varMax sizes matching : " << varMin.size() << " " << varMax.size() << endl;
 	    if ( varName.size()>iPlot ) cout << "varName[iPlot].size() : "  << varName[iPlot].size() << endl;
 	    return 1;
 	  }
+
 	  vector<string> dumVectWeight( 1, "X" );
 	  if ( !varWeight.size() ) varWeight.push_back( vector<string>(1,"X" ) );
 	  while ( iPlot>=varWeight.size() ) varWeight.push_back( varWeight.back() );
 
 	  vector<double> weight;
-	  TTree *inTree = 0;
-	  inFile.GetObject( inputObjName[iPlot][iAdd].c_str(), inTree );
-	  if ( !inTree ) {
-	    cout << inputObjName[iPlot][iAdd] << " does not exist in " << inFile.GetName() << endl;
-	    exit(0);
-	  }
+	  TTree *inTree = (TTree*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
+	  if ( !inTree ) { cout << inputObjName[iPlot][iAdd] << " does not exist in " << inFile.GetName() << endl; exit(0);}
 	  //	  inTree->SetDirectory(0);
 
 	  if ( input.GetSelectionCut().size() ){
@@ -528,25 +523,14 @@ int main( int argc, char* argv[] ) {
 	      inTree= dumTree;
 	      inTree->SetDirectory(0);
 	    }
-	    //delete dumFile; dumFile=0;
 	  }
-
+	  mapB.LinkTreeBranches( inTree );
 	  unsigned int nEntries = (unsigned int) inTree->GetEntries();
-	  vector<string> dumVect( 1, "X" );
-	  while ( iPlot >= varWeight.size() ) varWeight.push_back( dumVect );
-	  for ( unsigned int iWeight = 0; iWeight<varWeight[iPlot].size(); iWeight++ ) {
-	      if ( varWeight[iPlot][iWeight] == "X" ) continue;
-	      weight.push_back( 1 );
-	      inTree->SetBranchAddress( varWeight[iPlot][iWeight].c_str(), &weight.back() );
-	    }	      
 
-	  //	  if ( varName[iPlot].size() ) inTree->SetBranchAddress( varName[iPlot].front().c_str(), &varVal.front() );
 	  for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {
 	    double totWeight = 1;
 	    for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
 	      if ( !iEvent ) {
-		//Link tree branches to local variables
-		inTree->SetBranchAddress( varName[iPlot][iHist].c_str(), &varVal[iHist] );
 		if ( !iPlot && !iAdd )  vectHist.push_back( vector<TH1*>() );
 		if ( !iAdd )  vectHist[iHist].push_back( 0 );
 	      }
@@ -554,11 +538,7 @@ int main( int argc, char* argv[] ) {
 	      //Read the tree entry. As we run over all plotted variables, the entry need not to be read several times
 	      if ( !iHist ) {
 		inTree->GetEntry( iEvent );
-
-		for ( unsigned int iWeight=0; iWeight< weight.size(); iWeight++ ) {
-		  totWeight *= weight[iWeight];
-		}
-		cout << totWeight << endl;
+		for ( unsigned int iWeight=0; iWeight< varWeight[iPlot].size(); iWeight++ ) totWeight *= varWeight[iPlot][iWeight]=="X" ? 1 : mapB.GetVal( varWeight[iPlot][iWeight] );
 	      }
 
 	      if ( !vectHist[iHist][iPlot] ) {
@@ -570,29 +550,30 @@ int main( int argc, char* argv[] ) {
 	      }
 	      //if created fill it
 	      else {
-		((TProfile*) vectHist[iHist][iPlot])->Fill( varVal.front(), varVal[iHist], totWeight );
+		cout << varName[iPlot].front() << " " << mapB.GetVal( varName[iPlot].front() ) << endl;
+		((TProfile*) vectHist[iHist][iPlot])->Fill( mapB.GetVal( varName[iPlot].front() ), mapB.GetVal( varName[iPlot][iHist] ), totWeight );
 		//		if ( iHist== 1 && varVal[iHist] < 50 ) cout << varVal.front() << " " << varVal[iHist] << " " << weight << endl;
 	      }
 	    }// End iHist
 	  }// end iEvent
 
-	  if ( iAdd == inputRootFile[iPlot].size()-1 ) {
-	    for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
-	      string dumString = vectHist[iHist][iPlot]->GetName();
-	      TH1D* dumHist = new TH1D( "dumHist", "dumHist", vectHist[iHist][iPlot]->GetNbinsX(), vectHist[iHist][iPlot]->GetXaxis()->GetXbins()->GetArray() );
-	      for ( int iBin = 1; iBin <= vectHist[iHist][iPlot]->GetNbinsX(); iBin++ ) {
-		dumHist->SetBinContent( iBin, vectHist[iHist][iPlot]->GetBinContent(iBin) );
-		dumHist->SetBinError( iBin, vectHist[iHist][iPlot]->GetBinError(iBin) );
-	      }
-	      delete vectHist[iHist][iPlot];
-	      dumHist->SetName( dumString.c_str() );
-	      dumHist->SetTitle( dumString.c_str() );
-	      vectHist[iHist][iPlot] = dumHist;
-	      vectHist[iHist][iPlot]->GetXaxis()->SetTitle( varName[iPlot].front().c_str() );
-	      vectHist[iHist][iPlot]->GetYaxis()->SetTitle( varName[iPlot][iHist].c_str() );
-	      vectHist[iHist][iPlot]->SetDirectory( 0 );
-	    }
-	  }
+	  // if ( iAdd == inputRootFile[iPlot].size()-1 ) {
+	  //   for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
+	  //     string dumString = vectHist[iHist][iPlot]->GetName();
+	  //     TH1D* dumHist = new TH1D( "dumHist", "dumHist", vectHist[iHist][iPlot]->GetNbinsX(), vectHist[iHist][iPlot]->GetXaxis()->GetXbins()->GetArray() );
+	  //     for ( int iBin = 1; iBin <= vectHist[iHist][iPlot]->GetNbinsX(); iBin++ ) {
+	  // 	dumHist->SetBinContent( iBin, vectHist[iHist][iPlot]->GetBinContent(iBin) );
+	  // 	dumHist->SetBinError( iBin, vectHist[iHist][iPlot]->GetBinError(iBin) );
+	  //     }
+	  //     delete vectHist[iHist][iPlot];
+	  //     dumHist->SetName( dumString.c_str() );
+	  //     dumHist->SetTitle( dumString.c_str() );
+	  //     vectHist[iHist][iPlot] = dumHist;
+	  //     vectHist[iHist][iPlot]->GetXaxis()->SetTitle( varName[iPlot].front().c_str() );
+	  //     vectHist[iHist][iPlot]->GetYaxis()->SetTitle( varName[iPlot][iHist].c_str() );
+	  //     vectHist[iHist][iPlot]->SetDirectory( 0 );
+	  //   }
+	  // }
 	  delete inTree; inTree = 0;
 	  break;
 	}//end case TProfile

@@ -557,23 +557,6 @@ int main( int argc, char* argv[] ) {
 	    }// End iHist
 	  }// end iEvent
 
-	  // if ( iAdd == inputRootFile[iPlot].size()-1 ) {
-	  //   for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
-	  //     string dumString = vectHist[iHist][iPlot]->GetName();
-	  //     TH1D* dumHist = new TH1D( "dumHist", "dumHist", vectHist[iHist][iPlot]->GetNbinsX(), vectHist[iHist][iPlot]->GetXaxis()->GetXbins()->GetArray() );
-	  //     for ( int iBin = 1; iBin <= vectHist[iHist][iPlot]->GetNbinsX(); iBin++ ) {
-	  // 	dumHist->SetBinContent( iBin, vectHist[iHist][iPlot]->GetBinContent(iBin) );
-	  // 	dumHist->SetBinError( iBin, vectHist[iHist][iPlot]->GetBinError(iBin) );
-	  //     }
-	  //     delete vectHist[iHist][iPlot];
-	  //     dumHist->SetName( dumString.c_str() );
-	  //     dumHist->SetTitle( dumString.c_str() );
-	  //     vectHist[iHist][iPlot] = dumHist;
-	  //     vectHist[iHist][iPlot]->GetXaxis()->SetTitle( varName[iPlot].front().c_str() );
-	  //     vectHist[iHist][iPlot]->GetYaxis()->SetTitle( varName[iPlot][iHist].c_str() );
-	  //     vectHist[iHist][iPlot]->SetDirectory( 0 );
-	  //   }
-	  // }
 	  delete inTree; inTree = 0;
 	  break;
 	}//end case TProfile

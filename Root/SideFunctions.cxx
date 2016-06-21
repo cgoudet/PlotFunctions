@@ -179,7 +179,7 @@ void ParseLegend( TH1* hist, string &legend ) {
 }
 
 //============================================
-TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long int seed ) {
+TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long int seed, int mode ) {
   cout << "Bootstrap" << endl;
   string outTreeName = inTrees.front()->GetName() + string( "_bootstrap" );
   TTree * outTree = new TTree ( outTreeName.c_str(), outTreeName.c_str() );
@@ -202,10 +202,11 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long 
 
   for ( unsigned int iEvent=0; iEvent<nEvents; iEvent++ ) {
     unsigned int xEntry = floor( rand.Uniform( totEntriesIndex.size() ) );
-    cout << xEntry << " " << totEntriesIndex.size() << endl;
     selectedEventsIndex.push_back( totEntriesIndex[xEntry] );
-    totEntriesIndex[xEntry] = totEntriesIndex.back();
-    totEntriesIndex.pop_back();
+    if ( mode == 1 ) {
+      totEntriesIndex[xEntry] = totEntriesIndex.back();
+      totEntriesIndex.pop_back();
+    }
   }
   sort( selectedEventsIndex.begin(), selectedEventsIndex.end() );
   reverse( selectedEventsIndex.begin(), selectedEventsIndex.end() );
@@ -217,6 +218,7 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long 
     unsigned int nEntries = vTree->GetEntries();
     for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {
       if ( !selectedEventsIndex.size() ) break;
+      vTree->GetEntry( iEvent );
       while ( selectedEventsIndex.back() < counter ) selectedEventsIndex.pop_back();
       while ( selectedEventsIndex.back() == counter ) {
 	outTree->Fill();

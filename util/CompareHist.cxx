@@ -550,9 +550,7 @@ int main( int argc, char* argv[] ) {
 	      }
 	      //if created fill it
 	      else {
-		cout << varName[iPlot].front() << " " << mapB.GetVal( varName[iPlot].front() ) << endl;
 		((TProfile*) vectHist[iHist][iPlot])->Fill( mapB.GetVal( varName[iPlot].front() ), mapB.GetVal( varName[iPlot][iHist] ), totWeight );
-		//		if ( iHist== 1 && varVal[iHist] < 50 ) cout << varVal.front() << " " << varVal[iHist] << " " << weight << endl;
 	      }
 	    }// End iHist
 	  }// end iEvent

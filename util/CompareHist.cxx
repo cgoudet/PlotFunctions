@@ -499,13 +499,16 @@ int main( int argc, char* argv[] ) {
 	  vector< vector<string> > varWeight = input.GetVarWeight();
 	  vector< double > varVal( varName[iPlot].size(), 0 );
 	  vector< vector<double> > xBinning = input.GetXBinning();
-	  while ( xBinning.size() <= iPlot ) xBinning.push_back( xBinning.back() );
+
+	  if (xBinning.size()!=0){while ( xBinning.size() <= iPlot ) xBinning.push_back( xBinning.back() );}
+
 
 	  if ( !xBinning.size() && ( varMin.size() != varMax.size() || !varMin.size() ) ) {
 	    cout << "varMin and varMax sizes matching : " << varMin.size() << " " << varMax.size() << endl;
 	    if ( varName.size()>iPlot ) cout << "varName[iPlot].size() : "  << varName[iPlot].size() << endl;
 	    return 1;
 	  }
+
 	  vector<string> dumVectWeight( 1, "X" );
 	  if ( !varWeight.size() ) varWeight.push_back( vector<string>(1,"X" ) );
 	  while ( iPlot>=varWeight.size() ) varWeight.push_back( varWeight.back() );
@@ -540,6 +543,7 @@ int main( int argc, char* argv[] ) {
 	      inTree->SetBranchAddress( varWeight[iPlot][iWeight].c_str(), &weight.back() );
 	    }	      
 
+
 	  //	  if ( varName[iPlot].size() ) inTree->SetBranchAddress( varName[iPlot].front().c_str(), &varVal.front() );
 	  for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {
 	    double totWeight = 1;
@@ -558,13 +562,15 @@ int main( int argc, char* argv[] ) {
 		for ( unsigned int iWeight=0; iWeight< weight.size(); iWeight++ ) {
 		  totWeight *= weight[iWeight];
 		}
-		cout << totWeight << endl;
+		//cout << totWeight << endl;
 	      }
 
 	      if ( !vectHist[iHist][iPlot] ) {
 		//Create correspondig histogram
 		string dumName = string( TString::Format( "%s_%s_%d", input.GetObjName()[iPlot][iAdd].c_str(), varName[iPlot][iHist].c_str(), iPlot ) );
+		cout<<iHist<<" varMin: "<<varMin[iHist]<<" varMax: "<<varMax[iHist]<<endl;
 		if ( !xBinning.size() ) vectHist[iHist][iPlot] = new TProfile( dumName.c_str(), dumName.c_str(), 100, varMin[iHist], varMax[iHist] );
+
 		else vectHist[iHist][iPlot] = new TProfile( dumName.c_str(), dumName.c_str(), (int) xBinning[iPlot].size()-1, &xBinning[iPlot][0] );
 		vectHist[iHist][iPlot]->SetDirectory( 0 );
 	      }

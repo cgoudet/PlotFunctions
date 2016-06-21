@@ -179,8 +179,10 @@ void ParseLegend( TH1* hist, string &legend ) {
 }
 
 //============================================
-TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long int seed ) {
-  cout << "Bootstrap nEvents: "<<nEvents << " m_nUseEvent: "<<m_nUseEvent<< endl;
+
+TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long int seed, int mode ) {
+  cout << "Bootstrap" << endl;
+
   string outTreeName = inTrees.front()->GetName() + string( "_bootstrap" );
   TTree * outTree = new TTree ( outTreeName.c_str(), outTreeName.c_str() );
   outTree->SetDirectory(0);
@@ -201,7 +203,6 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long 
   for ( unsigned int i =0; i<totEntry; i++ ) totEntriesIndex.push_back( i );
 
   TH1D *histTest =new TH1D("bootstrap", "", totEntry, 0, totEntry); 
-  TH1D *histTestB =new TH1D("bootstrapB", "", totEntry, 0, totEntry); 
   TFile *outRootFile = new TFile ("bootstrapFile.root", "RECREATE");
 
   cout<<"Create bootstrap histo, nEvents: "<<nEvents<<endl;
@@ -209,16 +210,19 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long 
   for ( unsigned int iEvent=0; iEvent<nEvents; iEvent++ ) {
     unsigned int xEntry = floor( rand.Uniform( totEntriesIndex.size() ) );
     selectedEventsIndex.push_back( totEntriesIndex[xEntry] );
+
+    if ( mode == 1 ) {
+      totEntriesIndex[xEntry] = totEntriesIndex.back();
+      totEntriesIndex.pop_back();
+    }
+    
     histTest->Fill(totEntriesIndex[xEntry]);
-    histTestB->Fill(xEntry);
-    totEntriesIndex[xEntry] = totEntriesIndex.back();
-    totEntriesIndex.pop_back();
+
   }
   sort( selectedEventsIndex.begin(), selectedEventsIndex.end() );
   reverse( selectedEventsIndex.begin(), selectedEventsIndex.end() );
 
   histTest->Write();
-  histTestB->Write();
   outRootFile->Close();
   delete outRootFile;
 
@@ -229,7 +233,7 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long 
     unsigned int nEntries = vTree->GetEntries();
     for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {
       if ( !selectedEventsIndex.size() ) break;
-      vTree->GetEntry(iEvent);
+      vTree->GetEntry( iEvent );
       while ( selectedEventsIndex.back() < counter ) selectedEventsIndex.pop_back();
       while ( selectedEventsIndex.back() == counter ) {
 	outTree->Fill();

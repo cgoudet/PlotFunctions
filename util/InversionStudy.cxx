@@ -34,13 +34,14 @@ int main( int argc, char* argv[] ) {
   desc.add_options()
     ("help", "Display this help message")
     ("inFileName", po::value<string>(&inFileName), "" )
-    ("inputType", po::value<unsigned int>( &inputType ), "" )
+    ("inputType", po::value<unsigned int>( &inputType )->default_value(1), "" )
     ( "outFileName", po::value<string>( &outFileName ), "" )
-    ( "mode", po::value<int>( &mode ), "" )
+    ( "mode", po::value<int>( &mode )->default_value(-1), "" )
     ;
   
   //Define options gathered by position                                                          
   po::positional_options_description p;
+  p.add("inFileName", 1);
 
   // create a map vm that contains options and all arguments of options       
   po::variables_map vm;

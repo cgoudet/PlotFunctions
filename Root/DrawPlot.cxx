@@ -11,6 +11,7 @@
 #include "RooDataSet.h"
 #include "RooAbsPdf.h"
 #include "RooSimultaneous.h"
+#include "TF1.h"
 
 using std::map;
 using std::cout;
@@ -257,7 +258,13 @@ int DrawPlot( vector< TH1* > &inHist,
     //Set color and style of histogram
     //If only one histograms is plotted, plot it in red
     inHist[iHist]->SetLineColor(  colors[ max( 0, (int) ( (inHist.size()==1 ? 1 : iHist) + mapOptionsInt["shiftColor"])) ]  );
-    inHist[iHist]->SetMarkerColor( colors[ max( 0, (int) ((inHist.size()==1 ? 1 : iHist) + mapOptionsInt["shiftColor"] ) )] );
+    inHist[iHist]->SetMarkerColor( inHist[iHist]->GetLineColor() );
+
+    vector<string> functionNames = { "cubicFit", "quadraticFit" };
+    for ( auto vName : functionNames ) {
+      TF1 *function = inHist[iHist]->GetFunction( vName.c_str() );
+      if ( function ) function->SetLineColor( inHist[iHist]->GetLineColor() );
+    }
 
     //If only one histograms is plotted, plot it in red
     switch ( mapOptionsInt["drawStyle"] ) {
@@ -430,7 +437,7 @@ int DrawPlot( vector< TH1* > &inHist,
     if ( !inHist[iLegend] ) continue;
     bool doFill = inLegend.size() > iLegend && TString( inLegend[iLegend].c_str() ).Contains( "__FILL" );
     ParseLegend( inHist[iLegend] , inLegend[iLegend] );
-    if ( doFill )  myBoxText( legendCoord[0], legendCoord[1]-0.04*iLegend, 0.02, inHist[iLegend]->GetFillColor(), inLegend[iLegend].c_str() ); 
+    if ( doFill )  myBoxText( legendCoord[0], legendCoord[1]-0.04*iLegend, inHist[iLegend]->GetFillColor(), inLegend[iLegend].c_str() ); 
     else if ( mapOptionsInt["drawStyle"] ) myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetMarkerColor(), inHist[iLegend]->GetMarkerStyle(), inLegend[iLegend].c_str()  ); 
     else myLineText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetLineColor(), inHist[iLegend]->GetLineStyle(), inLegend[iLegend].c_str()  ); 
   }
@@ -535,6 +542,7 @@ int DrawPlot( RooRealVar *frameVar,
   mapOptionsString["xTitle"]="";
   mapOptionsString["yTitle"]="";
   
+
   for ( auto iOption : inOptions ) {
     string option = iOption.substr( 0, iOption.find_first_of('=' ) );
     string value = iOption.substr( iOption.find_first_of("=")+1);

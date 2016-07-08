@@ -270,20 +270,18 @@ TGraphErrors* TH1TOTGraph(TH1 *h1){
  return g1;
 }
 
-void myText(Double_t x,Double_t y,Color_t color, const char *text, double tsize) {
+void myText(Double_t x,Double_t y,Color_t color, const char *text, double tsize ) {
 
   TLatex l; //l.SetTextAlign(12);
   l.SetTextSize(tsize); 
-  l.SetNDC();
+  l.SetNDC(1);
   l.SetTextColor(color);
   l.DrawLatex(x,y,text);
 }
  
 
-void myBoxText(Double_t x, Double_t y,Double_t boxsize,Int_t mcolor,const char *text) 
+void myBoxText(Double_t x, Double_t y,Int_t mcolor,const char *text, Double_t tsize, double lsize ) 
 {
-
-  Double_t tsize=0.035;
 
   TLatex l; l.SetTextAlign(12); //
   l.SetTextSize(tsize); 
@@ -292,8 +290,8 @@ void myBoxText(Double_t x, Double_t y,Double_t boxsize,Int_t mcolor,const char *
 
   Double_t y1=y-0.35*tsize;
   Double_t y2=y+0.35*tsize;
-  Double_t x2=x-0.3*tsize;
-  Double_t x1=x2-boxsize;
+  Double_t x2=x-0.3*lsize;
+  Double_t x1=x2-lsize;
 
   //  printf("x1= %f x2= %f y1= %f y2= %f \n",x1,x2,y1,y2);
 
@@ -312,19 +310,23 @@ void myBoxText(Double_t x, Double_t y,Double_t boxsize,Int_t mcolor,const char *
 
 }
 
-void myLineText(Double_t x, Double_t y, Int_t mcolor, Int_t mstyle, const char *text,Float_t msize) {
-  Double_t tsize=msize;
+void myLineText(Double_t x, Double_t y, Int_t mcolor, Int_t mstyle, const char *text,Float_t tsize, double msize, double lsize ) {
+
+  // cout << "myLineText" << endl;
+  // cout << "msize : " << msize << endl;
+  // cout << "tsize : " << tsize << endl;
+  // cout << "lsize : " << lsize << endl;
 
   TLatex l; l.SetTextAlign(12); //
   l.SetTextSize(tsize); 
   l.SetNDC();
   l.DrawLatex(x,y,text);
 
-  Double_t x2=x-0.3*tsize;
-  Double_t x1=x2-tsize;
+  Double_t x2=x-0.3*lsize;
+  Double_t x1=x2-lsize;
 
   TLine mline;
-  mline.SetLineWidth(1);
+  mline.SetLineWidth(msize);
   mline.SetLineColor(mcolor);
   mline.SetLineStyle(mstyle);
 
@@ -332,15 +334,14 @@ void myLineText(Double_t x, Double_t y, Int_t mcolor, Int_t mstyle, const char *
 
 }
 
-void myMarkerText(Double_t x,Double_t y,Int_t color,Int_t mstyle, const char *text,Float_t msize) 
+void myMarkerText(Double_t x,Double_t y,Int_t color,Int_t mstyle, const char *text,Float_t tsize, double msize, double lsize ) 
 {
-  cout << msize << " " << color << " " << mstyle << endl;
-  Double_t tsize=msize;
+
   //  TMarker *marker = new TMarker(0,0,mstyle);
-  TMarker *marker = new TMarker(x-tsize,y,8);
+  TMarker *marker = new TMarker(x-0.8*lsize,y,8);
   marker->SetMarkerColor(color);  marker->SetNDC();
   marker->SetMarkerStyle(mstyle);
-  marker->SetMarkerSize(1);
+  marker->SetMarkerSize(msize);
   marker->Draw();
 
   TLatex l; l.SetTextAlign(12); 

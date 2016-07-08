@@ -63,10 +63,12 @@ int main( int argc, char* argv[] ) {
   po::options_description desc("LikelihoodProfiel Usage");
 
   vector<string> inFiles;
+  string outFileName;
   //define all options in the program
   desc.add_options()
     ("help", "Display this help message")
     ("inFiles", po::value<vector <string> >(&inFiles), "" )
+    ( "outFileName", po::value<string>( &outFileName )->default_value(""), "" )
     ;
   
   //Define options gathered by position                                                          
@@ -210,7 +212,6 @@ int main( int argc, char* argv[] ) {
 	      //if created fill it
 	      vectHist[iHist][iPlot]->Fill( mapBranch.GetVal(varName[iPlot][iHist] ) , totWeight );
 	    }// End iHist
-	    if ( iEvent < 10 ) cout << totWeight << endl;
 	  }// end iEvent
 
 
@@ -737,7 +738,7 @@ int main( int argc, char* argv[] ) {
 
 
     TFile *dumFile=0;
-    if ( atoi(input.GetOption("inputType").c_str()) == 1 ) dumFile = new TFile( "/sps/atlas/c/cgoudet/Calibration/Test/dumFile.cxx", "recreate" );
+    if ( atoi(input.GetOption("inputType").c_str()) == 1 && outFileName!="" ) dumFile = new TFile( outFileName.c_str(), "recreate" );
 
     //cleaning vectors of pointers
     while ( vectHist.size() ) {

@@ -137,7 +137,7 @@ int DrawPlot( vector< TH1* > inHist,
   map<string, double > mapOptionsDouble;
   mapOptionsDouble["extendUp"]=0;
   mapOptionsDouble["normalize"]=0;
-  mapOptionsDouble["line"]=-99
+  mapOptionsDouble["line"]=-99;
   vector<string> inLegend, inLatex; 
   vector< vector< double > > latexPos;
   vector< double > legendCoord, rangeUserX, rangeUserY;
@@ -546,6 +546,7 @@ int DrawPlot( RooRealVar *frameVar,
   SetAtlasStyle();
   TCanvas *canvas = new TCanvas();
   if ( rangeUserX.size() == 2 ) frameVar->setRange( rangeUserX.front(), rangeUserX.back() );
+
   RooPlot* frame=frameVar->frame(mapOptionsInt["nComparedEvents"]);
   frame->SetTitle(""); //empty title to prevent printing "A RooPlot of ..."
   frame->SetXTitle(frameVar->GetTitle());
@@ -573,7 +574,6 @@ int DrawPlot( RooRealVar *frameVar,
 
   }
 
-  cout << "latex : " << endl;
   for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {
     if ( latexPos[iLatex].size() != 2 ) continue;
     bool doLabel = TString( inLatex[iLatex] ).Contains("__ATLAS");
@@ -589,9 +589,12 @@ int DrawPlot( RooRealVar *frameVar,
 }
 
 
-void PlotPerCategory( RooRealVar *varFrame, vector<TObject*> vectObj, RooCategory *cat, string prefix, vector<string> options ) {
+//void PlotPerCategory( RooRealVar *varFrame, vector<TObject*> vectObj, RooCategory *cat, string prefix, vector<string> options ) {
+void PlotPerCategory( vector<TObject*> vectObj, RooCategory *cat, string prefix, vector<string> options ) {
+
 
   for ( int iCat = 0; iCat < cat->numTypes(); iCat++ ) {
+    RooRealVar *varFrame=0;
     vector<string> tmpOptions( options );
     cat->setIndex( iCat );
     tmpOptions.push_back( "latex=" + string( cat->getLabel() ) );
@@ -601,11 +604,24 @@ void PlotPerCategory( RooRealVar *varFrame, vector<TObject*> vectObj, RooCategor
 
       if ( string( vectObj[iObj]->ClassName() ) == "RooDataSet" ) {
 	RooAbsData* ds=0;
+	vectObj[iObj]->Print();
 	TIterator* dataItr = ((RooDataSet*) vectObj[iObj])->split(*cat, true)->MakeIterator();
 	while ((ds = (RooAbsData*)dataItr->Next())) { // loop over all channels
 	  if ( string( ds->GetName() ) != cat->getLabel() ) continue;
 	  ds->Print();
 	  outVectObj.push_back( ds );
+
+	  TIterator* iter = ds->get()->createIterator();
+	  RooAbsPdf* parg;
+	  while((parg=(RooAbsPdf*)iter->Next()) ) {
+	    cout << parg->GetName() << " " << ds->GetName() << endl;
+	    if ( TString( parg->GetName() ).Contains( ds->GetName() ) ) {
+	      varFrame = (RooRealVar*) parg;
+	      cout << parg->GetName() << " " << varFrame << endl;
+	      break;
+	    }
+
+	  }
 	  break;
 	}
       }//end if data
@@ -621,6 +637,9 @@ void PlotPerCategory( RooRealVar *varFrame, vector<TObject*> vectObj, RooCategor
     }//end iObj
 
     string name = prefix + "_" + cat->getLabel();
+    cout << name << " " << varFrame->GetName() << endl;
+    cout << outVectObj.size() << endl;
+    cout << outVectObj.front()<< endl;
     DrawPlot( varFrame, outVectObj, name , tmpOptions );
   }//end iCat
 }

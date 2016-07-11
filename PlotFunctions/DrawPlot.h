@@ -66,7 +66,8 @@ int DrawPlot( RooRealVar *frameVar,
 	      vector<string> inOptions=vector<string>()
 	      );
 
-void PlotPerCategory( RooRealVar *varFrame, vector<TObject*> vectObj, RooCategory *cat, string prefix = "", vector<string> options = vector<string>() );
+void PlotPerCategory( //RooRealVar *varFrame, 
+		      vector<TObject*> vectObj, RooCategory *cat, string prefix = "", vector<string> options = vector<string>() );
 
 
 

@@ -373,6 +373,9 @@ int DrawPlot( vector< TH1* > &inHist,
       //      myBoxText( legendCoord[0], legendCoord[1]-0.05*iHist, 0.05, inHist[iHist]->GetFillColor(), inLegend[iHist].c_str() ); 
     }
 
+    inHist[iHist]->SetLabelSize(0.05);
+    inHist[iHist]->GetXaxis()->SetTitleOffset(1.7);
+
     if ( !mapOptionsInt["stack" ] ) inHist[iHist]->Draw( drawOpt.c_str() );
     else {
       inHist[iHist]->SetFillColor( inHist[iHist]->GetLineColor() );
@@ -508,7 +511,8 @@ int DrawPlot( vector< TH1* > &inHist,
     }//end doRatio
 
   if ( DEBUG ) cout << "saving" << endl;
-  canvas.SaveAs( TString(outName) + ".pdf" );
+    canvas.SaveAs( TString(outName) + ".pdf" );
+  //canvas.SaveAs( TString(outName) + ".root" );
   
 
   //========== CLEANING 

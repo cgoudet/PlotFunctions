@@ -74,7 +74,7 @@ void ParseLegend( string &legend );
 /**\brief Create a boostraped Tree out of inputTrees
    \param inTrees vector of input Trees
 */
-TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents=0, unsigned long seed = 0, int mode = 0 );
+TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents=0, unsigned long seed = 0, int mode = 1 );
 
 string FindDefaultTree( TFile* inFile, string type = "TTree" );
 void AddTree( TTree *treeAdd, TTree *treeAdded );

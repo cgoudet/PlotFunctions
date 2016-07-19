@@ -181,7 +181,7 @@ void ParseLegend( TH1* hist, string &legend ) {
 //============================================
 
 TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long int seed, int mode ) {
-  cout << "Bootstrap" << endl;
+  cout << "Bootstrap, mode: "<<mode << endl;
 
   string outTreeName = inTrees.front()->GetName() + string( "_bootstrap" );
   TTree * outTree = new TTree ( outTreeName.c_str(), outTreeName.c_str() );
@@ -202,10 +202,10 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long 
   vector<unsigned int > totEntriesIndex, selectedEventsIndex;
   for ( unsigned int i =0; i<totEntry; i++ ) totEntriesIndex.push_back( i );
 
-  TH1D *histTest =new TH1D("bootstrap", "", totEntry, 0, totEntry); 
-  TFile *outRootFile = new TFile ("bootstrapFile.root", "RECREATE");
+  // TH1D *histTest =new TH1D("bootstrap", "", totEntry, 0, totEntry); 
+  // TFile *outRootFile = new TFile ("bootstrapFile.root", "RECREATE");
 
-  cout<<"Create bootstrap histo, nEvents: "<<nEvents<<endl;
+  // cout<<"Create bootstrap histo, nEvents: "<<nEvents<<endl;
 
   for ( unsigned int iEvent=0; iEvent<nEvents; iEvent++ ) {
     unsigned int xEntry = floor( rand.Uniform( totEntriesIndex.size() ) );
@@ -215,16 +215,16 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long 
       totEntriesIndex[xEntry] = totEntriesIndex.back();
       totEntriesIndex.pop_back();
     }
-    
-    histTest->Fill(totEntriesIndex[xEntry]);
+   
+    // histTest->Fill(totEntriesIndex[xEntry]);
 
   }
   sort( selectedEventsIndex.begin(), selectedEventsIndex.end() );
   reverse( selectedEventsIndex.begin(), selectedEventsIndex.end() );
 
-  histTest->Write();
-  outRootFile->Close();
-  delete outRootFile;
+  //histTest->Write();
+  //outRootFile->Close();
+  //delete outRootFile;
 
   MapBranches mapB;
   unsigned int counter=0;

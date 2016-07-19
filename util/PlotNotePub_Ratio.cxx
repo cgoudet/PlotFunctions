@@ -246,8 +246,8 @@ int main()
   myText(0.15, 0.65, 1, (year+" data").c_str(), sizeText);
   
   TLegend *leg= new TLegend(0.65,0.85,0.85,0.7);
-  leg->AddEntry(histData,"Calibrated Data","lp");
   leg->AddEntry(histMC,"Corrected MC","l");
+  leg->AddEntry(histData,"Calibrated Data","lp");
   leg->SetBorderSize(0);
   leg->SetTextSize(0.04);
   leg->Draw();
@@ -265,7 +265,7 @@ int main()
   systHist->GetXaxis()->SetTitleOffset(1);
   systHist->GetXaxis()->SetTitle("m_{ee} [GeV]");
 
-  systHist->GetYaxis()->SetTitle("Data/MC -1");
+  systHist->GetYaxis()->SetTitle("Data/simulation -1");
   systHist->GetYaxis()->SetTitleOffset(0.35);
   systHist->GetYaxis()->SetLabelSize(0.09);
   systHist->GetYaxis()->SetTitleSize(0.12);

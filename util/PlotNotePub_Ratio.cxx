@@ -71,142 +71,144 @@ int main()
   // letter="c";
   // lumi="2.7";
 
+  // for (unsigned int isData= 0; isData<2; isData++)
+  //   {
+  //     if (isData==0)
+  // 	{
+  // 	  pattern="Data_13TeV_Zee_"+year+"_Lkh1_scaled";
+  // 	  inFile= TFile::Open( ( "/sps/atlas/c/cgoudet/Calibration/DataxAOD/"+pattern+"/"+pattern+"_0.root").c_str() );
+  // 	  inTree= (TTree*) inFile->Get( (pattern+"_0_selectionTree").c_str() );
+  // 	  cout<<(pattern+"_selectionTree").c_str()<<endl;
+  // 	  type= "Data";
 
-  for (unsigned int isData= 0; isData<2; isData++)
-    {
-      if (isData==0)
-  	{
-  	  pattern="Data_13TeV_Zee_"+year+"_Lkh1_scaled";
-  	  inFile= TFile::Open( ( "/sps/atlas/c/cgoudet/Calibration/DataxAOD/"+pattern+"/"+pattern+"_0.root").c_str() );
-  	  inTree= (TTree*) inFile->Get( (pattern+"_0_selectionTree").c_str() );
-	  cout<<(pattern+"_selectionTree").c_str()<<endl;
-  	  type= "Data";
+  // 	  MapBranches mapBranches;
+  // 	  mapBranches.LinkTreeBranches(inTree);
 
-  	  MapBranches mapBranches;
-  	  mapBranches.LinkTreeBranches(inTree);
-
-  	  nEntries= inTree->GetEntries();
+  // 	  nEntries= inTree->GetEntries();
   
-  	  cout<<"nEntries: "<<nEntries<<endl;
+  // 	  cout<<"nEntries: "<<nEntries<<endl;
      
-  	  for (unsigned int iEntry=0; iEntry<nEntries; iEntry++)
-  	    {
-  	      inTree->GetEntry(iEntry);
-  	      mapDouble=mapBranches.GetMapDouble();
-  	      mapLongLong=mapBranches.GetMapLongLong();
+  // 	  for (unsigned int iEntry=0; iEntry<nEntries; iEntry++)
+  // 	    {
+  // 	      inTree->GetEntry(iEntry);
+  // 	      mapDouble=mapBranches.GetMapDouble();
+  // 	      mapLongLong=mapBranches.GetMapLongLong();
       
-  	      for (int signDelta=-1; signDelta<2; signDelta++)
-  		{
-  		  for (unsigned int iElec=0; iElec<vectNElec.size(); iElec++)
-  		    {
-  		      eta=mapDouble.at("eta_calo_"+vectNElec[iElec]);
-  		      phi=mapDouble.at("phi_"+vectNElec[iElec]);
-  		      bin= histAlphaVal->FindFixBin(eta);
-  		      SF=histAlphaVal->GetBinContent(bin);
-  		      //deltaSF=sqrt( pow(histAlphaVal->GetBinError(bin),2) + pow(histAlphaSyst->GetBinContent(bin),2) );
-		      deltaSF=histAlphaSyst->GetBinContent(bin);
-  		      pt=mapDouble.at("pt_"+vectNElec[iElec])/(1+SF+signDelta*deltaSF);
-  		      VLElec[iElec].SetPtEtaPhiM(pt, eta, phi, 0.511);//in MeV
-  		    }
-  		  VLZ=VLElec[0]+VLElec[1];
-  		  string histName= type+to_string(signDelta);
+  // 	      for (int signDelta=-1; signDelta<2; signDelta++)
+  // 		{
+  // 		  for (unsigned int iElec=0; iElec<vectNElec.size(); iElec++)
+  // 		    {
+  // 		      eta=mapDouble.at("eta_calo_"+vectNElec[iElec]);
+  // 		      phi=mapDouble.at("phi_"+vectNElec[iElec]);
+  // 		      bin= histAlphaVal->FindFixBin(eta);
+  // 		      SF=histAlphaVal->GetBinContent(bin);
+  // 		      //deltaSF=sqrt( pow(histAlphaVal->GetBinError(bin),2) + pow(histAlphaSyst->GetBinContent(bin),2) );
+  // 		      deltaSF=histAlphaSyst->GetBinContent(bin);
+  // 		      pt=mapDouble.at("pt_"+vectNElec[iElec])/(1+SF+signDelta*deltaSF);
+  // 		      VLElec[iElec].SetPtEtaPhiM(pt, eta, phi, 0.511);//in MeV
+  // 		    }
+  // 		  VLZ=VLElec[0]+VLElec[1];
+  // 		  string histName= type+to_string(signDelta);
 
-  		  if (mapHist.count(histName)==0) {mapHist.insert( make_pair(histName, new TH1D(histName.c_str(), "", nBins, 80, 100)) );}
-  		  mapHist[histName]->Fill(VLZ.M()/1000); 
+  // 		  if (mapHist.count(histName)==0) {mapHist.insert( make_pair(histName, new TH1D(histName.c_str(), "", nBins, 80, 100)) );}
+  // 		  mapHist[histName]->Fill(VLZ.M()/1000); 
 
-  		}
-  	    }
-  	  inFile->Close();
+  // 		}
+  // 	    }
+  // 	  inFile->Close();
 
-  	}
+  // 	}
 
-      else //for MC
-  	{
-  	  type="MC";
-  	  pattern="MC_13TeV_Zee_2015"+letter+"_Lkh1_scaled";
-  	  for (unsigned int i=0; i<100; i++)
-  	    {
-  	      fileName= "/sps/atlas/c/cgoudet/Calibration/DataxAOD/"+pattern+"/"+pattern+"_"+to_string(i)+".root";
-  	      inFile= TFile::Open( fileName.c_str() );
-  	      if (!inFile) {break;}
-  	      else inFileNames.push_back(fileName);
-  	      inFile->Close();
-  	    }
+  //     else //for MC
+  // 	{
+  // 	  type="MC";
+  // 	  pattern="MC_13TeV_Zee_2015"+letter+"_Lkh1_scaled";
+  // 	  for (unsigned int i=0; i<100; i++)
+  // 	    {
+  // 	      fileName= "/sps/atlas/c/cgoudet/Calibration/DataxAOD/"+pattern+"/"+pattern+"_"+to_string(i)+".root";
+  // 	      inFile= TFile::Open( fileName.c_str() );
+  // 	      if (!inFile) {break;}
+  // 	      else inFileNames.push_back(fileName);
+  // 	      inFile->Close();
+  // 	    }
 
-  	  for (unsigned int iFile=0; iFile<inFileNames.size(); iFile++)
-  	    {
+  // 	  for (unsigned int iFile=0; iFile<inFileNames.size(); iFile++)
+  // 	    {
 	      
-  	      inFile= TFile::Open( inFileNames[iFile].c_str() );
-  	      cout<<(pattern+"_"+to_string(iFile)+"_selectionTree").c_str()<<endl;
-  	      inTree= (TTree*) inFile->Get( (pattern+"_"+to_string(iFile)+"_selectionTree").c_str() );
+  // 	      inFile= TFile::Open( inFileNames[iFile].c_str() );
+  // 	      cout<<(pattern+"_"+to_string(iFile)+"_selectionTree").c_str()<<endl;
+  // 	      inTree= (TTree*) inFile->Get( (pattern+"_"+to_string(iFile)+"_selectionTree").c_str() );
 	      
-  	      MapBranches mapBranches;
-  	      mapBranches.LinkTreeBranches(inTree);
+  // 	      MapBranches mapBranches;
+  // 	      mapBranches.LinkTreeBranches(inTree);
 
-  	      nEntries= inTree->GetEntries();
+  // 	      nEntries= inTree->GetEntries();
 
-  	      cout<<"nEntries: "<<nEntries<<endl;
+  // 	      cout<<"nEntries: "<<nEntries<<endl;
 
-  	      for (unsigned int iEntry=0; iEntry<nEntries; iEntry++)
-  		{
-  		  inTree->GetEntry(iEntry);
-  		  mapDouble=mapBranches.GetMapDouble();
-  		  mapLongLong=mapBranches.GetMapLongLong();
+  // 	      for (unsigned int iEntry=0; iEntry<nEntries; iEntry++)
+  // 		{
+  // 		  inTree->GetEntry(iEntry);
+  // 		  mapDouble=mapBranches.GetMapDouble();
+  // 		  mapLongLong=mapBranches.GetMapLongLong();
 
-  		  for (int signDelta=-1; signDelta<2; signDelta++)
-  		    {
-  		      randN.SetSeed();
-  		      for (unsigned int iElec=0; iElec<vectNElec.size(); iElec++)
-  			{
-  			  eta=mapDouble.at("eta_calo_"+vectNElec[iElec]);
-  			  phi=mapDouble.at("phi_"+vectNElec[iElec]);
-  			  bin= histCVal->FindFixBin(eta);
-  			  SF=histCVal->GetBinContent(bin);
-  			  //deltaSF=sqrt( pow(histCVal->GetBinError(bin),2) + pow(histCSyst->GetBinContent(bin),2) );
-			  deltaSF=histCSyst->GetBinContent(bin);
-  			  pt=mapDouble.at("pt_"+vectNElec[iElec])*( 1+(SF+signDelta*deltaSF)*randN.Gaus(0,1) );
-  			  VLElec[iElec].SetPtEtaPhiM(pt, eta, phi, 0.511);//in MeV
-  			}
-  		      VLZ=VLElec[0]+VLElec[1];
-  		      string histName= type+to_string(signDelta);
+  // 		  for (int signDelta=-1; signDelta<2; signDelta++)
+  // 		    {
+  // 		      randN.SetSeed();
+  // 		      for (unsigned int iElec=0; iElec<vectNElec.size(); iElec++)
+  // 			{
+  // 			  eta=mapDouble.at("eta_calo_"+vectNElec[iElec]);
+  // 			  phi=mapDouble.at("phi_"+vectNElec[iElec]);
+  // 			  bin= histCVal->FindFixBin(eta);
+  // 			  SF=histCVal->GetBinContent(bin);
+  // 			  //deltaSF=sqrt( pow(histCVal->GetBinError(bin),2) + pow(histCSyst->GetBinContent(bin),2) );
+  // 			  deltaSF=histCSyst->GetBinContent(bin);
+  // 			  pt=mapDouble.at("pt_"+vectNElec[iElec])*( 1+(SF+signDelta*deltaSF)*randN.Gaus(0,1) );
+  // 			  VLElec[iElec].SetPtEtaPhiM(pt, eta, phi, 0.511);//in MeV
+  // 			}
+  // 		      VLZ=VLElec[0]+VLElec[1];
+  // 		      string histName= type+to_string(signDelta);
 
-  		      if (mapHist.count(histName)==0) {mapHist.insert( make_pair(histName, new TH1D(histName.c_str(), "", nBins, 80, 100)) );}
-  		      mapHist[histName]->Fill(VLZ.M()/1000); 
+  // 		      if (mapHist.count(histName)==0) {mapHist.insert( make_pair(histName, new TH1D(histName.c_str(), "", nBins, 80, 100)) );}
+  // 		      mapHist[histName]->Fill(VLZ.M()/1000); 
 
-  		    }
-  		}
+  // 		    }
+  // 		}
 
-  	      inFile->Close();
-  	    }
+  // 	      inFile->Close();
+  // 	    }
 
-  	}
-    }
+  // 	}
+  //   }//end data
 
-  TFile outFile(("histNotePub_"+year+".root").c_str(), "RECREATE");
-  systHist= new TH1D("systTot","",nBins,80,100 );
-  for (auto it: mapHist)
-    {
-      it.second->Write();
-    }
+  // TFile outFile(("histNotePub_"+year+".root").c_str(), "RECREATE");
+  // systHist= new TH1D("systTot","",nBins,80,100 );
+  // for (auto it: mapHist)
+  //   {
+  //     it.second->Write();
+  //   }
 
-  double maxC, maxAlpha;
+  // double maxC, maxAlpha;
 
            
-  for(bin=1; bin<=nBins; bin++)
-    {
-      maxC=max( abs(mapHist["MC0"]->GetBinContent(bin)/mapHist["MC-1"]->GetBinContent(bin)),abs(mapHist["MC0"]->GetBinContent(bin)/mapHist["MC1"]->GetBinContent(bin)) );
-      maxAlpha=max( abs(mapHist["Data0"]->GetBinContent(bin)/mapHist["Data-1"]->GetBinContent(bin)), abs(mapHist["Data0"]->GetBinContent(bin)/mapHist["Data1"]->GetBinContent(bin)) );
-      //      cout<<maxC<<" alpha: "<<maxAlpha<<" q sum "<<sqrt(pow(maxAlpha,2)+pow(maxC,2))<<endl;
+  // for(bin=1; bin<=nBins; bin++)
+  //   {
+  //     maxC=max( abs(mapHist["MC0"]->GetBinContent(bin)/mapHist["MC-1"]->GetBinContent(bin)),abs(mapHist["MC0"]->GetBinContent(bin)/mapHist["MC1"]->GetBinContent(bin)) );
+  //     maxAlpha=max( abs(mapHist["Data0"]->GetBinContent(bin)/mapHist["Data-1"]->GetBinContent(bin)), abs(mapHist["Data0"]->GetBinContent(bin)/mapHist["Data1"]->GetBinContent(bin)) );
+  //     //      cout<<maxC<<" alpha: "<<maxAlpha<<" q sum "<<sqrt(pow(maxAlpha,2)+pow(maxC,2))<<endl;
 
-      systHist->SetBinError( bin, sqrt(pow(maxAlpha-1,2)+pow(maxC-1,2)));
-    }
+  //     systHist->SetBinError( bin, sqrt(pow(maxAlpha-1,2)+pow(maxC-1,2)));
+  //   }
 
-  systHist->Write();
+  // systHist->Write();
 
-  outFile.Close();
+  // outFile.Close();
  
-  //  TFile *fileSyst=TFile::Open("./histNotePub.root");
-  //systHist=(TH1D*)fileSyst->Get("systTot");
+
+  //============================RATIO PLOTS==========================//
+
+  TFile *fileSyst=TFile::Open(("histNotePub_"+year+".root").c_str());
+  systHist=(TH1D*)fileSyst->Get("systTot");
 
   inFile=TFile::Open(("/afs/in2p3.fr/home/a/aguergui/public/Calibration/MCDataRatio_"+year+"_m12.root").c_str());
   cRatio=(TCanvas*)inFile->Get("c1");
@@ -232,7 +234,7 @@ int main()
   padDown.Draw();
   padUp.cd();
 
-  float sizeText=0.05;
+  float sizeText=0.065;
 
   histData->SetMarkerStyle(8);
   histData->SetMarkerSize(1.3);
@@ -248,16 +250,35 @@ int main()
   histMC->Scale(histData->Integral()/histMC->Integral());
   histMC->Draw("HIST");
   histData->Draw("SAME");
-  ATLASLabel(0.15, 0.85, "Internal");
-  myText(0.15, 0.75, 1,("#sqrt{s}=13 TeV, L = "+lumi+" fb^{-1}").c_str(), sizeText);
-  myText(0.15, 0.65, 1, (year+" data").c_str(), sizeText);
   
-  TLegend *leg= new TLegend(0.65,0.85,0.85,0.7);
-  leg->AddEntry(histData,"Calibrated Data","lp");
-  leg->AddEntry(histMC,"Corrected MC","l");
-  leg->SetBorderSize(0);
-  leg->SetTextSize(0.04);
-  leg->Draw();
+  ATLASLabel(0.15, 0.8, "Internal", 1, sizeText);
+  myText(0.15, 0.7, 1,("#sqrt{s}=13 TeV, L = "+lumi+" fb^{-1}").c_str(), sizeText);
+
+  myText(0.15, 0.6, 1, (year+" data").c_str(), sizeText);
+  
+  // TLegend *leg= new TLegend(0.65,0.85,0.85,0.7);
+  // leg->AddEntry(histData,"Calibrated Data","lp");
+  // leg->AddEntry(histMC,"Corrected MC","l");
+  // leg->SetBorderSize(0);
+  // leg->SetTextSize(0.04);
+  // leg->Draw();
+
+  vector <TH1D*> vectHist;
+  string typeHist;
+  double x = 0.7;
+  double y = 0.82;
+  double lsize = 0.04;
+
+  vectHist.push_back(histData);
+  vectHist.push_back(histMC);
+
+  for (unsigned int iHist=0; iHist<vectHist.size(); iHist++)
+    {
+      if (iHist==0) typeHist="Calibrated data";
+      else typeHist="Corrected MC";
+      myLineText( x, y-iHist*0.1, vectHist[iHist]->GetLineColor(), vectHist[iHist]->GetLineStyle(), "", sizeText, vectHist[iHist]->GetLineWidth(), lsize  ); 
+      myMarkerText( x, y-iHist*0.1, vectHist[iHist]->GetMarkerColor(), vectHist[iHist]->GetMarkerStyle(), typeHist.c_str(), sizeText, vectHist[iHist]->GetMarkerSize(), lsize); 
+    }
   
   // myLineText(0.7, 0.85, histMC->GetLineColor(), histMC->GetLineStyle(), "Corrected MC", sizeText);
   // myMarkerText(0.7, 0.75, histData->GetMarkerColor(), histData->GetMarkerStyle(), "Calibrated data", sizeText);
@@ -284,14 +305,84 @@ int main()
   systHist->Draw("E2");
   histNew->Draw("SAME");
   line->Draw();
-  newC->SaveAs(("Ratio_"+year+".pdf").c_str());
+  newC->SaveAs(("Ratio_"+year+".root").c_str());
 
 
-   
+
+
+  //========================STABILITY PLOTS==========================//
+  TFile *muFile=TFile::Open("Mu.root");
+  TCanvas *c1=(TCanvas*)muFile->Get("c1");
+  vectHist.clear(); 
+  vectHist.push_back( (TH1D*)c1->GetListOfPrimitives()->At(2) );
+  vectHist.push_back( (TH1D*)c1->GetListOfPrimitives()->At(4) );
+
+  c1->cd();
+  string yearHist;
+  sizeText=0.05;
+  x=0.3;
+  y=0.65;
+
+  for (unsigned int iHist=0; iHist<vectHist.size(); iHist++)
+    {
+      if (iHist == 0)
+	{
+	  vectHist[iHist]->SetMarkerStyle(8);
+	  yearHist="2015";
+	}
+      if (iHist==1)
+	{
+	  vectHist[iHist]->SetMarkerStyle(25);
+	  vectHist[iHist]->SetMarkerColor(kRed);
+	  vectHist[iHist]->SetLineColor(kRed);
+	  yearHist="2016";
+	}
+
+      //      vectHist[iHist]->GetYaxis()->SetRangeUser(0.997, 1.003);
+      vectHist[iHist]->SetMarkerSize(1);
+      myLineText( x, y+iHist*0.08, vectHist[iHist]->GetLineColor(), vectHist[iHist]->GetLineStyle(), "", sizeText, vectHist[iHist]->GetLineWidth(), lsize  ); 
+      myMarkerText( x, y+iHist*0.08, vectHist[iHist]->GetMarkerColor(), vectHist[iHist]->GetMarkerStyle(), yearHist.c_str(), sizeText, vectHist[iHist]->GetMarkerSize(), lsize); 
+      vectHist[iHist]->GetXaxis()->SetTitle("#mu");
+      //      vectHist[iHist]->GetXaxis()->SetTitleSize(0.2);
+      //vectHist[iHist]->GetXaxis()->SetLabelSize(0.2);
+      //vectHist[iHist]->GetXaxis()->SetTitleOffset(0.75);
+      vectHist[iHist]->GetYaxis()->SetTitle("m_{ee}/<m_{ee}(2015)>");
+      //vectHist[iHist]->GetYaxis()->SetLabelSize(0.15);
+      //vectHist[iHist]->GetYaxis()->SetTitleSize(0.2);
+      //      vectHist[iHist]->GetYaxis()->SetTitleOffset(0.65);
+      cout<<"mean "<<yearHist<<": "<<vectHist[iHist]->GetMean()<<endl;
+    }
+
+
+
+  ATLASLabel(0.22, 0.87, "Internal", 1, 0.06);
+  myText(0.22, 0.79, 1,"#sqrt{s}=13 TeV, L = 3.2 (2015) + 2.7 (2016) fb^{-1}", sizeText);
+
+  c1->Update();
+  c1->SaveAs("Mee_mu.root");
+
+  //  muFile->Close();
+
+
+
+  TFile *timeFile=TFile::Open("Time.root");
+  TCanvas *c2=(TCanvas*)timeFile->Get("c1");
+  c2->cd();
+
+  ATLASLabel(0.22, 0.87, "Internal", 1, 0.06);
+  myText(0.22, 0.79, 1,"#sqrt{s}=13 TeV, L = 3.2 (2015) + 2.7 (2016) fb^{-1}", sizeText);
+  c2->SaveAs("Mee_time.root");
+
+
  //===========End of program
-  delete scalesFile;
-  delete inFile;
-  delete cRatio;
+  // delete scalesFile;
+  // delete inFile, fileSyst;
+  // delete cRatio;
+  // delete newC;
+  // delete histRatio, histData, histMC, histNew;
+  // delete leg;
+  // delete line;
+    
   cout<<"Plot done."<<endl;
   return 0;
 }

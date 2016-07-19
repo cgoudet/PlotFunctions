@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
   TH1::AddDirectory(kFALSE);
 
   string path= "/sps/atlas/c/cgoudet/Calibration/DataxAOD/";
-  string fileName, pattern;  
+  string fileName, pattern, name;  
   vector <string> vectYear (2);
   vector <TH1*> vectProf; 
   TFile *inFile=0;
@@ -44,6 +44,8 @@ int main(int argc, char *argv[])
 
   bool isMuPU=1;
 
+  if (isMuPU) name="Mu";
+  else name="Time";
   vectYear[0]= "2015";
   vectYear[1]= "2016";
 
@@ -115,7 +117,7 @@ int main(int argc, char *argv[])
 	      prof->SetMarkerSize(1.3);
 	    }
 	  vectProf.push_back(prof);
-	  vectOpt.push_back("legend="+vectYear[year]);
+	  //vectOpt.push_back("legend="+vectYear[year]);
 
 	}
 
@@ -196,22 +198,22 @@ int main(int argc, char *argv[])
 
   cout<<"nEventsInBin: "<<nEventsInBin<<endl;
 
-  vectOpt.push_back("latex=__ATLAS Internal");
+  //vectOpt.push_back("latex=__ATLAS Internal");
 
 
   if (isMuPU)
     {
-      vectOpt.push_back("latexOpt=0.25 0.85");
-      vectOpt.push_back("latex=#sqrt{s} = 13 TeV, L = 3.2 (2015) + 2.7 (2016) fb^{-1}");
-      vectOpt.push_back("latexOpt=0.5 0.85");
-      vectOpt.push_back("legendPos= 0.8 0.8");
+      //vectOpt.push_back("latexOpt=0.25 0.85");
+      //vectOpt.push_back("latex=#sqrt{s} = 13 TeV, L = 3.2 (2015) + 2.7 (2016) fb^{-1}");
+      //vectOpt.push_back("latexOpt=0.5 0.85");
+      //vectOpt.push_back("legendPos= 0.8 0.8");
       //vectOpt.push_back("xTitle= Average interactions per bunch crossing");
-      vectOpt.push_back("xTitle= #mu");
-      vectOpt.push_back("yTitle= m_{ee}/<m_{ee}(2015)>");
-      vectOpt.push_back("rangeUserY= 0.998 1.002");
+      //vectOpt.push_back("xTitle= #mu");
+      //vectOpt.push_back("yTitle= m_{ee}/<m_{ee}(2015)>");
+      vectOpt.push_back("rangeUserY= 0.998 1.0035");
       vectOpt.push_back("rangeUserX= 5 31");
       vectOpt.push_back("line=1");
-      vectOpt.push_back("extendUp=0.3");
+      //vectOpt.push_back("extendUp=0.3");
       vectOpt.push_back("drawStyle=4");
     }
 
@@ -228,20 +230,22 @@ int main(int argc, char *argv[])
 
 
       vectProf.push_back(hist);
-      vectOpt.push_back("latexOpt=0.2 0.85");
-      vectOpt.push_back("latex=#sqrt{s} = 13 TeV, L = 3.2 (2015) + 2.7 (2016) fb^{-1}");
-      vectOpt.push_back("latexOpt=0.2 0.78");     
+      //vectOpt.push_back("latexOpt=0.2 0.85");
+      //vectOpt.push_back("latex=#sqrt{s} = 13 TeV, L = 3.2 (2015) + 2.7 (2016) fb^{-1}");
+      //vectOpt.push_back("latexOpt=0.2 0.78");     
       vectOpt.push_back("yTitle= m_{ee}/<m_{ee}(2015)>");
-      vectOpt.push_back("rangeUserY= 0.998 1.002");
+      vectOpt.push_back("rangeUserY= 0.998 1.0035");
       vectOpt.push_back("rangeUserX= 0 23");
       vectOpt.push_back("line=1");
-      vectOpt.push_back("extendUp=0.3");
+      //vectOpt.push_back("extendUp=0.3");
     }
 
-  DrawPlot(vectProf, "testProf", vectOpt);
+  DrawPlot(vectProf, name, vectOpt);
 
   cout<<"End of plotting"<<endl;
   delete inFile;
   delete prof;
   return 0;
 }
+
+

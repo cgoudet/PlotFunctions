@@ -10,7 +10,7 @@
 void ATLASLabel(Double_t x,Double_t y,const char* text,Color_t color, double tsize) 
 {
 
-  double tsize=0.06;
+  //double tsize=0.06;
 
   //  double tsize=0.035;
 

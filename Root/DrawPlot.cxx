@@ -454,7 +454,7 @@ int DrawPlot( vector< TH1* > &inHist,
     if (mapOptionsInt["drawStyle"]==4)
       {
 	myLineText( legendCoord[0]-0.005, legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetLineColor(), inHist[iLegend]->GetLineStyle(), ""  ); 
-	myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetMarkerColor(), inHist[iLegend]->GetMarkerStyle(), inLegend[iLegend].c_str()  ); 
+	myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetMarkerColor(), inHist[iLegend]->GetMarkerStyle(), inLegend[iLegend].c_str()  );
       }
   }
   if ( DEBUG )  cout << "legend drawn" << endl;
@@ -462,7 +462,7 @@ int DrawPlot( vector< TH1* > &inHist,
     if ( latexPos[iLatex].size() != 2 ) continue;
     bool doLabel = TString( inLatex[iLatex] ).Contains("__ATLAS");
     ParseLegend( inLatex[iLatex] );
-    if ( doLabel ) ATLASLabel( latexPos[iLatex][0], latexPos[iLatex][1], inLatex[iLatex].c_str() );
+    if ( doLabel ) ATLASLabel( latexPos[iLatex][0], latexPos[iLatex][1], inLatex[iLatex].c_str(),1 , 0.06 );
     else myText( latexPos[iLatex][0], latexPos[iLatex][1], 1, inLatex[iLatex].c_str() );
   }
   if ( DEBUG ) cout << "latex drawn" << endl;
@@ -531,8 +531,8 @@ int DrawPlot( vector< TH1* > &inHist,
     }//end doRatio
 
   if ( DEBUG ) cout << "saving" << endl;
-      canvas.SaveAs( TString(outName) + ".pdf" );
-  //  canvas.SaveAs( TString(outName) + ".root" );
+  //      canvas.SaveAs( TString(outName) + ".pdf" );
+    canvas.SaveAs( TString(outName) + ".root" );
   
 
   //========== CLEANING 

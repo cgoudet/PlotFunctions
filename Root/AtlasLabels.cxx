@@ -9,7 +9,7 @@
 
 void ATLASLabel(Double_t x,Double_t y,const char* text,Color_t color) 
 {
-  double tsize=0.035;
+  double tsize=0.06;
   TLatex l; //l.SetTextAlign(12); 
   l.SetNDC();
   l.SetTextSize(tsize); 

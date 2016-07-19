@@ -47,7 +47,7 @@ int main()
   TTree *inTree=0;
   TCanvas *cRatio=0;
   vector <string> inFileNames;
-  string fileName, pattern, year, letter;
+  string fileName, pattern, year, letter, lumi;
   TRandom randN;
   TH1D* systHist=0;
   
@@ -65,6 +65,12 @@ int main()
 
   year="2015";
   letter="b";
+  lumi="3.2";
+
+  // year="2016";
+  // letter="c";
+  // lumi="2.7";
+
 
   for (unsigned int isData= 0; isData<2; isData++)
     {
@@ -233,21 +239,22 @@ int main()
   histData->SetMarkerColor(kBlue);
   histData->SetLineColor(kBlue);
   histMC->SetTitle("");
-  histMC->GetYaxis()->SetTitle("#frac{1}{N} #frac{dN}{1 GeV}");
+  histMC->GetYaxis()->SetTitle("Entries/GeV");
   histMC->GetYaxis()->SetTitleSize(0.05);
-  histMC->GetYaxis()->SetTitleOffset(0.75);
+  histMC->GetYaxis()->SetTitleOffset(0.8);
   histMC->GetYaxis()->SetRangeUser(0, 0.2);
   histMC->SetLineColor(kBlack);
   histMC->GetXaxis()->SetLabelSize(0);
+  histMC->Scale(histData->Integral()/histMC->Integral());
   histMC->Draw("HIST");
   histData->Draw("SAME");
   ATLASLabel(0.15, 0.85, "Internal");
-  myText(0.15, 0.75, 1,"#sqrt{s}=13 TeV, L = 3.2 fb^{-1}", sizeText);
+  myText(0.15, 0.75, 1,("#sqrt{s}=13 TeV, L = "+lumi+" fb^{-1}").c_str(), sizeText);
   myText(0.15, 0.65, 1, (year+" data").c_str(), sizeText);
   
   TLegend *leg= new TLegend(0.65,0.85,0.85,0.7);
-  leg->AddEntry(histMC,"Corrected MC","l");
   leg->AddEntry(histData,"Calibrated Data","lp");
+  leg->AddEntry(histMC,"Corrected MC","l");
   leg->SetBorderSize(0);
   leg->SetTextSize(0.04);
   leg->Draw();
@@ -265,7 +272,7 @@ int main()
   systHist->GetXaxis()->SetTitleOffset(1);
   systHist->GetXaxis()->SetTitle("m_{ee} [GeV]");
 
-  systHist->GetYaxis()->SetTitle("Data/simulation -1");
+  systHist->GetYaxis()->SetTitle("Data/MC -1");
   systHist->GetYaxis()->SetTitleOffset(0.35);
   systHist->GetYaxis()->SetLabelSize(0.09);
   systHist->GetYaxis()->SetTitleSize(0.12);

@@ -358,6 +358,11 @@ int DrawPlot( vector< TH1* > &inHist,
     switch ( mapOptionsInt["drawStyle"] ){
     case 2 : drawOpt += "HIST"; break;
     case 3 : drawOpt += "HISTL"; break;
+    case 4 : 
+      inHist[0]->SetMarkerStyle(8);
+      inHist[1]->SetMarkerStyle(25);
+      inHist[iHist]->SetMarkerSize(1.3);
+      break;
     default : drawOpt += "E"; 
     }
 
@@ -373,8 +378,11 @@ int DrawPlot( vector< TH1* > &inHist,
       //      myBoxText( legendCoord[0], legendCoord[1]-0.05*iHist, 0.05, inHist[iHist]->GetFillColor(), inLegend[iHist].c_str() ); 
     }
 
+    //Added for PlotNotePub (Antinea)
     inHist[iHist]->SetLabelSize(0.05);
     inHist[iHist]->GetXaxis()->SetTitleOffset(1.7);
+    //    inHist[0]->SetMarkerStyle(8);
+    //inHist[1]->SetMarkerStyle(25);
 
     if ( !mapOptionsInt["stack" ] ) inHist[iHist]->Draw( drawOpt.c_str() );
     else {
@@ -436,6 +444,11 @@ int DrawPlot( vector< TH1* > &inHist,
     if ( doFill )  myBoxText( legendCoord[0], legendCoord[1]-0.04*iLegend, 0.02, inHist[iLegend]->GetFillColor(), inLegend[iLegend].c_str() ); 
     else if ( mapOptionsInt["drawStyle"] ) myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetMarkerColor(), inHist[iLegend]->GetMarkerStyle(), inLegend[iLegend].c_str()  ); 
     else myLineText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetLineColor(), inHist[iLegend]->GetLineStyle(), inLegend[iLegend].c_str()  ); 
+    if (mapOptionsInt["drawStyle"]==4)
+      {
+	myLineText( legendCoord[0]-0.005, legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetLineColor(), inHist[iLegend]->GetLineStyle(), ""  ); 
+	myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetMarkerColor(), inHist[iLegend]->GetMarkerStyle(), inLegend[iLegend].c_str()  ); 
+      }
   }
   if ( DEBUG )  cout << "legend drawn" << endl;
   for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {
@@ -511,8 +524,8 @@ int DrawPlot( vector< TH1* > &inHist,
     }//end doRatio
 
   if ( DEBUG ) cout << "saving" << endl;
-    canvas.SaveAs( TString(outName) + ".pdf" );
-  //canvas.SaveAs( TString(outName) + ".root" );
+      canvas.SaveAs( TString(outName) + ".pdf" );
+  //  canvas.SaveAs( TString(outName) + ".root" );
   
 
   //========== CLEANING 

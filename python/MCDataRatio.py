@@ -1,8 +1,8 @@
 typeList= ["MC","Data"]
 
-yearList=["2016"]
+yearList=["2015"]
 
-prodList=["c"]
+prodList=["b"]
 
 path="/sps/atlas/c/cgoudet/Calibration/DataxAOD/"
 configFile=open("/afs/in2p3.fr/home/a/aguergui/public/Calibration/Calibration_bias/ConfigFile/MCDataRatio_"+yearList[0]+".boost", "w")
@@ -22,7 +22,7 @@ for i in range (0, 1):
         configFile.write("selectionCut=m12>=80 && m12<=100 \n") 
 
 configFile.write("doRatio=1 \ndrawStyle=1 \n")
-configFile.write("nComparedEvents=20 \nvarMin=80 \nvarMax=100 \nlegendPos= 0.75 0.9 \nyTitle=#frac{1}{N}#frac{dN}{1 GeV} \n")
+configFile.write("nComparedEvents=20 \nvarMin=80 \nvarMax=100 \nlegendPos= 0.75 0.9 \nnormalize= 1.240695e6 \nyTitle=#frac{1}{N}#frac{dN}{1 GeV} \n")
 #configFile.write("rangeUserY= 89.5 90.4 \nvarMin=275e3 \nvarMax=302e3 \nlegendPos= 0.55 0.85 \nxTitle=runNumber \nyTitle=M_{ee} \nplotDirectory= ~/public/Calibration \n")
 configFile.write("plotDirectory= ~/public/Calibration")
 configFile.close

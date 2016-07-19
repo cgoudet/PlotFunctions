@@ -2,8 +2,9 @@ import argparse
 import sys
 import subprocess as sub
 
-def listFiles( directory ):
-    output = sub.check_output( ['ls '+ directory ],  shell=1, stderr=sub.STDOUT ) 
+
+def listFiles( directory, pattern='' ):
+    output = sub.check_output( ['ls '+ directory + pattern ],  shell=1, stderr=sub.STDOUT ) 
     if '\n' in output : content = output.split() 
     else : content = [ output ]
     return content
@@ -115,11 +116,11 @@ def drawMinipage( plots, title='', content='' ) :
     return output
 
 #============================================
-def listFiles( directory ):
-    output = sub.check_output( ['ls '+ directory ],  shell=1, stderr=sub.STDOUT ) 
-    if '\n' in output : content = output.split() 
-    else : content = [ output ]
-    return content
+# def listFiles( directory ):
+#     output = sub.check_output( ['ls '+ directory ],  shell=1, stderr=sub.STDOUT ) 
+#     if '\n' in output : content = output.split() 
+#     else : content = [ output ]
+#     return content
 
 #=================================
 def addSlash( string ) :

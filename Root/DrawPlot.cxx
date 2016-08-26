@@ -573,6 +573,8 @@ int DrawPlot( RooRealVar *frameVar,
   SetAtlasStyle();
   TCanvas *canvas = new TCanvas();
   if ( rangeUserX.size() == 2 ) frameVar->setRange( rangeUserX.front(), rangeUserX.back() );
+  cout << "frameVar : " << frameVar << endl;
+  frameVar->Print();
   RooPlot* frame=frameVar->frame(mapOptionsInt["nComparedEvents"]);
   frame->SetTitle(""); //empty title to prevent printing "A RooPlot of ..."
   frame->SetXTitle(frameVar->GetTitle());
@@ -582,11 +584,13 @@ int DrawPlot( RooRealVar *frameVar,
     legendInfo.push_back( map<string, int>());
     legendInfo.back()["color"] = colors[iPlot];
     if ( string(inObj[iPlot]->ClassName() ) == "RooDataSet" ) {
+      ( (RooDataSet*) inObj[iPlot])->Print();
       ( (RooDataSet*) inObj[iPlot])->plotOn( frame, LineColor(  colors[iPlot] ), DataError( RooAbsData::SumW2 ) );
       legendInfo.back()["doLine"] = 0;
       legendInfo.back()["style"] = frame->getAttLine(frame->getObject(iPlot)->GetName())->GetLineStyle();
     }
     else {
+      ( (RooAbsPdf*) inObj[iPlot])->Print();
       ( (RooAbsPdf*) inObj[iPlot])->plotOn( frame, LineColor(  colors[iPlot] ) );
       legendInfo.back()["doLine"] = 1;
       legendInfo.back()["style"] = frame->getAttMarker(frame->getObject(iPlot)->GetName())->GetMarkerStyle();

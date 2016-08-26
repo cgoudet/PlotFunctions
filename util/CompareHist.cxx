@@ -364,6 +364,7 @@ int main( int argc, char* argv[] ) {
 		vectHist[iVar].back()->GetYaxis()->SetTitle( "#events" );
 		vectHist[iVar].back()->Sumw2();
 	      }
+
 	      vectHist[iVar][iPlot]->Fill( varVal[varIndex[iVar]], weight );
 	    }//end for iVar
 	  }//end while

@@ -1,0 +1,19 @@
+inputType=1 
+loadFiles=/sps/atlas/c/cgoudet/Calibration/DataxAOD/Data_13TeV_Zee_2016_Lkh1_scaled/Data_13TeV_Zee_2016_Lkh1_scaled.boost
+
+varName=m12 
+#legend= 2016, data
+selectionCut=m12>=80 && m12<=100 
+loadFiles=/sps/atlas/c/cgoudet/Calibration/DataxAOD/Data_13TeV_Zee_2015_Lkh1_scaled/Data_13TeV_Zee_2015_Lkh1_scaled.boost
+
+varName=m12 
+#legend= 2015, data
+selectionCut=m12>=80 && m12<=100 
+doRatio=1 
+nComparedEvents=20 
+varMin=80 
+varMax=100 
+#legendPos= 0.75 0.9 
+normalize=1.240695e6
+extendUp=0.3
+plotDirectory= ~/public/Calibration/PlotFunctions/PubNote/

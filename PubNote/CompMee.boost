@@ -1,0 +1,17 @@
+inputType=0 
+rootFileName= /sps/atlas/c/cgoudet/Calibration/DataxAOD/Data_13TeV_Zee_2015_Lkh1_scaled/Data_13TeV_Zee_2015_Lkh1_scaled_0.root
+objName= Data_13TeV_Zee_2015_Lkh1_scaled_0_ZMass
+legend= Data_13TeV_Zee_2015_Lkh1_scaled , mean= 90.0679024802
+varName= m12 
+rootFileName= /sps/atlas/c/cgoudet/Calibration/DataxAOD/Data_13TeV_Zee_2016_Lkh1_scaled/Data_13TeV_Zee_2016_Lkh1_scaled_0.root
+objName= Data_13TeV_Zee_2016_Lkh1_scaled_0_ZMass
+legend= Data_13TeV_Zee_2016_Lkh1_scaled , mean= 90.0787821646
+varName= m12 
+varMin=80 
+varMax=100 
+legendPos= 0.3 0.85 
+normalize=1 
+xTitle=M_{ee} 
+plotDirectory= ~/public/Calibration 
+extendUp=0.4
+doRatio=1

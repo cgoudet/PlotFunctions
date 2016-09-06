@@ -1,11 +1,11 @@
 typeList= ["MC","Data"]
 
-yearList=["2016"]
+yearList=["2015"]
 
-prodList=["c"]
+prodList=["b"]
 
-path="/sps/atlas/c/cgoudet/Calibration/DataxAOD/"
-configFile=open("/afs/in2p3.fr/home/a/aguergui/public/Calibration/Calibration_bias/ConfigFile/MCDataRatio_"+yearList[0]+".boost", "w")
+path="/sps/atlas/a/aguerguichon/Calibration/DataxAOD/"
+configFile=open("/afs/in2p3.fr/home/a/aguergui/public/Calibration/PlotFunctions/python/MCDataRatio_"+yearList[0]+".boost", "w")
 configFile.write("inputType=1 \n")
 
 for i in range (0, 1):
@@ -19,7 +19,8 @@ for i in range (0, 1):
         configFile.write("loadFiles="+path+data+"/"+data+".boost\n")
         configFile.write("varName=m12 \n")
         configFile.write("legend= "+yearList[i]+", "+typeData+"\n")
-        configFile.write("selectionCut=m12>=80 && m12<=100 \n") 
+        #configFile.write("selectionCut=m12>=80 && m12<=100 && fabs(eta_calo_1)>1.55 && fabs(eta_calo_2)>1.55\n") 
+        configFile.write("selectionCut=m12>=80 && m12<=100\n") 
 
 configFile.write("doRatio=1 \ndrawStyle=1 \n")
 configFile.write("nComparedEvents=20 \nvarMin=80 \nvarMax=100 \nlegendPos= 0.75 0.9 \nnormalize= 1.021475e6 \nyTitle=#frac{1}{N}#frac{dN}{1 GeV} \nextendUp=0.3 \n")

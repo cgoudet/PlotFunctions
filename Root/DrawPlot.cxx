@@ -12,6 +12,7 @@
 #include "RooAbsPdf.h"
 #include "RooSimultaneous.h"
 #include "TF1.h"
+#include "TObject.h"
 
 using std::map;
 using std::cout;
@@ -261,10 +262,12 @@ int DrawPlot( vector< TH1* > &inHist,
     inHist[iHist]->SetMarkerColor( inHist[iHist]->GetLineColor() );
 
     vector<string> functionNames = { "cubicFit", "quadraticFit" };
-    for ( auto vName : functionNames ) {
-      TF1 *function = inHist[iHist]->GetFunction( vName.c_str() );
-      if ( function ) function->SetLineColor( inHist[iHist]->GetLineColor() );
+    TIter next(inHist[iHist]->GetListOfFunctions());
+    while (TObject *obj = next()) {
+      cout << obj->GetName() << endl;
+      inHist[iHist]->GetFunction( obj->GetName() )->SetLineColor( inHist[iHist]->GetLineColor() );
     }
+
 
     //If only one histograms is plotted, plot it in red
     switch ( mapOptionsInt["drawStyle"] ) {

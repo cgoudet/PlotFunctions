@@ -91,5 +91,6 @@ void RescaleStack( THStack *stack, double integral );
 
 void RebinHist( vector<TH1*> &vectHist );
 void CleanTMatrixHist( vector<TH1*> &vect, double removeVal );
+
 #endif
 

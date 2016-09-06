@@ -7,9 +7,9 @@
 #include "TMarker.h"
 
 
-void ATLASLabel(Double_t x,Double_t y,const char* text,Color_t color) 
+void ATLASLabel(Double_t x,Double_t y,const char* text,Color_t color, double tsize) 
 {
-  double tsize=0.035;
+  //  double tsize=0.035;
   TLatex l; //l.SetTextAlign(12); 
   l.SetNDC();
   l.SetTextSize(tsize); 
@@ -17,7 +17,7 @@ void ATLASLabel(Double_t x,Double_t y,const char* text,Color_t color)
   l.SetTextColor(color);
 
   //  double delx = 0.115*696*gPad->GetWh()/(472*gPad->GetWw());
-  double delx = 0.08*696*gPad->GetWh()/(472*gPad->GetWw());
+  double delx = 0.08*696*gPad->GetWh()/(472*gPad->GetWw())*tsize/0.035;
 
   l.DrawLatex(x,y,"ATLAS");
   if (text) {

@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
+using std::map;
 using std::vector;
 using std::stringstream;
 using std::string;
@@ -80,5 +82,16 @@ template< typename Type1 > void WriteLatexMinipage( Type1 &latexStream, vector<s
   }
 }
 
+template< typename Type1 > void PrintMapKeys( map<string, Type1> &inMap ) {
+  for ( auto vKey : inMap ) cout << vKey.first << endl;
+}
+
+template< typename Type1 > string FindKey( string &tag, map<string, Type1> &inMap ) {
+  for ( auto vKey : inMap ) {
+    if ( vKey.first.find( tag ) == string::npos ) continue;
+    return vKey.first;
+  }
+  return "";
+}
 
 #endif

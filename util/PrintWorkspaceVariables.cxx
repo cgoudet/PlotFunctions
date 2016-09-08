@@ -24,18 +24,18 @@ int main( int argc, char* argv[] ) {
   po::options_description desc("PrintWorspaceVariables");
 
   string inFileName, outName;
-  vector<string> functionsNames;
+  vector<string> functionsName, modes;
   //define all options in the program
   desc.add_options()
     ("help", "Display this help message")
+    ("mode", po::value< vector< string > >(&modes), "" )
     ("inFile", po::value<string>(&inFileName), "" )
-    ("function", po::value<vector<string>>(&functionsNames)->multitoken(), "" )
-    ("outName", po::value<string>(&outName), "" )
+    ("function", po::value<vector<string>>(&functionsName)->multitoken(), "" )
+    ("outName", po::value<string>(&outName)->default_value("/sps/atlas/c/cgoudet/Plots/PrintWorkspaceVariables"), "" )
     ;
   
   //Define options gathered by position                                                          
   po::positional_options_description p;
-  p.add("inFileName", 1);
 
   // create a map vm that contains options and all arguments of options       
   po::variables_map vm;
@@ -44,31 +44,19 @@ int main( int argc, char* argv[] ) {
   
   if (vm.count("help")) {cout << desc; return 0;}
   //===========================================
-
-
-  TFile *inFile = new TFile( inFileName.c_str() );
-  if ( !inFile ) { cout << inFileName << " not found." << endl; exit(0); }
-
-  RooWorkspace *ws = (RooWorkspace*) inFile->Get( FindDefaultTree( inFile, "RooWorkspace" ).c_str() );
-  if ( !ws ) { cout << "Workspace not found in " << inFileName << endl; exit(0); }
-
-  RooArgSet allVars = ws->allVars();
-
-  fstream stream;
-  string streamName = "/sps/atlas/c/cgoudet/Plots/PrintWorkspaceVariables" + ( outName == "" ? "" : "_"+outName ) + ".csv";
-  cout << "Writing in : " << streamName << endl;
-  stream.open( streamName.c_str(), fstream::out | fstream::trunc );
   
-  TIterator* iter = allVars.createIterator();
-  while ( RooRealVar* v = (RooRealVar* ) iter->Next() ) {
-    stream << v->GetName() << "," << v->getVal() << "," << v->getError() << endl;
+  if ( !vm.count("inFile") ) { cout << "no input file given" << endl; exit(0); }
+  for ( auto vMode : modes ) {
+    if ( vMode == "corrModel" ) {
+      vector<string> categories = { "ggH_CenLow", "ggH_CenHigh", "ggH_FwdLow", "ggH_FwdHigh", "VBFloose", "VBFtight", "VHMET", "VHlep", "VHdilep", "VHhad_loose", "VHhad_tight",  "ttHhad", "ttHlep" };
+      vector<string> processes = {"ggH", "VBF", "VH", "ttH" };
+      vector<vector<string>> configurations = { processes, categories};
+      PrintWorkspaceCorrelationModel( inFileName, outName+"_corrModel.csv", configurations, "yieldFactor", "systematic" );
+    }
+    else if ( vMode == "printWS" ) {
+      PrintWorkspaceVariables( inFileName, outName+"_printWS.csv", functionsName );
+    }
   }
-
-  for ( auto vName : functionsNames ) {
-    RooAbsReal *var = ws->function( vName.c_str() );
-    if ( var ) stream << vName << "," << var->getVal() << ",0"  << endl;
-  }
-  stream.close();
 
   return 0;
 }

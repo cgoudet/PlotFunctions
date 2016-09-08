@@ -40,6 +40,7 @@ using std::max;
 using std::string;
 using std::to_string;
 using std::system;
+using std::map;
 
 using namespace RooFit;
 
@@ -232,9 +233,9 @@ int  main(int argc, char *argv[]){
   for ( unsigned int iVar1 = 0; iVar1 < nXBins; iVar1++ ) {
     for ( unsigned int iVar2 = 0; iVar2 < nYBins; iVar2++ ) {
 
-      std::map<std::string, double> muMap;
-      std::map<std::string, int> muConstMap;
-      std::map<std::string, double> muErrorMap;
+      map<string, double> muMap;
+      map<string, int> muConstMap;
+      map<string, double> muErrorMap;
       
       // Deals with the np
       //Make a tree for np and link it to the map
@@ -249,36 +250,13 @@ int  main(int argc, char *argv[]){
 	if(save_np) {
 	  //Fill the map
 	  muMap[np_var->GetName()] = np_var->getVal(); 
-	  muErrorMap[std::string(np_var->GetName())+"_Error"] = np_var->getError();
-	  muConstMap[std::string(np_var->GetName())+"_isConst"] = np_var->isConstant() ? 1 : 0;
+	  muErrorMap[string(np_var->GetName())+"_Error"] = np_var->getError();
+	  muConstMap[string(np_var->GetName())+"_isConst"] = np_var->isConstant() ? 1 : 0;
 	  //Create the Branch
 	  t_np_af->Branch( np_var->GetName(), &(muMap[np_var->GetName()]));
-	  t_np_af->Branch( (std::string(np_var->GetName())+"_isConst").c_str(), &(muConstMap[std::string(np_var->GetName())+"_isConst"]));
-	  t_np_af->Branch( (std::string(np_var->GetName())+"_Error").c_str(), &(muErrorMap[std::string(np_var->GetName())+"_Error"]));
+	  t_np_af->Branch( (string(np_var->GetName())+"_isConst").c_str(), &(muConstMap[string(np_var->GetName())+"_isConst"]));
+	  t_np_af->Branch( (string(np_var->GetName())+"_Error").c_str(), &(muErrorMap[string(np_var->GetName())+"_Error"]));
 	}}
-      
-      // combWS->var( "nui_PER_ATLAS_Hgg_mass" )->setVal(0);
-      // combWS->var( "nui_PER_ATLAS_Hgg_mass" )->setConstant(1);
-      //      combWS->var( "slope_VH_dileptons_13TeV")->setVal(-0.01);      
-      //      combWS->var( "slope_VH_dileptons_13TeV")->setConstant(1);
-      
-	    // In Stefan Workspace, some variables need to be put constant to 1 for the fit to give
-      // the same results as in the note
-      // Still unexplained
-      // Treatment temporary
-      if (combWS->var("dummy")) {
-	combWS->var("mu_ggH_llll1112")->setVal(1);
-	combWS->var("mu_ZH_llll1112")->setVal(1);
-	combWS->var("mu_WH_llll1112")->setVal(1);
-	combWS->var("mu_VBF_llll1112")->setVal(1);
-	combWS->var("dummy")->setVal(1);
-
-	combWS->var("mu_ggH_llll1112")->setConstant(1);
-	combWS->var("mu_ZH_llll1112")->setConstant(1);
-	combWS->var("mu_WH_llll1112")->setConstant(1);
-	combWS->var("mu_VBF_llll1112")->setConstant(1);
-	combWS->var("dummy")->setConstant(1);
-      }
 
 
       //############################ MODIF WS ######################################
@@ -301,13 +279,24 @@ int  main(int argc, char *argv[]){
 	break;
       }
       case 3 : {
-	RooRealVar *dumVar1 = combWS->var( "nui_pdf_gg_bbH" );
-	RooRealVar *dumVar2 = combWS->var( "nui_QCDscale_bbH" );
-	if ( !dumVar1 || !dumVar2 ) { cout << "scheme failed" << endl; exit(0); }
-	dumVar1->setVal(0);
-	dumVar1->setConstant(1);
-	dumVar2->setVal(0);
-	dumVar2->setConstant(1);
+	map<string, double> names;
+	names["mu_XS_bbH"] = 1;
+	names["mu_XS_tHjb"]=1;
+	names["mu_XS_tWH"]=0;
+	names["ATLAS_MC_MCstat"]=0;
+	// names["ATLAS_BR_gamgam"]=0;
+	// names["ATLAS_pdf_gg"]=0;
+	// names["ATLAS_PH_EFF_ID"]=0;
+	// names["ATLAS_QCDscale_ggH"]=0;
+	// names["ATLAS_QCDscale_ZH"]=0;
+	// names["ATLAS_QCDscale_ggH_ptH_m01"]=0;
+	for ( auto vName : names ) {
+	  RooRealVar *dumVar = combWS->var( vName.first.c_str() );
+	  if ( !dumVar ) { cout << "Variables " << vName.first << " not found in workspace." << endl; exit(0);}
+	  dumVar->setVal(vName.second);
+	  dumVar->setConstant(1);
+	}
+
 	break;
       }
       case 4 : {
@@ -316,15 +305,25 @@ int  main(int argc, char *argv[]){
 	cout << "importing constraint" << endl;
 	while ( (parg=(RooAbsPdf*)iter->Next()) ) {
 	  TString name = parg->GetName();
-	  if ( ( !name.Contains( "nui_" ) && !name.Contains( "mu_XS_" ) ) || name.Contains("glob_") ) continue;
+	  string prefix = string(name).substr(0, string(name).find_first_of("_") );
+
+	  if ( prefix!= "ATLAS_" ) continue;
+	  cout << name << " " << prefix << endl;
 	  combWS->var( name )->setVal(0);
 	  combWS->var( name )->setConstant(1);
-
 	}
-	combWS->var("mu_XS_bbH")->setVal(1);
-	combWS->var("mu_XS_tHjb")->setVal(1);
-	combWS->var("mu_XS_tWH")->setVal(1);
-	//	combWS->var("mu_XS_ttH")->setVal(2);
+
+	map<string, double> names;
+	names["mu_XS_bbH"] = 1;
+	names["mu_XS_tHjb"]=1;
+	names["mu_XS_tWH"]=1;
+	//	names["slope_VHhad_tight"]=1e-9;
+	for ( auto vName : names ) {
+	  combWS->var( vName.first.c_str() )->setVal(vName.second);
+	  combWS->var( vName.first.c_str() )->setConstant(1);
+	}
+
+
 	break;
       }
       case 5 : {
@@ -356,12 +355,12 @@ int  main(int argc, char *argv[]){
 	v->setConstant(1);
 	//Fill the map 
 	muMap[v->GetName()] = v->getVal();
-	muErrorMap[std::string(v->GetName())+"_Error"] = v->getError();
-	muConstMap[std::string(v->GetName())+"_isConst"] = v->isConstant() ? 1 : 0;
+	muErrorMap[string(v->GetName())+"_Error"] = v->getError();
+	muConstMap[string(v->GetName())+"_isConst"] = v->isConstant() ? 1 : 0;
 	//Create the Branch
 	t->Branch( v->GetName(), &(muMap[v->GetName()]));
-	t->Branch( (std::string(v->GetName())+"_isConst").c_str(), &(muConstMap[std::string(v->GetName())+"_isConst"]));
-	t->Branch( (std::string(v->GetName())+"_Error").c_str(), &(muErrorMap[std::string(v->GetName())+"_Error"]));
+	t->Branch( (string(v->GetName())+"_isConst").c_str(), &(muConstMap[string(v->GetName())+"_isConst"]));
+	t->Branch( (string(v->GetName())+"_Error").c_str(), &(muErrorMap[string(v->GetName())+"_Error"]));
       }
 
       cout << "poi values" << endl;
@@ -381,9 +380,9 @@ int  main(int argc, char *argv[]){
 
       //Minimization procedure
       cout << " Minimize  : "  << endl;
-      poi->Print("v");
-      cout << mu1->GetName() << " " <<  iVar1+1 << "/" << nXBins << " " << mu1->getVal() << endl;
-      if ( vm.count( "var2" ) )      cout << mu2->GetName() << " " <<  iVar2+1 << "/" << nYBins << " " << mu2->getVal() << endl;
+      //      poi->Print("v");
+      //      cout << mu1->GetName() << " " <<  iVar1+1 << "/" << nXBins << " " << mu1->getVal() << endl;
+      //      if ( vm.count( "var2" ) )      cout << mu2->GetName() << " " <<  iVar2+1 << "/" << nYBins << " " << mu2->getVal() << endl;
       status = robustMinimize(*nll, *_minuit) ;
       // cout << "second minimization" << endl;
       // status = robustMinimize(*nll, *_minuit) ;
@@ -402,8 +401,8 @@ int  main(int argc, char *argv[]){
       poi_itr->Reset();
       for ( RooRealVar* v = (RooRealVar*)poi_itr->Next(); v!=0; v = (RooRealVar*)poi_itr->Next() ) {
   	muMap[v->GetName()] = v->getVal();
-  	muConstMap[std::string(v->GetName())+"_isConst"] = v->isConstant() ? 1 : 0;
-  	muErrorMap[std::string(v->GetName())+"_Error"] = v->getError();
+  	muConstMap[string(v->GetName())+"_isConst"] = v->isConstant() ? 1 : 0;
+  	muErrorMap[string(v->GetName())+"_Error"] = v->getError();
       }
       t->Fill();
 
@@ -411,8 +410,8 @@ int  main(int argc, char *argv[]){
   	np_itr->Reset();
   	while ((np_var = (RooRealVar*)np_itr->Next())) { 
   	  muMap[np_var->GetName()] = np_var->getVal();
-  	  muConstMap[std::string(np_var->GetName())+"_isConst"] = np_var->isConstant() ? 1 : 0;
-  	  muErrorMap[std::string(np_var->GetName())+"_Error"] = np_var->getError();
+  	  muConstMap[string(np_var->GetName())+"_isConst"] = np_var->isConstant() ? 1 : 0;
+  	  muErrorMap[string(np_var->GetName())+"_Error"] = np_var->getError();
 	}  	
 	t_np_af->Fill();
       }
@@ -456,7 +455,7 @@ int  main(int argc, char *argv[]){
 	  vars.add( *mc->GetNuisanceParameters() );
 	  TIterator* iter = vars.createIterator();
 	  while ( RooRealVar* v = (RooRealVar* ) iter->Next() ) {//; v!=0; v = (RooRealVar*)iter->Next() ) {
-	    stream << v->GetName() << " " << v->getVal() << " " << v->getError() << endl;
+	    stream << v->GetName() << "," << v->getVal() << "," << v->getError() << "," << v->isConstant() << endl;
 	  }
 	  stream.close();
 

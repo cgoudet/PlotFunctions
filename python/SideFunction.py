@@ -1,8 +1,97 @@
 import argparse
 import sys
 import subprocess as sub
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+
+#==================================
+#GlobalVariables
+plotColors = [ 'black', 'red', 'blue', 'green', 'orange' ]
+
+#==================================
+def GetLinearCoord( levelsSize, objCoords ) :
+#coords from the most to least nested
+    index = 0
+    indexByStep = 1;
+    for iObjCoords in range( 0, len( objCoords ) ) :
+        index += indexByStep*objCoords[iObjCoords]
+        indexByStep *= levelsSize[iObjCoords]
+
+    return index
+
+#==================================
+def GetCoordFromLinear( levelSize, objIndex ) :
+#coords from the most to least nested
+    coords=[]
+    subLevelSize=1
+    for vLevel in levelSize :
+        dumSubLevelSize = subLevelSize
+        subLevelSize *= vLevel
+        coords.append( (objIndex%subLevelSize)/dumSubLevelSize )
+
+    return coords
+
+#==================================
+def PlotPoints( xPoints, yPoints, options={} ) :
+
+    nPlots = len(xPoints)
+    if len( yPoints ) != nPlots : print('yPoints size does not match x : xsize=',nPlots,' ysize=', len(yPoints) ); exit(0)
+
+    if 'outName' not in options : options['outName'] = 'Plot.pdf'
+    if not 'legend' in options : options['legend'] = []
+    if len(options['legend']) and len(options['legend']) != nPlots : print('legend size does not match : xsize=', nPLots, ' legendsize=', len(options['legend']) ); options['legend'] = []    
+
+    plt.ioff()
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    fig.subplots_adjust(bottom=0.1, top=0.95, right=0.95)
+    fig.patch.set_facecolor('white')
+
+    for iPlot in range(0, len(xPoints ) ) : 
+        ax.plot( xPoints[iPlot], 
+                 yPoints[iPlot],
+                 color=plotColors[iPlot], 
+                 linestyle= '-', 
+                 label=options['legend'][iPlot] if len(options['legend']) else ''
+                 )
+
+    if 'yTitle' in options : ax.set_ylabel( options['yTitle' ] )
+    if 'xTitle' in options : ax.set_xlabel( options['xTitle' ] )
+
+    if 'annotate' in options : 
+        for annotation in options['annotate' ] :
+            plt.annotate(annotation['text'], xy=annotation['xy'], xytext=annotation['xytext'],
+            arrowprops=dict(facecolor='black', shrink=0.05),
+            )
 
 
+    ax.legend(loc='upper right', frameon=False)
+    y_formatter = matplotlib.ticker.ScalarFormatter(useOffset=False)
+    ax.yaxis.set_major_formatter(y_formatter)
+
+    #plt.show()
+
+    fig.savefig( options['outName'] )
+    return options['outName']
+
+#==================================
+def DSCB( myy, mu, sigma, alphaHi, alphaLow, nHi, nLow ) : 
+    t = ( myy - mu ) / sigma;
+    RLow = alphaLow/nLow
+    RHi = alphaHi/nHi
+
+    if t > alphaHi : 
+        denom = RHi*(1/RHi-alphaHi+t)
+        return np.exp( -alphaHi*alphaHi/2)/ np.power( denom, nHi )
+
+    elif t < -alphaLow : 
+        denom = (1/RLow-alphaLow-t)*RLow
+        return np.exp( -alphaLow*alphaLow/2)/ np.power( denom, nLow )
+
+    else : return np.exp( -t*t/2 )
+
+#==================================
 def listFiles( directory, pattern='' ):
     output = sub.check_output( ['ls '+ directory + pattern ],  shell=1, stderr=sub.STDOUT ) 
     if '\n' in output : content = output.split() 

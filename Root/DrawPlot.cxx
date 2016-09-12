@@ -12,6 +12,7 @@
 #include "RooAbsPdf.h"
 #include "RooSimultaneous.h"
 #include "TF1.h"
+#include "TObject.h"
 
 using std::map;
 using std::cout;
@@ -146,6 +147,7 @@ int DrawPlot( vector< TH1* > &inHist,
   mapOptionsDouble["normalize"]=0;
   mapOptionsDouble["line"]=-99;
   mapOptionsDouble["clean"]=-99;
+
   vector<string> inLegend, inLatex; 
   vector< vector< double > > latexPos;
   vector< double > legendCoord, rangeUserX, rangeUserY;
@@ -262,10 +264,12 @@ int DrawPlot( vector< TH1* > &inHist,
     inHist[iHist]->SetMarkerColor( inHist[iHist]->GetLineColor() );
 
     vector<string> functionNames = { "cubicFit", "quadraticFit" };
-    for ( auto vName : functionNames ) {
-      TF1 *function = inHist[iHist]->GetFunction( vName.c_str() );
-      if ( function ) function->SetLineColor( inHist[iHist]->GetLineColor() );
+    TIter next(inHist[iHist]->GetListOfFunctions());
+    while (TObject *obj = next()) {
+      cout << obj->GetName() << endl;
+      inHist[iHist]->GetFunction( obj->GetName() )->SetLineColor( inHist[iHist]->GetLineColor() );
     }
+
 
     //If only one histograms is plotted, plot it in red
     switch ( mapOptionsInt["drawStyle"] ) {
@@ -590,6 +594,7 @@ int DrawPlot( RooRealVar *frameVar,
   SetAtlasStyle();
   TCanvas *canvas = new TCanvas();
   if ( rangeUserX.size() == 2 ) frameVar->setRange( rangeUserX.front(), rangeUserX.back() );
+
   RooPlot* frame=frameVar->frame(mapOptionsInt["nComparedEvents"]);
   frame->SetTitle(""); //empty title to prevent printing "A RooPlot of ..."
   frame->SetXTitle(frameVar->GetTitle());
@@ -599,11 +604,13 @@ int DrawPlot( RooRealVar *frameVar,
     legendInfo.push_back( map<string, int>());
     legendInfo.back()["color"] = colors[iPlot];
     if ( string(inObj[iPlot]->ClassName() ) == "RooDataSet" ) {
+      //      ( (RooDataSet*) inObj[iPlot])->Print();
       ( (RooDataSet*) inObj[iPlot])->plotOn( frame, LineColor(  colors[iPlot] ), DataError( RooAbsData::SumW2 ) );
       legendInfo.back()["doLine"] = 0;
       legendInfo.back()["style"] = frame->getAttLine(frame->getObject(iPlot)->GetName())->GetLineStyle();
     }
     else {
+      //      ( (RooAbsPdf*) inObj[iPlot])->Print();
       ( (RooAbsPdf*) inObj[iPlot])->plotOn( frame, LineColor(  colors[iPlot] ) );
       legendInfo.back()["doLine"] = 1;
       legendInfo.back()["style"] = frame->getAttMarker(frame->getObject(iPlot)->GetName())->GetMarkerStyle();
@@ -632,9 +639,13 @@ int DrawPlot( RooRealVar *frameVar,
 }
 
 
-void PlotPerCategory( RooRealVar *varFrame, vector<TObject*> vectObj, RooCategory *cat, string prefix, vector<string> options ) {
+//void PlotPerCategory( RooRealVar *varFrame, vector<TObject*> vectObj, RooCategory *cat, string prefix, vector<string> options ) {
+vector<string> PlotPerCategory( vector<TObject*> vectObj, RooCategory *cat, string prefix, vector<string> options ) {
+
+  vector<string> plotNames;
 
   for ( int iCat = 0; iCat < cat->numTypes(); iCat++ ) {
+    RooRealVar *varFrame=0;
     vector<string> tmpOptions( options );
     cat->setIndex( iCat );
     tmpOptions.push_back( "latex=" + string( cat->getLabel() ) );
@@ -644,11 +655,22 @@ void PlotPerCategory( RooRealVar *varFrame, vector<TObject*> vectObj, RooCategor
 
       if ( string( vectObj[iObj]->ClassName() ) == "RooDataSet" ) {
 	RooAbsData* ds=0;
+	//	vectObj[iObj]->Print();
 	TIterator* dataItr = ((RooDataSet*) vectObj[iObj])->split(*cat, true)->MakeIterator();
 	while ((ds = (RooAbsData*)dataItr->Next())) { // loop over all channels
 	  if ( string( ds->GetName() ) != cat->getLabel() ) continue;
-	  ds->Print();
+	  //	  ds->Print();
 	  outVectObj.push_back( ds );
+
+	  TIterator* iter = ds->get()->createIterator();
+	  RooAbsPdf* parg;
+	  while((parg=(RooAbsPdf*)iter->Next()) ) {
+	    if ( TString( parg->GetName() ).Contains( ds->GetName() ) ) {
+	      varFrame = (RooRealVar*) parg;
+	      break;
+	    }
+
+	  }
 	  break;
 	}
       }//end if data
@@ -665,7 +687,9 @@ void PlotPerCategory( RooRealVar *varFrame, vector<TObject*> vectObj, RooCategor
 
     string name = prefix + "_" + cat->getLabel();
     DrawPlot( varFrame, outVectObj, name , tmpOptions );
+    plotNames.push_back( name );
   }//end iCat
+  return plotNames;
 }
 
 //================================================

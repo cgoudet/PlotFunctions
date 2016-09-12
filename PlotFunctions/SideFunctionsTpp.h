@@ -4,17 +4,42 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
+using std::map;
 using std::vector;
 using std::stringstream;
 using std::string;
 using std::cout;
 using std::endl;
 
+//============================================
+/**\brief Get the number of possible configurations containing a single key per vector line
+ */
+template<typename Type1 > unsigned int GetNConfigurations( vector<vector<Type1>> &inVect ) {
+  unsigned int nConfig = 1;
+  for ( auto vList : inVect ) nConfig*=vList.size();
+  return nConfig;
+}
 
+//============================================
+/**\brief Get the size of the each component of a 2D vector
+ */
+template<typename Type1 > vector<unsigned int> GetLevelsSize( vector<vector<Type1>> &inVect ) {
+  vector<unsigned int> outVect;
+  for ( auto vList : inVect ) {
+    outVect.push_back( vList.size() );
+  }
+  return outVect;
+}
+//============================================
+/**\brief Plot the content of a vector
+ */
 template< typename Type1 > void PrintVector( vector< Type1 > &vect ) {
   for ( auto vVal : vect ) cout << vVal << " ";
   cout << endl;
 }
+
+//============================================
 /**\brief Search for the bin number of an element in a vector
    \param val value to be searched
    \param vect vector to look into
@@ -33,7 +58,7 @@ template< typename Type1 > unsigned int SearchVectorBin( Type1 val, vector< Type
 }
 
 //============================================
-/**\Dirac Function
+/**\brief Dirac Function
  */
 template< typename Type1 > unsigned int Delta( Type1 val1, Type1 val2 ) {
   return ( val1==val2 ) ? 1 : 0;
@@ -60,7 +85,13 @@ template< typename Type1 > int ParseVector( string &stringVector, vector< Type1 
   return 0;
 }
 
-
+//============================================
+/**\brief Write the latex text to plot several pictures per line
+   \latexStream stream to write on
+   \param vect List of figures to plot
+   \param nPlotPerWidth Number of figures per line
+   \param putNameUnder Write the figure name underneath
+ */
 template< typename Type1 > void WriteLatexMinipage( Type1 &latexStream, vector<string> vect, unsigned int nPlotPerWidth = 0, bool putNameUnder =false ) {
 
   if ( !vect.size() ) return;
@@ -80,5 +111,23 @@ template< typename Type1 > void WriteLatexMinipage( Type1 &latexStream, vector<s
   }
 }
 
+//============================================
+/**\brief Print keys of a map
+ */
+template< typename Type1 > void PrintMapKeys( map<string, Type1> &inMap ) {
+  for ( auto vKey : inMap ) cout << vKey.first << " ";
+  cout << endl;
+}
+
+//============================================
+/**\brief Find the first key containing the tag in a map
+ */
+template< typename Type1 > string FindKey( string &tag, map<string, Type1> &inMap ) {
+  for ( auto vKey : inMap ) {
+    if ( vKey.first.find( tag ) == string::npos ) continue;
+    return vKey.first;
+  }
+  return "";
+}
 
 #endif

@@ -16,16 +16,171 @@
 #include <set>
 #include "TArrayD.h"
 #include "PlotFunctions/MapBranches.h"
+#include "RooWorkspace.h"
+#include "RooArgSet.h"
+#include "TIterator.h"
+#include "RooRealVar.h"
+#include <RooStats/ModelConfig.h>
+#include "RooProduct.h"
+#include <algorithm> 
 
 #define DEBUG 1
-using std::unique_ptr;
-using std::vector;
-using std::cout;
-using std::endl;
 using std::stringstream;
 using std::set;
 using namespace std::chrono;
+using RooStats::ModelConfig;
+using std::sort;
+//============================================
+unsigned int GetLinearCoord( vector<unsigned int> &levelsSize, vector<unsigned int> &objCoords ) {
+  //coords from the most to least nested
+  if ( levelsSize.size() != objCoords.size() ) { cout << "In GetLinearCoord sizes do not match : " << levelsSize.size() << " " << objCoords.size() << endl; exit(0);}
 
+  unsigned int index = 0;
+  unsigned int indexByStep = 1;
+  
+  for ( unsigned int iObjCoords = 0; iObjCoords<objCoords.size(); ++iObjCoords ) {
+    index += indexByStep*objCoords[iObjCoords];
+    indexByStep *= levelsSize[iObjCoords];
+  }
+  return index;
+}
+
+  //==================================
+vector<unsigned int> GetCoordFromLinear( vector<unsigned int> &levelsSize, unsigned int objIndex ) {
+  //coords from the most to least nested
+  vector<unsigned int> coords;
+  unsigned int subLevelSize=1;
+
+  for ( auto vLevel : levelsSize ) {
+    unsigned int dumSubLevelSize = subLevelSize;
+    subLevelSize *= vLevel;
+    coords.push_back( (objIndex%subLevelSize)/dumSubLevelSize );
+  }
+  return coords;
+}
+
+//==============================================================
+string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vector<vector<string>> inConfigurationsName, string varPrefix, string NPPrefix, string inWSName, string inMCName ) {
+
+  //Get the model config out of the fileName
+  TFile *inFile = new TFile( inFileName.c_str() );
+  if ( !inFile ) { cout << inFileName << " not found." << endl; exit(0); }
+  if ( inWSName == "" ) inWSName = FindDefaultTree( inFile, "RooWorkspace" );
+  RooWorkspace *ws = (RooWorkspace*) inFile->Get( inWSName.c_str() );
+  if ( !ws ) { cout << "Workspace not found in " << inFileName << endl; exit(0); }
+  if ( inMCName == "" ) inMCName = "mconfig";
+  ModelConfig* const mc = (ModelConfig*) ws->obj( inMCName.c_str() );
+
+  //Get the names of all nuisance paramters
+  vector<string> NPName;
+  TIterator* iter = mc->GetNuisanceParameters()->createIterator();
+  while ( RooRealVar* v = (RooRealVar* ) iter->Next() ) {
+    if ( string(v->GetName()).find_first_of("ATLAS_") == 0 ) NPName.push_back( v->GetName() );
+  }
+  sort( NPName.begin(), NPName.end() );
+  //  PrintVector(NPName);
+
+  vector<unsigned int> configurationsDepth = GetLevelsSize( inConfigurationsName );
+  PrintVector( configurationsDepth );
+  unsigned int nConfig = GetNConfigurations( inConfigurationsName );
+  cout << "nConfig : " << nConfig << endl;
+
+  multi_array<bool, 2> correlations;
+  correlations.resize( extents[nConfig][NPName.size()] );
+  vector<string> configName;
+
+  for ( unsigned int iConf = 0; iConf< nConfig; ++iConf ) {
+    vector<unsigned int> coords = GetCoordFromLinear( configurationsDepth, iConf );
+    TString name = "";
+    for ( unsigned int iList = 0; iList<coords.size(); ++iList ) {
+      name += inConfigurationsName[iList][coords[iList]] + "_";
+    }
+    CleanName( name );
+    configName.push_back( string(name) );
+    //    cout << name << endl;
+    string yieldName = varPrefix+"_"+string(name);
+    RooProduct *yieldVar = (RooProduct*) ws->function( yieldName.c_str() );
+    if ( !yieldVar ) { cout << yieldName << " not found in " << ws->GetName() << endl; exit(0);}
+
+    iter = yieldVar->getComponents()->createIterator();
+    while ( RooRealVar* v = (RooRealVar* ) iter->Next() ) {
+      TString dumName = v->GetName();
+      if ( !dumName.Contains( NPPrefix.c_str() ) ) continue;
+      dumName.ReplaceAll( (NPPrefix+"_").c_str(), "" );
+      unsigned int nStep = 0;
+      unsigned int NPPos = NPName.size();
+      while ( NPPos == NPName.size() && ++nStep!=5 ) {
+	if ( nStep==2 ) dumName.ReplaceAll( name, "" );
+	else if ( nStep ==3 ) dumName.Resize( dumName.Last('_') );
+	else if ( nStep ==4 ) dumName+="_"+name;
+	CleanName( dumName);
+	NPPos = SearchVectorBin( string(dumName), NPName );
+	//	if ( dumName.Contains( "ATLAS_pdf_acc" ) ) cout << dumName << " " << NPPos << " " << NPName.size() << endl;
+      }
+      
+      if ( NPPos == NPName.size() ) { 
+	cout << dumName << " not found" << endl;
+	continue;
+      }
+      else correlations[iConf][NPPos]=1;
+    }
+  }
+
+
+  fstream stream;
+  if ( outFileName == "" ) outFileName = "/sps/atlas/c/cgoudet/Plots/CorrelationModel.csv";
+  cout << "Writing in : " << outFileName << endl;
+  stream.open( outFileName.c_str(), fstream::out | fstream::trunc );
+  for ( auto vName : configName ) stream << "," << vName;
+  stream << endl;
+  for ( unsigned int iNPName = 0; iNPName< NPName.size(); ++iNPName ) {
+    stream << NPName[iNPName];
+    for ( unsigned int iCat=0; iCat<correlations.size(); ++iCat ) {
+      stream << "," << (correlations[iCat][iNPName] ? "X" : "");
+    }
+    stream << endl;
+  }
+  stream.close();
+  
+  return outFileName;
+
+
+  }
+
+//==============================================================
+string PrintWorkspaceVariables( string inFileName, string outFileName, vector<string> inFunctionsName, string inWSName ) {
+  
+  TFile *inFile = new TFile( inFileName.c_str() );
+  if ( !inFile ) { cout << inFileName << " not found." << endl; exit(0); }
+
+  if ( inWSName == "" ) inWSName = FindDefaultTree( inFile, "RooWorkspace" );
+  RooWorkspace *ws = (RooWorkspace*) inFile->Get( inWSName.c_str() );
+  if ( !ws ) { cout << "Workspace not found in " << inFileName << endl; exit(0); }
+  
+  RooArgSet allVars = ws->allVars();
+  allVars.sort();
+  
+  fstream stream;
+  if ( outFileName == "" ) outFileName = "/sps/atlas/c/cgoudet/Plots/PrintWorkspaceVariables.csv";
+  cout << "Writing in : " << outFileName << endl;
+  stream.open( outFileName.c_str(), fstream::out | fstream::trunc );
+  
+  TIterator* iter = allVars.createIterator();
+  while ( RooRealVar* v = (RooRealVar* ) iter->Next() ) {
+    stream << v->GetName() << "," << v->getVal() << "," << v->getError() << endl;
+  }
+  
+  for ( auto vName : inFunctionsName ) {
+    RooAbsReal *var = ws->function( vName.c_str() );
+    if ( var ) stream << vName << "," << var->getVal() << ",0"  << endl;
+    else cout << vName << " not found in " << ws->GetName() << endl;
+  }
+  stream.close();
+  
+  return outFileName;
+}
+
+//==============================================================
 void RebinHist( vector<TH1*> &vectHist ) {
   set<double> s;
   for ( auto vHist : vectHist ) {
@@ -543,7 +698,7 @@ void CleanTMatrixHist( vector<TH1*> &vect, double removeVal ) {
   }
   cout << "keptBinsSize : " << keptBins.size() << endl;
 
-  int Nbins = keptBins.size();
+  //  int Nbins = keptBins.size();
     //If a least one bin is 
   if ( keptBins.size() == vect.size() ) return;
   vector<TH1*> outVect;
@@ -569,4 +724,21 @@ void CleanTMatrixHist( vector<TH1*> &vect, double removeVal ) {
       //      delete outVect[iVect];
     }
       
+}
+
+//=====================================
+void CleanName( TString &name, vector<vector<string>> vectList, string sep  ) {
+
+  for ( auto vList : vectList ) {
+    for ( auto vKeywd : vList ) {
+      name.ReplaceAll( vKeywd, "" );
+    }
+  }
+  
+  while( name.EndsWith(&sep.back()) ) name.Resize( name.Length()-1 );
+  TString dumName = "";
+  while( dumName != name ) {
+    dumName = name;
+    name.ReplaceAll( sep+sep, sep );
+  }
 }

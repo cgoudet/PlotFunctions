@@ -29,6 +29,7 @@
 #include <RooStats/ModelConfig.h>
 using namespace RooStats;
 #include "PlotFunctions/DrawPlot.h"
+#include <stdlib.h>  
 
 using std::fstream;
 using std::cout;
@@ -38,6 +39,8 @@ using std::min;
 using std::max;
 using std::string;
 using std::to_string;
+using std::system;
+using std::map;
 
 using namespace RooFit;
 
@@ -59,7 +62,7 @@ int  main(int argc, char *argv[]){
   string infile;
   vector<string> var1, var2; 
   vector<string> var3;
-  bool save_np, wsyst, justMin;
+  bool save_np, wsyst, justMin, saveCsv;
   string saveSnapshot; 
 
   desc.add_options()
@@ -69,16 +72,16 @@ int  main(int argc, char *argv[]){
     ( "var1", po::value<vector<string>>(&var1), "3-8 : Parameters for first variable")
     ( "var2", po::value<vector<string>>(&var2), "9-14 : Parameters for second variable")
     ( "profiled", po::value<vector<string>>(&var3), "Names of profiled parameters of interest")
-    ( "data", po::value<string>(&data_type)->default_value("obsData_G")->implicit_value("asimovData_muhat"),"Data name")
-    ( "save_np", po::value<bool>(&save_np)->default_value( false )->implicit_value(true), "Save nuisance parameters")
-    ( "wsyst", po::value<bool>(&wsyst)->default_value( false )->implicit_value( true ), "Do not profile on nuisance parameters")
+    ( "data", po::value<string>(&data_type)->default_value("obsData_G"),"Data name")
+    ( "save_np", po::value<bool>(&save_np)->default_value( false ), "Save nuisance parameters")
+    ( "wsyst", po::value<bool>(&wsyst)->default_value( false ), "Do not profile on nuisance parameters")
     ( "scheme", po::value<int>(&modif_scheme)->default_value(0), "Modification scheme")
     ( "strategy", po::value<int>(&strategy)->default_value(0), "Minimization strategy")
     ( "verbose", po::value<int>(&silent)->default_value( 0 ), "Verbose mode for minimization")
     ( "snapshot",po::value<string>(&snapshot)->default_value("conditionalGlobs_muhat"), "Choose asimov snapshot")
-    ( "numCores", po::value<int>(&numCores)->default_value(1)->implicit_value(10), "Number of Cores used for minimization")
-    ( "justMin", po::value<bool>(&justMin)->default_value(false)->implicit_value(true), "")
-    ( "saveCsv", "" )
+    ( "numCores", po::value<int>(&numCores)->default_value(1), "Number of Cores used for minimization")
+    ( "justMin", po::value<bool>(&justMin)->default_value(false), "")
+    ( "saveCsv", po::value<bool>(&saveCsv)->default_value(false), "" )
     ( "saveSnapshot", po::value<string>(&saveSnapshot), "" )
     ( "constraint", po::value<int>( &constraint)->default_value(0), "" )
     ;
@@ -148,7 +151,7 @@ int  main(int argc, char *argv[]){
     cout << "got" << endl;
     cout << combWS << endl;
   }
-  combWS->Print();
+  //  combWS->Print();
 
   //Test that the variables actually exist into the workspace
   if ( !combWS->var( var1[0].c_str() ) 
@@ -186,13 +189,13 @@ int  main(int argc, char *argv[]){
   const  RooArgSet* np_ptr = mc->GetNuisanceParameters();
   //  np_ptr->Print("v");
   RooAbsData* data=combWS->data(data_type.c_str());
-  cout << "data : " << data << endl;
-  cout << "dataName : " << data->GetName() << endl;
   if (!data) {
     cout << "wrong data name" << endl; 
     return 1;
   }
-
+  cout << "data : " << data << endl;
+  cout << "dataName : " << data->GetName() << endl;
+  data->Print();
 
   //When dataset is asimov, we need to load a snapshot
   if (data_type.find("asimovData")!=string::npos) {
@@ -230,9 +233,9 @@ int  main(int argc, char *argv[]){
   for ( unsigned int iVar1 = 0; iVar1 < nXBins; iVar1++ ) {
     for ( unsigned int iVar2 = 0; iVar2 < nYBins; iVar2++ ) {
 
-      std::map<std::string, double> muMap;
-      std::map<std::string, int> muConstMap;
-      std::map<std::string, double> muErrorMap;
+      map<string, double> muMap;
+      map<string, int> muConstMap;
+      map<string, double> muErrorMap;
       
       // Deals with the np
       //Make a tree for np and link it to the map
@@ -247,36 +250,13 @@ int  main(int argc, char *argv[]){
 	if(save_np) {
 	  //Fill the map
 	  muMap[np_var->GetName()] = np_var->getVal(); 
-	  muErrorMap[std::string(np_var->GetName())+"_Error"] = np_var->getError();
-	  muConstMap[std::string(np_var->GetName())+"_isConst"] = np_var->isConstant() ? 1 : 0;
+	  muErrorMap[string(np_var->GetName())+"_Error"] = np_var->getError();
+	  muConstMap[string(np_var->GetName())+"_isConst"] = np_var->isConstant() ? 1 : 0;
 	  //Create the Branch
 	  t_np_af->Branch( np_var->GetName(), &(muMap[np_var->GetName()]));
-	  t_np_af->Branch( (std::string(np_var->GetName())+"_isConst").c_str(), &(muConstMap[std::string(np_var->GetName())+"_isConst"]));
-	  t_np_af->Branch( (std::string(np_var->GetName())+"_Error").c_str(), &(muErrorMap[std::string(np_var->GetName())+"_Error"]));
+	  t_np_af->Branch( (string(np_var->GetName())+"_isConst").c_str(), &(muConstMap[string(np_var->GetName())+"_isConst"]));
+	  t_np_af->Branch( (string(np_var->GetName())+"_Error").c_str(), &(muErrorMap[string(np_var->GetName())+"_Error"]));
 	}}
-      
-      // combWS->var( "nui_PER_ATLAS_Hgg_mass" )->setVal(0);
-      // combWS->var( "nui_PER_ATLAS_Hgg_mass" )->setConstant(1);
-      //      combWS->var( "slope_VH_dileptons_13TeV")->setVal(-0.01);      
-      //      combWS->var( "slope_VH_dileptons_13TeV")->setConstant(1);
-      
-	    // In Stefan Workspace, some variables need to be put constant to 1 for the fit to give
-      // the same results as in the note
-      // Still unexplained
-      // Treatment temporary
-      if (combWS->var("dummy")) {
-	combWS->var("mu_ggH_llll1112")->setVal(1);
-	combWS->var("mu_ZH_llll1112")->setVal(1);
-	combWS->var("mu_WH_llll1112")->setVal(1);
-	combWS->var("mu_VBF_llll1112")->setVal(1);
-	combWS->var("dummy")->setVal(1);
-
-	combWS->var("mu_ggH_llll1112")->setConstant(1);
-	combWS->var("mu_ZH_llll1112")->setConstant(1);
-	combWS->var("mu_WH_llll1112")->setConstant(1);
-	combWS->var("mu_VBF_llll1112")->setConstant(1);
-	combWS->var("dummy")->setConstant(1);
-      }
 
 
       //############################ MODIF WS ######################################
@@ -299,13 +279,24 @@ int  main(int argc, char *argv[]){
 	break;
       }
       case 3 : {
-	RooRealVar *dumVar1 = combWS->var( "nui_pdf_gg_bbH" );
-	RooRealVar *dumVar2 = combWS->var( "nui_QCDscale_bbH" );
-	if ( !dumVar1 || !dumVar2 ) { cout << "scheme failed" << endl; exit(0); }
-	dumVar1->setVal(0);
-	dumVar1->setConstant(1);
-	dumVar2->setVal(0);
-	dumVar2->setConstant(1);
+	map<string, double> names;
+	names["mu_XS_bbH"] = 1;
+	names["mu_XS_tHjb"]=1;
+	names["mu_XS_tWH"]=0;
+	names["ATLAS_MC_MCstat"]=0;
+	// names["ATLAS_BR_gamgam"]=0;
+	// names["ATLAS_pdf_gg"]=0;
+	// names["ATLAS_PH_EFF_ID"]=0;
+	// names["ATLAS_QCDscale_ggH"]=0;
+	// names["ATLAS_QCDscale_ZH"]=0;
+	// names["ATLAS_QCDscale_ggH_ptH_m01"]=0;
+	for ( auto vName : names ) {
+	  RooRealVar *dumVar = combWS->var( vName.first.c_str() );
+	  if ( !dumVar ) { cout << "Variables " << vName.first << " not found in workspace." << endl; exit(0);}
+	  dumVar->setVal(vName.second);
+	  dumVar->setConstant(1);
+	}
+
 	break;
       }
       case 4 : {
@@ -314,13 +305,26 @@ int  main(int argc, char *argv[]){
 	cout << "importing constraint" << endl;
 	while ( (parg=(RooAbsPdf*)iter->Next()) ) {
 	  TString name = parg->GetName();
-	  if ( !name.Contains( "nui_" ) || name.Contains("glob_") ) continue;
-	  // if ( !name.Contains( "QCDscale" ) && !name.Contains( "pdf" ) ) continue;
-	  // if ( !name.Contains( "_bbH" ) ) continue;
-	  // cout << name << endl;
+	  string prefix = string(name).substr(0, string(name).find_first_of("_") );
+
+	  if ( prefix!= "ATLAS_" ) continue;
+	  cout << name << " " << prefix << endl;
 	  combWS->var( name )->setVal(0);
 	  combWS->var( name )->setConstant(1);
 	}
+
+	map<string, double> names;
+	names["mu_XS_bbH"] = 1;
+	names["mu_XS_tHjb"]=1;
+	names["mu_XS_tWH"]=1;
+	//	names["slope_VHhad_tight"]=1e-9;
+	for ( auto vName : names ) {
+	  combWS->var( vName.first.c_str() )->setVal(vName.second);
+	  combWS->var( vName.first.c_str() )->setConstant(1);
+	}
+
+
+	break;
       }
       case 5 : {
 	combWS->var("m_yy")->setRange(105, 160);
@@ -351,12 +355,12 @@ int  main(int argc, char *argv[]){
 	v->setConstant(1);
 	//Fill the map 
 	muMap[v->GetName()] = v->getVal();
-	muErrorMap[std::string(v->GetName())+"_Error"] = v->getError();
-	muConstMap[std::string(v->GetName())+"_isConst"] = v->isConstant() ? 1 : 0;
+	muErrorMap[string(v->GetName())+"_Error"] = v->getError();
+	muConstMap[string(v->GetName())+"_isConst"] = v->isConstant() ? 1 : 0;
 	//Create the Branch
 	t->Branch( v->GetName(), &(muMap[v->GetName()]));
-	t->Branch( (std::string(v->GetName())+"_isConst").c_str(), &(muConstMap[std::string(v->GetName())+"_isConst"]));
-	t->Branch( (std::string(v->GetName())+"_Error").c_str(), &(muErrorMap[std::string(v->GetName())+"_Error"]));
+	t->Branch( (string(v->GetName())+"_isConst").c_str(), &(muConstMap[string(v->GetName())+"_isConst"]));
+	t->Branch( (string(v->GetName())+"_Error").c_str(), &(muErrorMap[string(v->GetName())+"_Error"]));
       }
 
       cout << "poi values" << endl;
@@ -376,18 +380,18 @@ int  main(int argc, char *argv[]){
 
       //Minimization procedure
       cout << " Minimize  : "  << endl;
-      poi->Print("v");
-      cout << mu1->GetName() << " " <<  iVar1+1 << "/" << nXBins << " " << mu1->getVal() << endl;
-      if ( vm.count( "var2" ) )      cout << mu2->GetName() << " " <<  iVar2+1 << "/" << nYBins << " " << mu2->getVal() << endl;
+      //      poi->Print("v");
+      //      cout << mu1->GetName() << " " <<  iVar1+1 << "/" << nXBins << " " << mu1->getVal() << endl;
+      //      if ( vm.count( "var2" ) )      cout << mu2->GetName() << " " <<  iVar2+1 << "/" << nYBins << " " << mu2->getVal() << endl;
       status = robustMinimize(*nll, *_minuit) ;
       // cout << "second minimization" << endl;
       // status = robustMinimize(*nll, *_minuit) ;
       // cout << "third minimization" << endl;
       // status = robustMinimize(*nll, *_minuit) ;
-      cout << "End Minimize" << endl;
+      // cout << "End Minimize" << endl;
       poi->Print("v");      
       if (!std::isfinite(NLL_value)) continue;
-    
+      //      nll->Minos();    
       //Save the poi et the nll value
       NLL_value = nll->getVal();
       cout.precision(10);
@@ -397,8 +401,8 @@ int  main(int argc, char *argv[]){
       poi_itr->Reset();
       for ( RooRealVar* v = (RooRealVar*)poi_itr->Next(); v!=0; v = (RooRealVar*)poi_itr->Next() ) {
   	muMap[v->GetName()] = v->getVal();
-  	muConstMap[std::string(v->GetName())+"_isConst"] = v->isConstant() ? 1 : 0;
-  	muErrorMap[std::string(v->GetName())+"_Error"] = v->getError();
+  	muConstMap[string(v->GetName())+"_isConst"] = v->isConstant() ? 1 : 0;
+  	muErrorMap[string(v->GetName())+"_Error"] = v->getError();
       }
       t->Fill();
 
@@ -406,8 +410,8 @@ int  main(int argc, char *argv[]){
   	np_itr->Reset();
   	while ((np_var = (RooRealVar*)np_itr->Next())) { 
   	  muMap[np_var->GetName()] = np_var->getVal();
-  	  muConstMap[std::string(np_var->GetName())+"_isConst"] = np_var->isConstant() ? 1 : 0;
-  	  muErrorMap[std::string(np_var->GetName())+"_Error"] = np_var->getError();
+  	  muConstMap[string(np_var->GetName())+"_isConst"] = np_var->isConstant() ? 1 : 0;
+  	  muErrorMap[string(np_var->GetName())+"_Error"] = np_var->getError();
 	}  	
 	t_np_af->Fill();
       }
@@ -440,7 +444,7 @@ int  main(int argc, char *argv[]){
 	  combWS->Write( "", TObject::kOverwrite );
 	}
 
-	if ( vm.count("saveCsv") ) {
+	if ( saveCsv ) {
 	  fstream stream;
 	  TString csvFile = outfile;
 	  csvFile.ReplaceAll(".root", ".csv" );
@@ -451,14 +455,22 @@ int  main(int argc, char *argv[]){
 	  vars.add( *mc->GetNuisanceParameters() );
 	  TIterator* iter = vars.createIterator();
 	  while ( RooRealVar* v = (RooRealVar* ) iter->Next() ) {//; v!=0; v = (RooRealVar*)iter->Next() ) {
-	    stream << v->GetName() << " " << v->getVal() << " " << v->getError() << endl;
+	    stream << v->GetName() << "," << v->getVal() << "," << v->getError() << "," << v->isConstant() << endl;
 	  }
 	  stream.close();
 
   //############################################
 	  csvFile.ReplaceAll(".csv","" );
-	  PlotPerCategory( combWS->var( "m_yy" ), { data, pdf }, (RooCategory*)&pdf->indexCat(), string(csvFile), { "legend=" + string(data->GetName()), "legend=" + string(pdf->GetName()), "nComparedEvents=50" } );
-	  
+	  //PlotPerCategory( m_mapVar["invMass"],{ data, pdf }, (RooCategory*)&pdf->indexCat(), string(csvFile), { "legend=" + string(data->GetName()), "legend=" + string(pdf->GetName()), "nComparedEvents=50" } );
+	  vector<string> plotNames = PlotPerCategory( { data, pdf }, (RooCategory*)&pdf->indexCat(), string(csvFile), { "legend=" + string(data->GetName()), "legend=" + string(pdf->GetName()), "nComparedEvents=50" } );
+
+	  string commandLine = "";
+	  for ( auto vName : plotNames ) {
+	    commandLine += " " + vName + ".pdf";
+	  }
+
+	  system( ("pdfjoin " + commandLine + " --outfile /sps/atlas/c/cgoudet/Plots/LikelihoodFit.pdf").c_str() );
+	  system( ("rm " + commandLine ).c_str() );
   //##########################################
 	 
 	}//end csv

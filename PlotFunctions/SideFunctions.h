@@ -13,6 +13,8 @@ using boost::multi_array;
 using boost::extents;
 #include "PlotFunctions/SideFunctionsTpp.h"
 #include "TGraphErrors.h"
+#include "TString.h"
+
 
 using std::map;
 using std::fstream;
@@ -20,6 +22,55 @@ using std::string;
 using std::vector;
 using std::cout;
 using std::endl;
+
+void RebinHist( vector<TH1*> &vectHist );
+void CleanTMatrixHist( vector<TH1*> &vect, double removeVal );
+
+/**\brief Get Multidimentional coordinates of an element fro mits vector index
+   \param levelsSize list of elements in each dimension
+   \param objIndex index of the element
+
+ */
+vector<unsigned int> GetCoordFromLinear( vector<unsigned int> &levelsSize, unsigned int objIndex );
+
+/**\brief Get index of element in a vector from multidimensionnal coordinates
+   \param levelsSize list of elements in each dimension
+   \param Coordinates of the element
+ */
+unsigned int GetLinearCoord( vector<unsigned int> &levelsSize, vector<unsigned int> &objCoords );
+
+/**\brief Print allvariables of the workspace in a csv file
+   \param inFileName input root file
+   \param outFileName name of the output csv file
+   \param inFunctions Name of the functions to be printed
+   \param inWSName Name of the input workspace (useFindDefaultTree if empty)
+ */
+string PrintWorkspaceVariables( string inFileName, string outFileName="", vector<string> inFunctionsName=vector<string>(), string inWSName="" );
+
+/**\brief Print the correlation model of a pdf in a csv file
+   \param inFileName input root file
+   \param outFileName name of the csv file
+   \param inConfigurationsName Name decomposition of the categories
+   \param varpRrefix prefix for the variable sensitive to nuisance parameters
+   \param NPPrefix prefix for the systematic effect of the nuisance parameter
+   \param inWSName Name of the input workspace (useFindDefaultTree if empty)
+   \param inMCName Name of the ModelConfig
+
+*/
+string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vector<vector<string>> inConfigurationsName, string varPrefix, string NPPrefix, string inWSName="", string inMCName="mconfig" );
+
+/**\brief Remove signs and words from a TString
+   \param name TString to be modified
+   \param vectList vector containing keywords to be removed
+   \param sep separator between keyworkds to be undoubled
+
+   After removing keywords, several separator may remain togter in the string. 
+   In the same way, the string may be finished by a separator.
+   The function remove the doubles and the final separator
+ */
+
+void CleanName( TString &name, vector<vector<string>> vectList = vector<vector<string>>(), string sep = "_" );
+
 /**\brief Compute Chi2 of two matching histograms
    \param MCHist Histogram with MC role
    \param DataHist Histogram with Data role
@@ -88,8 +139,5 @@ void VarOverTime( string inFileName, bool update=0);
 /* 		       map<string, long long int > &mapLongLong */
 /* 		       ); */
 void RescaleStack( THStack *stack, double integral );
-
-void RebinHist( vector<TH1*> &vectHist );
-void CleanTMatrixHist( vector<TH1*> &vect, double removeVal );
 #endif
 

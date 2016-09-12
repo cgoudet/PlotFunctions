@@ -167,10 +167,10 @@ def LatexHeader( title, subtitle='', mode = 0 ) :
     output += ( '\\usetheme{Boadilla}\n'
                 +'\\beamertemplatenavigationsymbolsempty\n'
                 +'\\title[' + subtitle +']{' + title + '}\n'
-                +'\\author[Goudet]{Christophe Goudet}\n' )
+                +'\\author[Guerguichon]{Antinea Guerguichon}\n' )
     
     if mode : output += '\\institute[LAL]{\includegraphics[width=0.3\\linewidth]{/home/goudet/Hgg/ExternalPlot/LAL.jpg} }\n'
-    else : output += '\\institute[LAL]{\includegraphics[width=0.3\\linewidth]{/afs/in2p3.fr/home/c/cgoudet/LAL.jpg} }\n'
+    else : output += '\\institute[LAL]{\includegraphics[width=0.3\\linewidth]{/afs/in2p3.fr/home/a/aguergui/LAL.jpg} }\n'
     output +=  ( '\\date{\\today}\n'
              +'\\begin{document}\n'
              +'\\transboxin\n'

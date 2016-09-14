@@ -30,6 +30,7 @@ using std::set;
 using namespace std::chrono;
 using RooStats::ModelConfig;
 using std::sort;
+using std::reverse;
 //============================================
 unsigned int GetLinearCoord( vector<unsigned int> &levelsSize, vector<unsigned int> &objCoords ) {
   //coords from the most to least nested
@@ -60,7 +61,7 @@ vector<unsigned int> GetCoordFromLinear( vector<unsigned int> &levelsSize, unsig
 }
 
 //==============================================================
-string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vector<vector<string>> inConfigurationsName, string varPrefix, string NPPrefix, string inWSName, string inMCName ) {
+string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vector<vector<string>> inConfigurationsName, string NPPrefix, string inWSName, string inMCName ) {
 
   //Get the model config out of the fileName
   TFile *inFile = new TFile( inFileName.c_str() );
@@ -68,7 +69,6 @@ string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vec
   if ( inWSName == "" ) inWSName = FindDefaultTree( inFile, "RooWorkspace" );
   RooWorkspace *ws = (RooWorkspace*) inFile->Get( inWSName.c_str() );
   if ( !ws ) { cout << "Workspace not found in " << inFileName << endl; exit(0); }
-  if ( inMCName == "" ) inMCName = "mconfig";
   ModelConfig* const mc = (ModelConfig*) ws->obj( inMCName.c_str() );
 
   //Get the names of all nuisance paramters
@@ -89,6 +89,8 @@ string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vec
   correlations.resize( extents[nConfig][NPName.size()] );
   vector<string> configName;
 
+  vector<unsigned int> iConfToSkip;
+
   for ( unsigned int iConf = 0; iConf< nConfig; ++iConf ) {
     vector<unsigned int> coords = GetCoordFromLinear( configurationsDepth, iConf );
     TString name = "";
@@ -98,11 +100,17 @@ string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vec
     CleanName( name );
     configName.push_back( string(name) );
     //    cout << name << endl;
-    string yieldName = varPrefix+"_"+string(name);
-    RooProduct *yieldVar = (RooProduct*) ws->function( yieldName.c_str() );
-    if ( !yieldVar ) { cout << yieldName << " not found in " << ws->GetName() << endl; exit(0);}
+    RooProduct *var = (RooProduct*) ws->function( name );
+    if ( !var ) { 
+      cout << name << " not found in " << ws->GetName() << endl; 
+      iConfToSkip.push_back( iConf );
+      continue;
+    }
 
-    iter = yieldVar->getComponents()->createIterator();
+    TString nameWoVariable = name;
+    CleanName( nameWoVariable, { inConfigurationsName.front() } );
+
+    iter = var->getComponents()->createIterator();
     while ( RooRealVar* v = (RooRealVar* ) iter->Next() ) {
       TString dumName = v->GetName();
       if ( !dumName.Contains( NPPrefix.c_str() ) ) continue;
@@ -110,9 +118,9 @@ string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vec
       unsigned int nStep = 0;
       unsigned int NPPos = NPName.size();
       while ( NPPos == NPName.size() && ++nStep!=5 ) {
-	if ( nStep==2 ) dumName.ReplaceAll( name, "" );
+	if ( nStep==2 ) dumName.ReplaceAll( nameWoVariable, "" );
 	else if ( nStep ==3 ) dumName.Resize( dumName.Last('_') );
-	else if ( nStep ==4 ) dumName+="_"+name;
+	else if ( nStep ==4 ) dumName+="_"+nameWoVariable;
 	CleanName( dumName);
 	NPPos = SearchVectorBin( string(dumName), NPName );
 	//	if ( dumName.Contains( "ATLAS_pdf_acc" ) ) cout << dumName << " " << NPPos << " " << NPName.size() << endl;
@@ -126,17 +134,33 @@ string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vec
     }
   }
 
-
+  reverse( iConfToSkip.begin(), iConfToSkip.end() );
+  vector<unsigned int> dumConfToSkip = iConfToSkip;
+  PrintVector( dumConfToSkip );
+  cout << dumConfToSkip.size() << endl;
   fstream stream;
   if ( outFileName == "" ) outFileName = "/sps/atlas/c/cgoudet/Plots/CorrelationModel.csv";
   cout << "Writing in : " << outFileName << endl;
   stream.open( outFileName.c_str(), fstream::out | fstream::trunc );
-  for ( auto vName : configName ) stream << "," << vName;
+  for ( unsigned int iCat=0; iCat<correlations.size(); ++iCat ) {
+    if ( dumConfToSkip.size() && iCat == dumConfToSkip.back() ) {
+      cout << "remove " << dumConfToSkip.back() << " " << configName[iCat]<< endl;
+      dumConfToSkip.pop_back();
+      continue;
+      }
+    stream << "," << configName[iCat];
+  }
   stream << endl;
+
   for ( unsigned int iNPName = 0; iNPName< NPName.size(); ++iNPName ) {
     stream << NPName[iNPName];
+    dumConfToSkip = iConfToSkip;
     for ( unsigned int iCat=0; iCat<correlations.size(); ++iCat ) {
-      stream << "," << (correlations[iCat][iNPName] ? "X" : "");
+      if ( iCat == dumConfToSkip.back() ) {
+	dumConfToSkip.pop_back();
+	continue;
+      }
+      stream << "," << (correlations[iCat][iNPName] ? "1" : "0");
     }
     stream << endl;
   }

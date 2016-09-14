@@ -535,7 +535,7 @@ int DrawPlot( RooRealVar *frameVar,
 	      string outName,
 	      vector<string> inOptions
 	      ) {
-  cout << "DrawPlot frame" << endl;
+  //  cout << "DrawPlot frame" << endl;
   vector<string> inLegend, inLatex; 
   vector< vector< double > > latexPos;
   vector< double > legendCoord, rangeUserX, rangeUserY;

@@ -51,13 +51,12 @@ string PrintWorkspaceVariables( string inFileName, string outFileName="", vector
    \param inFileName input root file
    \param outFileName name of the csv file
    \param inConfigurationsName Name decomposition of the categories
-   \param varpRrefix prefix for the variable sensitive to nuisance parameters
    \param NPPrefix prefix for the systematic effect of the nuisance parameter
    \param inWSName Name of the input workspace (useFindDefaultTree if empty)
    \param inMCName Name of the ModelConfig
 
 */
-string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vector<vector<string>> inConfigurationsName, string varPrefix, string NPPrefix, string inWSName="", string inMCName="mconfig" );
+string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vector<vector<string>> inConfigurationsName, string NPPrefix, string inWSName="", string inMCName="mconfig" );
 
 /**\brief Remove signs and words from a TString
    \param name TString to be modified

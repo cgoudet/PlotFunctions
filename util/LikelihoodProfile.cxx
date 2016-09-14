@@ -30,6 +30,7 @@
 using namespace RooStats;
 #include "PlotFunctions/DrawPlot.h"
 #include <stdlib.h>  
+#include "RooProduct.h"
 
 using std::fstream;
 using std::cout;
@@ -57,7 +58,7 @@ int  main(int argc, char *argv[]){
   //TString is not supported by boost::program_options
   //Have to use string
   //  double sigma, mean;
-  int modif_scheme, strategy, numCores, silent, constraint;
+  int modif_scheme, strategy, numCores, silent, constraint, nMinim;
   string data_type, snapshot, outfile;
   string infile;
   vector<string> var1, var2; 
@@ -84,6 +85,7 @@ int  main(int argc, char *argv[]){
     ( "saveCsv", po::value<bool>(&saveCsv)->default_value(false), "" )
     ( "saveSnapshot", po::value<string>(&saveSnapshot), "" )
     ( "constraint", po::value<int>( &constraint)->default_value(0), "" )
+    ( "nMinim", po::value<int>( &nMinim )->default_value(2), "" )
     ;
 
   //Define options gathered by position
@@ -282,14 +284,8 @@ int  main(int argc, char *argv[]){
 	map<string, double> names;
 	names["mu_XS_bbH"] = 1;
 	names["mu_XS_tHjb"]=1;
-	names["mu_XS_tWH"]=0;
-	names["ATLAS_MC_MCstat"]=0;
-	// names["ATLAS_BR_gamgam"]=0;
-	// names["ATLAS_pdf_gg"]=0;
-	// names["ATLAS_PH_EFF_ID"]=0;
-	// names["ATLAS_QCDscale_ggH"]=0;
-	// names["ATLAS_QCDscale_ZH"]=0;
-	// names["ATLAS_QCDscale_ggH_ptH_m01"]=0;
+	names["mu_XS_tWH"]=1;
+
 	for ( auto vName : names ) {
 	  RooRealVar *dumVar = combWS->var( vName.first.c_str() );
 	  if ( !dumVar ) { cout << "Variables " << vName.first << " not found in workspace." << endl; exit(0);}
@@ -306,23 +302,26 @@ int  main(int argc, char *argv[]){
 	while ( (parg=(RooAbsPdf*)iter->Next()) ) {
 	  TString name = parg->GetName();
 	  string prefix = string(name).substr(0, string(name).find_first_of("_") );
-
-	  if ( prefix!= "ATLAS_" ) continue;
-	  cout << name << " " << prefix << endl;
-	  combWS->var( name )->setVal(0);
-	  combWS->var( name )->setConstant(1);
+	  if ( prefix!= "ATLAS" ) continue;
+	  combWS->var( name )->setVal(0.01);
+	  //	  combWS->var( name )->setConstant(1);
 	}
 
 	map<string, double> names;
 	names["mu_XS_bbH"] = 1;
 	names["mu_XS_tHjb"]=1;
 	names["mu_XS_tWH"]=1;
-	//	names["slope_VHhad_tight"]=1e-9;
+
+	//	names["ATLAS_TRIGGER_HLT_g35_loose_g25_loose"]=0;
+	//names["ATLAS_BR_gamgam"]=0;
+	//names["ATLAS_LUMI"]=0;
 	for ( auto vName : names ) {
 	  combWS->var( vName.first.c_str() )->setVal(vName.second);
 	  combWS->var( vName.first.c_str() )->setConstant(1);
 	}
 
+	//	combWS->var( "ATLAS_BR_gamgam" )->setConstant(0);
+		//	combWS->var( "mu" )->setConstant(0);
 
 	break;
       }
@@ -338,7 +337,34 @@ int  main(int argc, char *argv[]){
 
       cout << "end modification" << endl;
 
+      // vector<string> categoriesNames = {"ggH_CenLow", "ggH_CenHigh", "ggH_FwdLow", "ggH_FwdHigh", "VBFloose", "VBFtight", "VHMET", "VHlep", "VHdilep", "VHhad_loose", "VHhad_tight",  "ttHhad", "ttHlep"};
+      // vector<string> processes={"ggH", "VBF", "WH", "ZH", "ttH", "tHjb", "tWh", "bbH" };
+      // map<string, double> mapYields;
+      // for (unsigned int i=0; i<2; i++ ) {
+      // 	for ( auto vCat : categoriesNames ) {
+      // 	  for ( auto vProc : processes ) {
+      // 	    string dumName = "yieldFactor_" + vProc + "_" + vCat;
+      // 	    cout << dumName << endl;
+      // 	    RooProduct *prod = (RooProduct*) combWS->function( dumName.c_str() );
+      // 	    if ( !prod ) continue;
+      // 	    if ( !i ) mapYields[dumName] = prod->getVal();
+      // 	    else mapYields[dumName] -= prod->getVal();
+      // 	  }
+      // 	}
+      // 	if ( !i ) {
+      // 	  combWS->var( "ATLAS_BR_gamgam" )->setVal(1);
+      // 	  combWS->var( "mu" )->setVal(1./(1+0.0498));
+      // 	}
+      // }
+      // for ( auto vKey : mapYields ) {
+      // 	cout << vKey.first << " " << vKey.second << endl;
+      // }
+      // cout << "end test" << endl; 
+      //exit(0);
+
       //  Tree for the poi with one branch per value of poi, error, and constant status
+      //combWS->var( "ATLAS_BR_gamgam" )->setVal(1);
+
       cout << "poi tree" << endl;
       double NLL_value = -99.99, C2H = -99;
       int status = -99, Npoint = -99;
@@ -383,12 +409,11 @@ int  main(int argc, char *argv[]){
       //      poi->Print("v");
       //      cout << mu1->GetName() << " " <<  iVar1+1 << "/" << nXBins << " " << mu1->getVal() << endl;
       //      if ( vm.count( "var2" ) )      cout << mu2->GetName() << " " <<  iVar2+1 << "/" << nYBins << " " << mu2->getVal() << endl;
+      while ( nMinim ) {
       status = robustMinimize(*nll, *_minuit) ;
-      // cout << "second minimization" << endl;
-      // status = robustMinimize(*nll, *_minuit) ;
-      // cout << "third minimization" << endl;
-      // status = robustMinimize(*nll, *_minuit) ;
-      // cout << "End Minimize" << endl;
+      nMinim--;
+      }
+
       poi->Print("v");      
       if (!std::isfinite(NLL_value)) continue;
       //      nll->Minos();    

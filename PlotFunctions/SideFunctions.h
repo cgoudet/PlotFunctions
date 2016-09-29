@@ -14,7 +14,7 @@ using boost::extents;
 #include "PlotFunctions/SideFunctionsTpp.h"
 #include "TGraphErrors.h"
 #include "TString.h"
-
+#include "TXMLNode.h"
 
 using std::map;
 using std::fstream;
@@ -138,5 +138,7 @@ void VarOverTime( string inFileName, bool update=0);
 /* 		       map<string, long long int > &mapLongLong */
 /* 		       ); */
 void RescaleStack( THStack *stack, double integral );
+
+map<string,string> MapAttrNode( TXMLNode* node );
 #endif
 

@@ -23,6 +23,9 @@
 #include <RooStats/ModelConfig.h>
 #include "RooProduct.h"
 #include <algorithm> 
+#include "TXMLAttr.h"
+#include "TList.h"
+
 
 #define DEBUG 1
 using std::stringstream;
@@ -750,4 +753,21 @@ void CleanName( TString &name, vector<vector<string>> vectList, string sep  ) {
     dumName = name;
     name.ReplaceAll( sep+sep, sep );
   }
+}
+
+//=====================================
+map<string,string> MapAttrNode( TXMLNode* node ) {
+
+  map<string,string> outMap;
+  outMap["nodeName"]=node->GetNodeName();
+  TList *attr = node->GetAttributes();
+  TIterator *it = 0;
+  if(attr!=0) {
+    it = attr->MakeIterator();
+    for ( auto attr = (TXMLAttr*) it->Next(); attr!=0; attr=(TXMLAttr*)it->Next() ) {
+      outMap[attr->GetName()] = attr->GetValue();
+    }
+    delete it; it=0;
+  }
+  return outMap;
 }

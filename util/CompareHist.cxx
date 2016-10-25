@@ -1,3 +1,20 @@
+#include "PlotFunctions/SideFunctionsTpp.h"
+#include "PlotFunctions/InputCompare.h"
+#include "PlotFunctions/SideFunctions.h"
+#include "PlotFunctions/MapBranches.h"
+
+#include "TTree.h"
+#include <TROOT.h>
+#include "TMatrixD.h"
+#include "TProfile.h"
+#include "TGraphErrors.h"
+#include "PlotFunctions/DrawPlot.h"
+
+#include <boost/program_options.hpp>
+#include <boost/multi_array.hpp>
+using boost::multi_array;
+using boost::extents;
+
 #include <iostream>
 #include <vector>
 #include "TFile.h"
@@ -5,25 +22,14 @@
 #include <string>
 #include <fstream>
 #include <math.h>
-#include "TTree.h"
-#include "PlotFunctions/InputCompare.h"
-#include "PlotFunctions/SideFunctions.h"
-#include "PlotFunctions/MapBranches.h"
-#include <TROOT.h>
-#include "TMatrixD.h"
-#include "TProfile.h"
 using std::string;
 using std::cout;
 using std::endl;
 using std::vector;
-#include "TGraphErrors.h"
 
-#include "PlotFunctions/DrawPlot.h"
-#include <boost/program_options.hpp>
-#include <boost/multi_array.hpp>
-using boost::multi_array;
-using boost::extents;
 
+
+using std::fstream;
 namespace po = boost::program_options;
 
 #define DEBUG 1

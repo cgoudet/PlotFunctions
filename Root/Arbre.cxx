@@ -157,7 +157,7 @@ int  Arbre::GetArbresPath( Arbre &arbre, vector<Arbre> &outVect, vector<string> 
 
   list<Arbre> children = arbre.GetChildren();
   for ( auto child : children ) {
-    int result = GetArbresPath( child, outVect, path, vectOptions );
+    GetArbresPath( child, outVect, path, vectOptions );
   }
 
   return 0;

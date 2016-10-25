@@ -1,20 +1,23 @@
-#include <iostream>
-#include "TFile.h"
-#include <string>
-#include <boost/program_options.hpp>
-#include "RooWorkspace.h"
-#include "RooArgSet.h"
-#include <fstream>
-#include "TIterator.h"
-#include "RooRealVar.h"
 #include "PlotFunctions/SideFunctions.h"
 
+#include "TFile.h"
+#include "RooWorkspace.h"
+#include "RooArgSet.h"
+#include "TIterator.h"
+#include "RooRealVar.h"
+
+#include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
+#include <iostream>
+#include <string>
+#include <fstream>
 using std::string;
 using std::cout;
 using std::endl;
 using std::fstream;
+using std::vector;
+
 void Style_Christophe();
 
 

@@ -1,11 +1,12 @@
+#include "PlotFunctions/DrawPlot.h"
+#include "PlotFunctions/SideFunctions.h"
+#include "PlotFunctions/SideFunctionsTpp.h"
+
 #include <iostream>
 #include <string>
 #include <vector>
-#include "PlotFunctions/DrawPlot.h"
-#include "PlotFunctions/SideFunctions.h"
 #include <fstream>
 #include <algorithm>
-
 using std::fstream;
 using std::cout;
 using std::endl;

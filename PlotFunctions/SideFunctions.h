@@ -11,33 +11,27 @@
 #include "boost/multi_array.hpp"
 using boost::multi_array;
 using boost::extents;
-#include "PlotFunctions/SideFunctionsTpp.h"
+//#include "PlotFunctions/SideFunctionsTpp.h"
 #include "TGraphErrors.h"
 #include "TString.h"
 #include "TXMLNode.h"
 
-using std::map;
-using std::fstream;
-using std::string;
-using std::vector;
-using std::cout;
-using std::endl;
 
-void RebinHist( vector<TH1*> &vectHist );
-void CleanTMatrixHist( vector<TH1*> &vect, double removeVal );
+void RebinHist( std::vector<TH1*> &vectHist );
+void CleanTMatrixHist( std::vector<TH1*> &vect, double removeVal );
 
 /**\brief Get Multidimentional coordinates of an element fro mits vector index
    \param levelsSize list of elements in each dimension
    \param objIndex index of the element
 
  */
-vector<unsigned int> GetCoordFromLinear( vector<unsigned int> &levelsSize, unsigned int objIndex );
+std::vector<unsigned int> GetCoordFromLinear( std::vector<unsigned int> &levelsSize, unsigned int objIndex );
 
 /**\brief Get index of element in a vector from multidimensionnal coordinates
    \param levelsSize list of elements in each dimension
    \param Coordinates of the element
  */
-unsigned int GetLinearCoord( vector<unsigned int> &levelsSize, vector<unsigned int> &objCoords );
+unsigned int GetLinearCoord( std::vector<unsigned int> &levelsSize, std::vector<unsigned int> &objCoords );
 
 /**\brief Print allvariables of the workspace in a csv file
    \param inFileName input root file
@@ -45,7 +39,7 @@ unsigned int GetLinearCoord( vector<unsigned int> &levelsSize, vector<unsigned i
    \param inFunctions Name of the functions to be printed
    \param inWSName Name of the input workspace (useFindDefaultTree if empty)
  */
-string PrintWorkspaceVariables( string inFileName, string outFileName="", vector<string> inFunctionsName=vector<string>(), string inWSName="" );
+std::string PrintWorkspaceVariables( std::string inFileName, std::string outFileName="", std::vector<std::string> inFunctionsName=std::vector<std::string>(), std::string inWSName="" );
 
 /**\brief Print the correlation model of a pdf in a csv file
    \param inFileName input root file
@@ -56,7 +50,7 @@ string PrintWorkspaceVariables( string inFileName, string outFileName="", vector
    \param inMCName Name of the ModelConfig
 
 */
-string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vector<vector<string>> inConfigurationsName, string NPPrefix, string inWSName="", string inMCName="mconfig" );
+std::string PrintWorkspaceCorrelationModel(std::string inFileName, std::string outFileName, std::vector<std::vector<std::string>> inConfigurationsName, std::string NPPrefix, std::string inWSName="", std::string inMCName="mconfig" );
 
 /**\brief Remove signs and words from a TString
    \param name TString to be modified
@@ -68,7 +62,7 @@ string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vec
    The function remove the doubles and the final separator
  */
 
-void CleanName( TString &name, vector<vector<string>> vectList = vector<vector<string>>(), string sep = "_" );
+void CleanName( TString &name, std::vector<std::vector<std::string>> vectList = std::vector<std::vector<std::string>>(), std::string sep = "_" );
 
 /**\brief Compute Chi2 of two matching histograms
    \param MCHist Histogram with MC role
@@ -92,13 +86,13 @@ int FindFitBestRange( TH1D *hist, int &binMin, int &binMax, double chiMinLow=9, 
    \param nPlotPerWidth number of minipages per line
    \param putNameUnder Add the name of the plot below it
 */
-//void WriteLatexMinipage( fstream &latexStream, vector<string> vect, unsigned int nPlotPerWidth=0, bool putNameUnder = false );
+//void WriteLatexMinipage( fstream &latexStream, std::vector<string> vect, unsigned int nPlotPerWidth=0, bool putNameUnder = false );
 
 /**\brief Print latex header in tex file
    \param latexStream streamer to the output file
    \param author text to put in author option
  */
-void WriteLatexHeader( fstream &latexStream, string title, string author="Christophe Goudet" );
+void WriteLatexHeader( std::fstream &latexStream, std::string title, std::string author="Christophe Goudet" );
 
 /**\brief Remove suffix and prefix from a string
    \param inString string to be modified. 
@@ -106,39 +100,35 @@ void WriteLatexHeader( fstream &latexStream, string title, string author="Christ
    \param doSuffix remove everything after the last .
    \return string copy of the modified string
 
-   2 ways to get the results :
-   - return value
-   - input variable
  */
-string StripString( string &inString, bool doPrefix=1, bool doSuffix=1 );
+std::string StripString( const std::string &inString, bool doPrefix=1, bool doSuffix=1 );
 
 /**\brief Remove empty bins at the extremities of an histogram if any
    \param hist histogram to be cleaned
  */
 void RemoveExtremalEmptyBins( TH1 *hist );
 
-void ParseLegend( TH1* hist, string &legend );
-void ParseLegend( TGraphErrors *graph, string &legend );
-void ParseLegend( string &legend );
+void ParseLegend( TH1* hist, std::string &legend );
+void ParseLegend( TGraphErrors *graph, std::string &legend );
+void ParseLegend( std::string &legend );
 
 /**\brief Create a boostraped Tree out of inputTrees
    \param inTrees vector of input Trees
 */
-TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents=0, unsigned long seed = 0, int mode = 0 );
+TTree* Bootstrap( std::vector< TTree* > inTrees, unsigned int nEvents=0, unsigned long seed = 0, int mode = 0 );
 
-string FindDefaultTree( TFile* inFile, string type = "TTree" );
+std::string FindDefaultTree( TFile* inFile, std::string type = "TTree" );
 void AddTree( TTree *treeAdd, TTree *treeAdded );
-void SaveTree( TTree *inTree, string prefix );
+void SaveTree( TTree *inTree, std::string prefix );
 
-void DiffSystematics( string inFileName, bool update=0 );
-void VarOverTime( string inFileName, bool update=0);
-/* void LinkTreeBranches( TTree *inTree, TTree *outTree,  */
-/* 		       map<string, double> &mapDouble,  */
-/* 		       map<string, int> &mapInt,  */
-/* 		       map<string, long long int > &mapLongLong */
-/* 		       ); */
+void DiffSystematics( std::string inFileName, bool update=0 );
+void VarOverTime( std::string inFileName, bool update=0);
+
 void RescaleStack( THStack *stack, double integral );
 
-map<string,string> MapAttrNode( TXMLNode* node );
+std::map<std::string,std::string> MapAttrNode( TXMLNode* node );
+
+std::vector<std::string> CombineNames( std::vector< std::vector<std::string> > &components, std::string separator="_" );
+
 #endif
 

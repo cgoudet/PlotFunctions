@@ -1,4 +1,6 @@
 #include "PlotFunctions/SideFunctions.h"
+#include "PlotFunctions/SideFunctionsTpp.h"
+
 #include <iostream>
 #include "TF1.h"
 #include "TCanvas.h"
@@ -25,15 +27,32 @@
 #include <algorithm> 
 #include "TXMLAttr.h"
 #include "TList.h"
-
+#include <iterator>
+#include <algorithm>
 
 #define DEBUG 1
-using std::stringstream;
-using std::set;
 using namespace std::chrono;
+using namespace std;
 using RooStats::ModelConfig;
-using std::sort;
-using std::reverse;
+
+//=====================================
+/**\brief Create a name from levels of components
+ */
+vector<string> CombineNames( vector<vector<string>> &components, string separator ) {
+  vector<string> tmpVect, outVect(1,"");
+  for( auto vLevel : components ) {
+    tmpVect = outVect;
+    outVect.clear();
+    for( auto vCurrentName : tmpVect ) {
+      for ( auto vString : vLevel ) {
+	string name  = vCurrentName == "" ? vString : vCurrentName + separator + vString;
+  	outVect.push_back( name );
+      }
+    }
+  }
+  return outVect;
+}
+
 //============================================
 unsigned int GetLinearCoord( vector<unsigned int> &levelsSize, vector<unsigned int> &objCoords ) {
   //coords from the most to least nested
@@ -303,12 +322,11 @@ void WriteLatexHeader( fstream &latexStream, string title, string author ) {
 
 }
   //======================================
-string StripString( string &inString, bool doPrefix, bool doSuffix ) {
-  
-  if ( doPrefix ) inString = inString.substr( inString.find_last_of( "/" )+1 );
-  if ( doSuffix ) inString = inString.substr( 0, inString.find_last_of( "." ) );
-  
-  return inString;
+string StripString( const string &inString, bool doPrefix, bool doSuffix ) {
+  string dumString = inString;
+  if ( doPrefix ) dumString = dumString.substr( dumString.find_last_of( "/" )+1 );
+  if ( doSuffix ) dumString = dumString.substr( 0, dumString.find_last_of( "." ) );
+  return dumString;
 }
 
 //=======================================

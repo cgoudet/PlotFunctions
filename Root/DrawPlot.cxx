@@ -1,10 +1,14 @@
-#include <iostream>
+#include "PlotFunctions/SideFunctions.h"
+#include "PlotFunctions/SideFunctionsTpp.h"
+#include "PlotFunctions/DrawPlot.h"
+#include "PlotFunctions/AtlasStyle.h"
+#include "PlotFunctions/AtlasUtils.h"
+#include "PlotFunctions/AtlasLabels.h"
+
 #include "TCanvas.h"
 #include "TLegend.h"
 #include "TLine.h"
 #include "TLatex.h"
-#include "PlotFunctions/SideFunctions.h"
-#include <map>
 #include <TROOT.h>
 #include "THStack.h"
 #include "RooPlot.h"
@@ -14,16 +18,15 @@
 #include "TF1.h"
 #include "TObject.h"
 
+#include <iostream>
+#include <map>
+
 using std::map;
 using std::cout;
 using std::endl;
 using std::min;
 using std::max;
 
-#include "PlotFunctions/DrawPlot.h"
-#include "PlotFunctions/AtlasStyle.h"
-#include "PlotFunctions/AtlasUtils.h"
-#include "PlotFunctions/AtlasLabels.h"
 using namespace RooFit;
 
 #define DEBUG 0

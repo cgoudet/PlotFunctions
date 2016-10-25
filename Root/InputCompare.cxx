@@ -1,12 +1,17 @@
-#include <iostream>
 #include "PlotFunctions/SideFunctions.h"
+#include "PlotFunctions/SideFunctionsTpp.h"
 #include "PlotFunctions/InputCompare.h"
-#include <fstream>
+
 #include <boost/program_options.hpp>
-
 namespace po = boost::program_options;
-using std::ifstream;
 
+#include <iostream>
+#include <fstream>
+using std::ifstream;
+using std::vector;
+using std::string;
+using std::cout;
+using std::endl;
 
 InputCompare::InputCompare() 
 {

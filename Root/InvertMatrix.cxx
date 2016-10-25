@@ -1,21 +1,25 @@
-#include <iostream>
 #include "PlotFunctions/InvertMatrix.h"
+#include "PlotFunctions/SideFunctions.h"
+#include "PlotFunctions/SideFunctionsTpp.h"
+
 #include "TMath.h"
-#include "boost/multi_array.hpp"
 #include "RooRealVar.h"
-#include <vector>
 #include "RooArgList.h"
 #include "RooCategory.h"
 #include "RooSimultaneous.h"
 #include "RooGaussian.h"
 #include "RooFormulaVar.h"
 #include "RooArgSet.h"
-#include <map>
 #include "RooDataSet.h"
-#include <string>
 #include "RooConstVar.h"
-#include "PlotFunctions/SideFunctions.h"
 #include "Math/MinimizerOptions.h"
+
+#include "boost/multi_array.hpp"
+
+#include <iostream>
+#include <vector>
+#include <map>
+#include <string>
 
 using std::min;
 using std::max;

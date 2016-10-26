@@ -1,32 +1,33 @@
 #include "PlotFunctions/SideFunctions.h"
 #include "PlotFunctions/SideFunctionsTpp.h"
-
-#include <iostream>
-#include "TF1.h"
-#include "TCanvas.h"
-#include "TLegend.h"
-#include "TObjArray.h"
-#include "time.h"
-#include <chrono>
+#include "PlotFunctions/MapBranches.h"
 #include "TRandom.h"
 #include "TClass.h"
 #include "TKey.h"
 #include "TFile.h"
-#include <memory>
 #include "THStack.h"
 #include "TObject.h"
-#include <set>
 #include "TArrayD.h"
-#include "PlotFunctions/MapBranches.h"
 #include "RooWorkspace.h"
 #include "RooArgSet.h"
 #include "TIterator.h"
 #include "RooRealVar.h"
 #include <RooStats/ModelConfig.h>
 #include "RooProduct.h"
-#include <algorithm> 
 #include "TXMLAttr.h"
 #include "TList.h"
+
+#include "TF1.h"
+#include "TCanvas.h"
+#include "TLegend.h"
+#include "TObjArray.h"
+
+#include <iostream>
+#include "time.h"
+#include <chrono>
+#include <memory>
+#include <set>
+#include <algorithm> 
 #include <iterator>
 #include <algorithm>
 
@@ -34,12 +35,14 @@
 using namespace std::chrono;
 using namespace std;
 using RooStats::ModelConfig;
+using boost::multi_array;
+using boost::extents;
 
 //=====================================
 /**\brief Create a name from levels of components
  */
-vector<string> CombineNames( vector<vector<string>> &components, string separator ) {
-  vector<string> tmpVect, outVect(1,"");
+list<string> CombineNames( list<list<string>> &components, string separator ) {
+  list<string> tmpVect, outVect(1,"");
   for( auto vLevel : components ) {
     tmpVect = outVect;
     outVect.clear();
@@ -52,6 +55,7 @@ vector<string> CombineNames( vector<vector<string>> &components, string separato
   }
   return outVect;
 }
+
 
 //============================================
 unsigned int GetLinearCoord( vector<unsigned int> &levelsSize, vector<unsigned int> &objCoords ) {
@@ -433,30 +437,31 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long 
 }
 
 //================================================
-string FindDefaultTree( TFile* inFile, string  type  ) { 
-  if ( !inFile ) return "";
+string FindDefaultTree( const TFile* inFile, string type, string keyWord  ) { 
+  if ( !inFile ) throw invalid_argument( "FindDefaultTree : Null inFile " );
+  if ( type == "" ) type = "TTRee";
+
   string inFileName = inFile->GetName();
   StripString( inFileName );
-  vector<string> listTreeNames;
+
+  list<string> listTreeNames;
   
   TIter nextkey( inFile->GetListOfKeys());
   TKey *key=0;
   while ((key = (TKey*)nextkey())) {
-    if (strcmp( type.c_str(),key->GetClassName())) continue;
+    if (strcmp( type.c_str(),key->GetClassName())) continue;//Check wether the class name of the object is what is looked for
     listTreeNames.push_back( key->GetName() );
   }
   delete key; key=0;
   
-  if ( !listTreeNames.size() ) {
-    cout << "No TTree in this file. exiting" << endl;
-    exit( 0 );
+  if ( !listTreeNames.size() ) throw runtime_error( "FindDefaultTree : No object of type " + type + " found." );
+  else if ( listTreeNames.size() == 1 || keyWord == "" ) return *listTreeNames.begin();
+  else {
+    for ( auto it = listTreeNames.begin(); it!=listTreeNames.end(); ++it ) {
+      if ( it->find(keyWord) != string::npos ) return *it;
+    }
   }
-  else  if ( listTreeNames.size() == 1 ) return listTreeNames.front();
-  else 
-    for ( auto treeName : listTreeNames )
-      if ( TString( treeName ).Contains( inFileName ) ) return treeName;
-  return listTreeNames.front();
-  
+  throw runtime_error( "FindDefaultTree : No object found of type " + type + " with name containing " + keyWord );
 }
 
 //===========================================

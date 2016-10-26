@@ -16,13 +16,15 @@ class MapBranches {
   MapBranches();
   ~MapBranches();
 
-  map< string, int > &GetMapInt() { return m_mapInt; }
-  map< string, double > &GetMapDouble() { return m_mapDouble; }
-  map< string, unsigned long long > &GetMapULongLong() { return m_mapULongLong; }
-  map< string, long long > &GetMapLongLong() { return m_mapLongLong; }
-  map< string, unsigned int > &GetMapUnsigned() { return m_mapUnsigned; }
+  const map< string, int > &GetMapInt() const { return m_mapInt; }
+  const map< string, double > &GetMapDouble() const { return m_mapDouble; }
+  const map< string, unsigned long long > &GetMapULongLong() const { return m_mapULongLong; }
+  const map< string, long long > &GetMapLongLong() const { return m_mapLongLong; }
+  const map< string, unsigned int > &GetMapUnsigned() const { return m_mapUnsigned; }
 
   void LinkTreeBranches( TTree *inTree, TTree *outTree = 0, vector<string> branchesToLink = vector<string>() );
+  void Print() const;
+
   void SetVal( string label, int val ) { m_mapInt[label]=val; }
   void SetVal( string label, double val ) { m_mapDouble[label] = val; }
   void SetVal( string label, unsigned long long val ) { m_mapLongLong[label] = val; }
@@ -39,7 +41,6 @@ class MapBranches {
   map< string, long long > m_mapLongLong;
   map< string, unsigned long long > m_mapULongLong;
   map< string, unsigned int > m_mapUnsigned;
-
 
 };
 #endif 

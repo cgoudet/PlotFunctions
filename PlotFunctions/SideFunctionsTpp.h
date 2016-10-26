@@ -40,15 +40,11 @@ template< typename Type1 > void PrintVector( vector< Type1 > &vect ) { copy( vec
    \param vect vector to look into
    \return int position of the value
 
-   In case of absence of the vaue in the vector, the value is added at the end and its position returned
 */
-template< typename Type1 > unsigned int SearchVectorBin( Type1 val, vector< Type1 > &vect ) {
+template< typename Type1 > unsigned int SearchVectorBin( Type1 val, const vector< Type1 > &vect ) {
   unsigned int outBin= 0;
   for ( ;  outBin < vect.size(); outBin++ )
     if ( vect[outBin] == val ) break;
-  
-  //  if ( outBin == vect.size() ) vect.push_back( val );
-  
   return outBin;
 }
 

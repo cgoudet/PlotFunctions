@@ -24,6 +24,8 @@ MapBranches::~MapBranches(){}
 void MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, vector< string > branchesToLink ) {
   ClearMaps();
 
+  if ( !inTree ) throw invalid_argument( "MapBranches::LInkTreeBranches : Null input TTree." );
+
   TObjArray *branches = inTree->GetListOfBranches();
   TClass *expectedClass;
   EDataType expectedType;
@@ -35,7 +37,8 @@ void MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, vector< strin
     if ( branchesToLink.size() && SearchVectorBin( name, branchesToLink ) == branchesToLink.size() ) continue;
 
     if ( !expectedClass ) {
-      switch ( expectedType ) { //documentation at https://root.cern.ch/doc/master/TDataType_8h.html#add4d321bb9cc51030786d53d76b8b0bd
+      //documentation at https://root.cern.ch/doc/master/TDataType_8h.html#add4d321bb9cc51030786d53d76b8b0bd
+      switch ( expectedType ) { 
       case 3 : {//int
 	m_mapInt[name] = 0;
 	inTree->SetBranchAddress( name.c_str(), &m_mapInt[name] );
@@ -77,9 +80,7 @@ void MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, vector< strin
 	}
 	break;
       default :
-	cout << "LinkTree branches not planned for type : " << expectedType << endl;
-	cout << "branchName : " << name << endl;
-	exit(0);
+	throw range_error( "MapBranches::LinkTreeBranches : type  " + std::to_string(expectedType) + " not implemented for branch " + name );
       }
 
     }
@@ -98,11 +99,33 @@ void MapBranches::ClearMaps() {
 
 //============================================
 double MapBranches::GetVal( string name ) {
-  for ( auto vMap : m_mapInt ) if ( vMap.first == name ) return (double) vMap.second;
-  for ( auto vMap : m_mapDouble ) if ( vMap.first == name ) return (double) vMap.second;
-  for ( auto vMap : m_mapULongLong ) if ( vMap.first == name ) return (double) vMap.second;
-  for ( auto vMap : m_mapLongLong ) if ( vMap.first == name ) return (double) vMap.second;
-  for ( auto vMap : m_mapUnsigned ) if ( vMap.first == name ) return (double) vMap.second;
 
-  return 0;
+  auto itInt = m_mapInt.find( name );
+  if ( itInt != m_mapInt.end() ) return static_cast<double>(itInt->second);
+
+  auto itDouble = m_mapDouble.find( name );
+  if ( itDouble != m_mapDouble.end() ) return itDouble->second;
+
+  auto itULongLong = m_mapULongLong.find( name );
+  if ( itULongLong != m_mapULongLong.end() ) return static_cast<double>(itULongLong->second);
+
+  auto itLongLong = m_mapLongLong.find( name );
+  if ( itLongLong != m_mapLongLong.end() ) return static_cast<double>(itLongLong->second);
+
+  auto itUnsigned = m_mapUnsigned.find( name );
+  if ( itUnsigned != m_mapUnsigned.end() ) return static_cast<double>(itUnsigned->second);
+
+  throw runtime_error( "MapBranches::GetVal : No branche named " + name );
+}
+
+//=============================================
+void MapBranches::Print() const {
+
+
+  for ( auto it = m_mapInt.begin(); it!= m_mapInt.end(); ++it  ) cout << it->first << " " << it->second << endl;
+  for ( auto it = m_mapDouble.begin(); it!= m_mapDouble.end(); ++it  ) cout << it->first << " " << it->second << endl;
+  for ( auto it = m_mapULongLong.begin(); it!= m_mapULongLong.end(); ++it  ) cout << it->first << " " << it->second << endl;
+  for ( auto it = m_mapLongLong.begin(); it!= m_mapLongLong.end(); ++it  ) cout << it->first << " " << it->second << endl;
+  for ( auto it = m_mapUnsigned.begin(); it!= m_mapUnsigned.end(); ++it  ) cout << it->first << " " << it->second << endl;
+					
 }

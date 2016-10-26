@@ -9,12 +9,11 @@
 #include <fstream>
 #include <map>
 #include "boost/multi_array.hpp"
-using boost::multi_array;
-using boost::extents;
 //#include "PlotFunctions/SideFunctionsTpp.h"
 #include "TGraphErrors.h"
 #include "TString.h"
 #include "TXMLNode.h"
+#include <list>
 
 
 void RebinHist( std::vector<TH1*> &vectHist );
@@ -117,7 +116,7 @@ void ParseLegend( std::string &legend );
 */
 TTree* Bootstrap( std::vector< TTree* > inTrees, unsigned int nEvents=0, unsigned long seed = 0, int mode = 0 );
 
-std::string FindDefaultTree( TFile* inFile, std::string type = "TTree" );
+std::string FindDefaultTree( const TFile* inFile, std::string type = "TTree", std::string keyWord = "" );
 void AddTree( TTree *treeAdd, TTree *treeAdded );
 void SaveTree( TTree *inTree, std::string prefix );
 
@@ -128,7 +127,7 @@ void RescaleStack( THStack *stack, double integral );
 
 std::map<std::string,std::string> MapAttrNode( TXMLNode* node );
 
-std::vector<std::string> CombineNames( std::vector< std::vector<std::string> > &components, std::string separator="_" );
+std::list<std::string> CombineNames( std::list< std::list<std::string> > &components, std::string separator="_" );
 
 #endif
 

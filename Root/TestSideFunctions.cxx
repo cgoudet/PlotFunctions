@@ -6,9 +6,12 @@
 #include <algorithm>
 #include <iterator>
 #include <iostream>
+using std::list;
 using std::ostream_iterator;
 using std::cout;
 using std::endl;
+using std::string;
+
 // The name of the suite must be a different name to your class                                                                                                                                      
 BOOST_AUTO_TEST_SUITE( SideFunctionsSuite )
 
@@ -22,5 +25,14 @@ BOOST_AUTO_TEST_CASE( StripStringTest ) {
   BOOST_CHECK_EQUAL( StripString( "/path/file", 0, 1), "/path/file" );
 }
 
+BOOST_AUTO_TEST_CASE( CombineNamesTest ) {
+  list<string> prefix = { "pref1", "pref2" };
+  list<string> suffix = { "suff1", "suff2" };
+  list<list<string>> inCombi = { prefix, suffix };
+  list<string> outList = { "pref1_suff1", "pref1_suff2", "pref2_suff1", "pref2_suff2" };
+
+  BOOST_CHECK( outList == CombineNames( inCombi ) );
+
+}
 BOOST_AUTO_TEST_SUITE_END()
 

@@ -34,5 +34,19 @@ BOOST_AUTO_TEST_CASE( CombineNamesTest ) {
   BOOST_CHECK( outList == CombineNames( inCombi ) );
 
 }
+
+BOOST_AUTO_TEST_CASE( CompareDoubleTest ) {
+  double a = 987654321;
+  double b= 9.87654321e8;
+  cout << ( fabs((a-b)/a) < 1e-7 ) << endl;
+  cout << fabs((a-b)/a) << endl; 
+  BOOST_CHECK( CompareDouble( a, b ) );
+  BOOST_CHECK( !CompareDouble( a, 987653333.3 ) );
+
+  a=-a;
+  b=-b;
+  BOOST_CHECK( CompareDouble( a, b ) );
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 

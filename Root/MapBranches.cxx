@@ -21,10 +21,11 @@ MapBranches::MapBranches() {
 
 MapBranches::~MapBranches(){}
 
-void MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, vector< string > branchesToLink ) {
+void MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, list< string > branchesToLink ) {
   ClearMaps();
 
   if ( !inTree ) throw invalid_argument( "MapBranches::LInkTreeBranches : Null input TTree." );
+  if ( branchesToLink.size() ) inTree->SetBranchStatus( "*", 0);
 
   TObjArray *branches = inTree->GetListOfBranches();
   TClass *expectedClass;
@@ -34,7 +35,9 @@ void MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, vector< strin
     
     ( (TBranch*) (*branches)[iBranch])->GetExpectedType( expectedClass, expectedType );
     name=(*branches)[iBranch]->GetName();
-    if ( branchesToLink.size() && SearchVectorBin( name, branchesToLink ) == branchesToLink.size() ) continue;
+
+    if ( branchesToLink.size() && find( branchesToLink.begin(), branchesToLink.end(), name ) == branchesToLink.end() ) continue;
+    inTree->SetBranchStatus( name.c_str(), 1 );
 
     if ( !expectedClass ) {
       //documentation at https://root.cern.ch/doc/master/TDataType_8h.html#add4d321bb9cc51030786d53d76b8b0bd
@@ -98,7 +101,7 @@ void MapBranches::ClearMaps() {
 }
 
 //============================================
-double MapBranches::GetVal( string name ) {
+double MapBranches::GetVal( string name ) const {
 
   auto itInt = m_mapInt.find( name );
   if ( itInt != m_mapInt.end() ) return static_cast<double>(itInt->second);
@@ -121,11 +124,20 @@ double MapBranches::GetVal( string name ) {
 //=============================================
 void MapBranches::Print() const {
 
-
   for ( auto it = m_mapInt.begin(); it!= m_mapInt.end(); ++it  ) cout << it->first << " " << it->second << endl;
   for ( auto it = m_mapDouble.begin(); it!= m_mapDouble.end(); ++it  ) cout << it->first << " " << it->second << endl;
   for ( auto it = m_mapULongLong.begin(); it!= m_mapULongLong.end(); ++it  ) cout << it->first << " " << it->second << endl;
   for ( auto it = m_mapLongLong.begin(); it!= m_mapLongLong.end(); ++it  ) cout << it->first << " " << it->second << endl;
   for ( auto it = m_mapUnsigned.begin(); it!= m_mapUnsigned.end(); ++it  ) cout << it->first << " " << it->second << endl;
 					
+}
+
+//============================================
+list< string > MapBranches::GetKeys() const {
+  list<string> keys;
+  for ( auto it = m_mapInt.begin(); it!= m_mapInt.end(); ++it  ) keys.push_back( it->first );
+  for ( auto it = m_mapDouble.begin(); it!= m_mapDouble.end(); ++it  ) keys.push_back( it->first );
+  for ( auto it = m_mapULongLong.begin(); it!= m_mapULongLong.end(); ++it  ) keys.push_back( it->first );
+  for ( auto it = m_mapLongLong.begin(); it!= m_mapLongLong.end(); ++it  ) keys.push_back( it->first );
+  for ( auto it = m_mapUnsigned.begin(); it!= m_mapUnsigned.end(); ++it  ) keys.push_back( it->first );
 }

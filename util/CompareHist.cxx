@@ -26,7 +26,7 @@ using std::string;
 using std::cout;
 using std::endl;
 using std::vector;
-
+using std::list;
 
 
 using std::fstream;
@@ -183,7 +183,7 @@ int main( int argc, char* argv[] ) {
 	  if ( !nEntries ) { delete inTree; inTree = 0; inFile.Close( "R" ); }
 
 	  //create a vector to store all branches names to be linked
-	  vector<string> linkedVariables;
+	  list<string> linkedVariables;
 	  for ( unsigned int iWeight=0; iWeight<varWeight[iPlot].size(); iWeight++ ) 
 	    if ( varWeight[iPlot][iWeight] != "X" ) linkedVariables.push_back( varWeight[iPlot][iWeight] );
 	  for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) 

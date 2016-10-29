@@ -5,10 +5,8 @@
 #include <map>
 #include "TTree.h"
 #include <vector>
+#include <list>
 
-using std::vector;
-using std::string;
-using std::map;
 
 class MapBranches {
 
@@ -16,31 +14,32 @@ class MapBranches {
   MapBranches();
   ~MapBranches();
 
-  const map< string, int > &GetMapInt() const { return m_mapInt; }
-  const map< string, double > &GetMapDouble() const { return m_mapDouble; }
-  const map< string, unsigned long long > &GetMapULongLong() const { return m_mapULongLong; }
-  const map< string, long long > &GetMapLongLong() const { return m_mapLongLong; }
-  const map< string, unsigned int > &GetMapUnsigned() const { return m_mapUnsigned; }
+  const std::map< std::string, int > &GetMapInt() const { return m_mapInt; }
+  const std::map< std::string, double > &GetMapDouble() const { return m_mapDouble; }
+  const std::map< std::string, unsigned long long > &GetMapULongLong() const { return m_mapULongLong; }
+  const std::map< std::string, long long > &GetMapLongLong() const { return m_mapLongLong; }
+  const std::map< std::string, unsigned int > &GetMapUnsigned() const { return m_mapUnsigned; }
 
-  void LinkTreeBranches( TTree *inTree, TTree *outTree = 0, vector<string> branchesToLink = vector<string>() );
+  void LinkTreeBranches( TTree *inTree, TTree *outTree = 0, std::list<std::string> branchesToLink = std::list<std::string>() );
   void Print() const;
 
-  void SetVal( string label, int val ) { m_mapInt[label]=val; }
-  void SetVal( string label, double val ) { m_mapDouble[label] = val; }
-  void SetVal( string label, unsigned long long val ) { m_mapLongLong[label] = val; }
-  void SetVal( string label, unsigned int val ) { m_mapUnsigned[label] = val; }
+  void SetVal( std::string label, int val ) { m_mapInt[label]=val; }
+  void SetVal( std::string label, double val ) { m_mapDouble[label] = val; }
+  void SetVal( std::string label, unsigned long long val ) { m_mapLongLong[label] = val; }
+  void SetVal( std::string label, unsigned int val ) { m_mapUnsigned[label] = val; }
 
-  double GetVal( string name );
+  double GetVal( std::string name ) const;
+  std::list< std::string > GetKeys() const;
 
 
  private : 
   void ClearMaps();
 
-  map< string, int > m_mapInt;
-  map< string, double > m_mapDouble;
-  map< string, long long > m_mapLongLong;
-  map< string, unsigned long long > m_mapULongLong;
-  map< string, unsigned int > m_mapUnsigned;
+  std::map< std::string, int > m_mapInt;
+  std::map< std::string, double > m_mapDouble;
+  std::map< std::string, long long > m_mapLongLong;
+  std::map< std::string, unsigned long long > m_mapULongLong;
+  std::map< std::string, unsigned int > m_mapUnsigned;
 
 };
 #endif 

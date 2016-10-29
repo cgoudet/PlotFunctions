@@ -9,7 +9,6 @@
 #include <fstream>
 #include <map>
 #include "boost/multi_array.hpp"
-//#include "PlotFunctions/SideFunctionsTpp.h"
 #include "TGraphErrors.h"
 #include "TString.h"
 #include "TXMLNode.h"
@@ -129,5 +128,6 @@ std::map<std::string,std::string> MapAttrNode( TXMLNode* node );
 
 std::list<std::string> CombineNames( std::list< std::list<std::string> > &components, std::string separator="_" );
 
+inline bool CompareDouble( double a, double b )  { return ( fabs((a-b)/a) < 1e-7 ); }
 #endif
 

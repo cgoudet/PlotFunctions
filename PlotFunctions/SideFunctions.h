@@ -145,5 +145,7 @@ void RescaleStack( THStack *stack, double integral );
 
 //Converts Epoch/Unix time into a readable date year/month
 string ConvertEpochToDate( int epochTime );
+//string GetMinMaxBranch ( vector <string> fileNames, &minVal, &maxVal );
+
 #endif
 

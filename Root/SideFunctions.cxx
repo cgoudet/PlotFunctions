@@ -760,3 +760,35 @@ string ConvertEpochToDate ( int epochTime )
   return date;
 
 }
+
+
+//=====================================
+// void  GetMinMaxBranch ( vector <string> fileNames, string treeName, string branchName ,&minVal, &maxVal )
+// {
+
+//   TFile *inFile=0;
+//   TTree *inTree=0;
+//   int nEntries=0;
+
+//   for (unsigned int iFile=0; iFile < fileNames.size(); iFile++)
+//     {
+//       inFile = TFile::Open( fileNames[iFile].c_str()  );
+//       if (!inFile) return;
+//       inTree = (TTree*) inFile->Get( treeName.c_str() );
+//       if (!inTree) return;
+//       MapBranches mapBranches;
+//       mapBranches.LinkTreeBranches(inTree, {branchName});
+//       nEntries= inTree->GetEntries();
+
+//       for (unsigned int iEntry=0; iEntry<nEntries; iEntry++)
+// 	{
+// 	  inTree 
+
+// 	}
+
+
+//       inFile->Close();
+//     }
+
+//   delete inFile;
+// }

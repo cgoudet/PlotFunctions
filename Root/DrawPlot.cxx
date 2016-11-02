@@ -1,10 +1,14 @@
-#include <iostream>
+#include "PlotFunctions/SideFunctions.h"
+#include "PlotFunctions/SideFunctionsTpp.h"
+#include "PlotFunctions/DrawPlot.h"
+#include "PlotFunctions/AtlasStyle.h"
+#include "PlotFunctions/AtlasUtils.h"
+#include "PlotFunctions/AtlasLabels.h"
+
 #include "TCanvas.h"
 #include "TLegend.h"
 #include "TLine.h"
 #include "TLatex.h"
-#include "PlotFunctions/SideFunctions.h"
-#include <map>
 #include <TROOT.h>
 #include "THStack.h"
 #include "RooPlot.h"
@@ -14,16 +18,16 @@
 #include "TF1.h"
 #include "TObject.h"
 
+#include <iostream>
+#include <map>
+
 using std::map;
 using std::cout;
 using std::endl;
 using std::min;
 using std::max;
 
-#include "PlotFunctions/DrawPlot.h"
-#include "PlotFunctions/AtlasStyle.h"
-#include "PlotFunctions/AtlasUtils.h"
-#include "PlotFunctions/AtlasLabels.h"
+using namespace ChrisLib;
 using namespace RooFit;
 
 #define DEBUG 0
@@ -242,7 +246,7 @@ int DrawPlot( vector< TH1* > &inHist,
 
 
   //clean if requested
-  if ( mapOptionsDouble["clean"] !=-99 ) CleanTMatrixHist( inHist, mapOptionsDouble["clean"] );
+  if ( mapOptionsDouble["clean"] !=-99 ) CleanHist( inHist, mapOptionsDouble["clean"] );
   //  bool isNegativeValue = false;
   for ( unsigned int iHist = 0; iHist < inHist.size(); iHist++ ) {
     if ( !inHist[iHist] ) continue;
@@ -552,7 +556,7 @@ int DrawPlot( RooRealVar *frameVar,
 	      string outName,
 	      vector<string> inOptions
 	      ) {
-  cout << "DrawPlot frame" << endl;
+  //  cout << "DrawPlot frame" << endl;
   vector<string> inLegend, inLatex; 
   vector< vector< double > > latexPos;
   vector< double > legendCoord, rangeUserX, rangeUserY;

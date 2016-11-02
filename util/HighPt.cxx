@@ -1,17 +1,18 @@
+#include "PlotFunctions/DrawPlot.h"
+#include "PlotFunctions/SideFunctions.h"
+#include "PlotFunctions/SideFunctionsTpp.h"
+
 #include <iostream>
 #include <string>
 #include <vector>
-#include "PlotFunctions/DrawPlot.h"
-#include "PlotFunctions/SideFunctions.h"
 #include <fstream>
 #include <algorithm>
-
 using std::fstream;
 using std::cout;
 using std::endl;
 using std::vector;
 using std::string;
-
+using namespace ChrisLib;
 int main() {
 
   // vector<string> MCFileNames, DataFileNames, MCObjNames, DataObjNames;

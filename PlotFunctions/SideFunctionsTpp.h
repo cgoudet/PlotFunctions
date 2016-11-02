@@ -5,12 +5,10 @@
 #include <string>
 #include <vector>
 #include <map>
-using std::map;
-using std::vector;
-using std::stringstream;
-using std::string;
-using std::cout;
-using std::endl;
+#include <iterator>
+#include <algorithm>
+
+using namespace std;
 
 //============================================
 /**\brief Get the number of possible configurations containing a single key per vector line
@@ -34,10 +32,7 @@ template<typename Type1 > vector<unsigned int> GetLevelsSize( vector<vector<Type
 //============================================
 /**\brief Plot the content of a vector
  */
-template< typename Type1 > void PrintVector( vector< Type1 > &vect ) {
-  for ( auto vVal : vect ) cout << vVal << " ";
-  cout << endl;
-}
+template< typename Type1 > void PrintVector( vector< Type1 > &vect ) { copy( vect.begin(), vect.end(), ostream_iterator<Type1>( cout, "\n" ) ); }
 
 //============================================
 /**\brief Search for the bin number of an element in a vector
@@ -45,15 +40,11 @@ template< typename Type1 > void PrintVector( vector< Type1 > &vect ) {
    \param vect vector to look into
    \return int position of the value
 
-   In case of absence of the vaue in the vector, the value is added at the end and its position returned
 */
-template< typename Type1 > unsigned int SearchVectorBin( Type1 val, vector< Type1 > &vect ) {
+template< typename Type1 > unsigned int SearchVectorBin( Type1 val, const vector< Type1 > &vect ) {
   unsigned int outBin= 0;
   for ( ;  outBin < vect.size(); outBin++ )
     if ( vect[outBin] == val ) break;
-  
-  //  if ( outBin == vect.size() ) vect.push_back( val );
-  
   return outBin;
 }
 

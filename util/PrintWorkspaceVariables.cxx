@@ -1,20 +1,25 @@
-#include <iostream>
-#include "TFile.h"
-#include <string>
-#include <boost/program_options.hpp>
-#include "RooWorkspace.h"
-#include "RooArgSet.h"
-#include <fstream>
-#include "TIterator.h"
-#include "RooRealVar.h"
 #include "PlotFunctions/SideFunctions.h"
 
+#include "TFile.h"
+#include "RooWorkspace.h"
+#include "RooArgSet.h"
+#include "TIterator.h"
+#include "RooRealVar.h"
+
+#include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
+using namespace ChrisLib;
+
+#include <iostream>
+#include <string>
+#include <fstream>
 using std::string;
 using std::cout;
 using std::endl;
 using std::fstream;
+using std::vector;
+
 void Style_Christophe();
 
 
@@ -49,9 +54,10 @@ int main( int argc, char* argv[] ) {
   for ( auto vMode : modes ) {
     if ( vMode == "corrModel" ) {
       vector<string> categories = { "ggH_CenLow", "ggH_CenHigh", "ggH_FwdLow", "ggH_FwdHigh", "VBFloose", "VBFtight", "VHMET", "VHlep", "VHdilep", "VHhad_loose", "VHhad_tight",  "ttHhad", "ttHlep" };
-      vector<string> processes = {"ggH", "VBF", "VH", "ttH" };
-      vector<vector<string>> configurations = { processes, categories};
-      PrintWorkspaceCorrelationModel( inFileName, outName+"_corrModel.csv", configurations, "yieldFactor", "systematic" );
+      vector<string> processes = {"ggH", "VBF", "VH", "ttH", "bbH", "tHjb", "tWH", "all" };
+      vector<string> sensitiveParameters = {"yieldFactor", "meanCB", "sigmaCB"};
+      vector<vector<string>> configurations = { sensitiveParameters, processes, categories};
+      PrintWorkspaceCorrelationModel( inFileName, outName+"_corrModel.csv", configurations,  "systematic" );
     }
     else if ( vMode == "printWS" ) {
       PrintWorkspaceVariables( inFileName, outName+"_printWS.csv", functionsName );

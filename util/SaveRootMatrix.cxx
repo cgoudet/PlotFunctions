@@ -13,7 +13,6 @@ using std::string;
 using std::cout;
 using std::endl;
 
-
 int main() {
 
   //Get the matrix from root file

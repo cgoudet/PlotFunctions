@@ -1,8 +1,6 @@
 #include <memory>
 #include <vector>
 #include <RooMinimizer.h>
-#include <RooAbsPdf.h>
-#include <RooAbsData.h>
 #include <RooArgSet.h>
 #include <RooDataSet.h>
 #include <RooStats/TestStatistic.h>
@@ -15,8 +13,9 @@
 using std::cout;
 using std::endl;
 
-int robustMinimize(RooAbsReal &nll, RooMinimizer &minim, int const verbosity){
-  cout << "RobusstMinimize : Verbosity=" << verbosity << endl;
+int ChrisLib::robustMinimize(RooAbsReal &nll, RooMinimizer &minim, int const verbosity){
+  //  cout << "RobusstMinimize : Verbosity=" << verbosity << endl;
+  minim.setPrintLevel(verbosity);
   double initialNll = nll.getVal();
   double nowNll = initialNll;
   std::unique_ptr<RooArgSet> pars;
@@ -123,3 +122,10 @@ int robustMinimize(RooAbsReal &nll, RooMinimizer &minim, int const verbosity){
     return status;
 }
 
+//====================================================
+void ChrisLib::FitData( RooAbsData * data, RooAbsPdf* pdf, int const verbosity ) {
+  RooAbsReal* nll = pdf->createNLL(*data, RooFit::CloneData(false) );
+  nll->enableOffsetting( true );
+  RooMinimizer *_minuit = new  RooMinimizer(*nll);
+  robustMinimize(*nll, *_minuit, verbosity) ;
+}

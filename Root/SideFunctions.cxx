@@ -1,48 +1,75 @@
 #include "PlotFunctions/SideFunctions.h"
-#include <iostream>
-#include <fstream>
-#include "TF1.h"
-#include "TCanvas.h"
-#include "TLegend.h"
-#include "TObjArray.h"
-#include "time.h"
-#include <chrono>
+#include "PlotFunctions/SideFunctionsTpp.h"
+#include "PlotFunctions/MapBranches.h"
+
 #include "TRandom.h"
 #include "TClass.h"
 #include "TKey.h"
 #include "TFile.h"
-#include <memory>
 #include "THStack.h"
 #include "TObject.h"
-#include <set>
 #include "TArrayD.h"
-#include "PlotFunctions/MapBranches.h"
 #include "RooWorkspace.h"
 #include "RooArgSet.h"
 #include "TIterator.h"
 #include "RooRealVar.h"
 #include <RooStats/ModelConfig.h>
 #include "RooProduct.h"
+#include "TXMLAttr.h"
+#include "TList.h"
+#include "TF1.h"
+#include "TCanvas.h"
+#include "TLegend.h"
+#include "TObjArray.h"
+#include "TArrayD.h"
+
+#include <iostream>
+#include <fstream>
+#include "time.h"
+#include <chrono>
+#include <memory>
+#include <set>
 #include <algorithm> 
 #include <stdio.h>
 #include <string>
-
+#include <iterator>
 
 #define DEBUG 1
-using std::stringstream;
-using std::set;
 using namespace std::chrono;
+using namespace std;
 using RooStats::ModelConfig;
-using std::sort;
+using boost::multi_array;
+using boost::extents;
+using namespace ChrisLib;
+
+//=====================================
+/**\brief Create a name from levels of components
+ */
+list<string> ChrisLib::CombineNames( list<list<string>> &components, string separator ) {
+  list<string> tmpVect, outVect(1,"");
+  for( auto vLevel : components ) {
+    tmpVect = outVect;
+    outVect.clear();
+    for( auto vCurrentName : tmpVect ) {
+      for ( auto vString : vLevel ) {
+	string name  = vCurrentName == "" ? vString : vCurrentName + separator + vString;
+  	outVect.push_back( name );
+      }
+    }
+  }
+  return outVect;
+}
+
 //============================================
-unsigned int GetLinearCoord( vector<unsigned int> &levelsSize, vector<unsigned int> &objCoords ) {
-  //coords from the most to least nested
-  if ( levelsSize.size() != objCoords.size() ) { cout << "In GetLinearCoord sizes do not match : " << levelsSize.size() << " " << objCoords.size() << endl; exit(0);}
+unsigned int ChrisLib::GetLinearCoord( const vector<unsigned int> &levelsSize, const vector<unsigned int> &objCoords ) {
+  //coords from the least to most nested
+  if ( !levelsSize.size() && !objCoords.size() ) throw invalid_argument( "GetLinearCoord : vectors sizes are 0." );
+  if ( levelsSize.size() != objCoords.size() ) throw invalid_argument( "GetLinearCoord : vectors sizes do not match." );
 
   unsigned int index = 0;
   unsigned int indexByStep = 1;
-  
-  for ( unsigned int iObjCoords = 0; iObjCoords<objCoords.size(); ++iObjCoords ) {
+  for ( int iObjCoords = static_cast<int>(objCoords.size())-1; iObjCoords>=0; --iObjCoords ) {
+    if ( objCoords[iObjCoords] >= levelsSize[iObjCoords] ) throw runtime_error( "GetLinearCoord : Coordinate above dimension size." );
     index += indexByStep*objCoords[iObjCoords];
     indexByStep *= levelsSize[iObjCoords];
   }
@@ -50,21 +77,24 @@ unsigned int GetLinearCoord( vector<unsigned int> &levelsSize, vector<unsigned i
 }
 
   //==================================
-vector<unsigned int> GetCoordFromLinear( vector<unsigned int> &levelsSize, unsigned int objIndex ) {
-  //coords from the most to least nested
-  vector<unsigned int> coords;
-  unsigned int subLevelSize=1;
-
-  for ( auto vLevel : levelsSize ) {
+void ChrisLib::GetCoordFromLinear( const vector<unsigned> &levelsSize, const unsigned objIndex, vector<unsigned> &coords ) {
+  //coords from the least to most nested
+  coords.clear();
+  unsigned subLevelSize=1;
+  
+  for ( auto itLevel = levelsSize.rbegin(); itLevel!=levelsSize.rend(); ++itLevel ) {
     unsigned int dumSubLevelSize = subLevelSize;
-    subLevelSize *= vLevel;
+    subLevelSize *= *itLevel;
     coords.push_back( (objIndex%subLevelSize)/dumSubLevelSize );
   }
-  return coords;
+
+  reverse( coords.begin(), coords.end() );
+  if ( objIndex > subLevelSize ) throw runtime_error( "GetCoordFromLinear : Asked index above maximum." );
+
 }
 
 //==============================================================
-string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vector<vector<string>> inConfigurationsName, string varPrefix, string NPPrefix, string inWSName, string inMCName ) {
+string ChrisLib::PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vector<vector<string>> inConfigurationsName, string NPPrefix, string inWSName, string inMCName ) {
 
   //Get the model config out of the fileName
   TFile *inFile = new TFile( inFileName.c_str() );
@@ -72,7 +102,6 @@ string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vec
   if ( inWSName == "" ) inWSName = FindDefaultTree( inFile, "RooWorkspace" );
   RooWorkspace *ws = (RooWorkspace*) inFile->Get( inWSName.c_str() );
   if ( !ws ) { cout << "Workspace not found in " << inFileName << endl; exit(0); }
-  if ( inMCName == "" ) inMCName = "mconfig";
   ModelConfig* const mc = (ModelConfig*) ws->obj( inMCName.c_str() );
 
   //Get the names of all nuisance paramters
@@ -93,8 +122,11 @@ string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vec
   correlations.resize( extents[nConfig][NPName.size()] );
   vector<string> configName;
 
+  vector<unsigned int> iConfToSkip;
+
   for ( unsigned int iConf = 0; iConf< nConfig; ++iConf ) {
-    vector<unsigned int> coords = GetCoordFromLinear( configurationsDepth, iConf );
+    vector<unsigned> coords;
+    GetCoordFromLinear( configurationsDepth, iConf, coords );
     TString name = "";
     for ( unsigned int iList = 0; iList<coords.size(); ++iList ) {
       name += inConfigurationsName[iList][coords[iList]] + "_";
@@ -102,11 +134,17 @@ string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vec
     CleanName( name );
     configName.push_back( string(name) );
     //    cout << name << endl;
-    string yieldName = varPrefix+"_"+string(name);
-    RooProduct *yieldVar = (RooProduct*) ws->function( yieldName.c_str() );
-    if ( !yieldVar ) { cout << yieldName << " not found in " << ws->GetName() << endl; exit(0);}
+    RooProduct *var = (RooProduct*) ws->function( name );
+    if ( !var ) { 
+      cout << name << " not found in " << ws->GetName() << endl; 
+      iConfToSkip.push_back( iConf );
+      continue;
+    }
 
-    iter = yieldVar->getComponents()->createIterator();
+    TString nameWoVariable = name;
+    CleanName( nameWoVariable, { inConfigurationsName.front() } );
+
+    iter = var->getComponents()->createIterator();
     while ( RooRealVar* v = (RooRealVar* ) iter->Next() ) {
       TString dumName = v->GetName();
       if ( !dumName.Contains( NPPrefix.c_str() ) ) continue;
@@ -114,9 +152,9 @@ string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vec
       unsigned int nStep = 0;
       unsigned int NPPos = NPName.size();
       while ( NPPos == NPName.size() && ++nStep!=5 ) {
-	if ( nStep==2 ) dumName.ReplaceAll( name, "" );
+	if ( nStep==2 ) dumName.ReplaceAll( nameWoVariable, "" );
 	else if ( nStep ==3 ) dumName.Resize( dumName.Last('_') );
-	else if ( nStep ==4 ) dumName+="_"+name;
+	else if ( nStep ==4 ) dumName+="_"+nameWoVariable;
 	CleanName( dumName);
 	NPPos = SearchVectorBin( string(dumName), NPName );
 	//	if ( dumName.Contains( "ATLAS_pdf_acc" ) ) cout << dumName << " " << NPPos << " " << NPName.size() << endl;
@@ -130,17 +168,33 @@ string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vec
     }
   }
 
-
+  reverse( iConfToSkip.begin(), iConfToSkip.end() );
+  vector<unsigned int> dumConfToSkip = iConfToSkip;
+  PrintVector( dumConfToSkip );
+  cout << dumConfToSkip.size() << endl;
   fstream stream;
   if ( outFileName == "" ) outFileName = "/sps/atlas/c/cgoudet/Plots/CorrelationModel.csv";
   cout << "Writing in : " << outFileName << endl;
   stream.open( outFileName.c_str(), fstream::out | fstream::trunc );
-  for ( auto vName : configName ) stream << "," << vName;
+  for ( unsigned int iCat=0; iCat<correlations.size(); ++iCat ) {
+    if ( dumConfToSkip.size() && iCat == dumConfToSkip.back() ) {
+      cout << "remove " << dumConfToSkip.back() << " " << configName[iCat]<< endl;
+      dumConfToSkip.pop_back();
+      continue;
+      }
+    stream << "," << configName[iCat];
+  }
   stream << endl;
+
   for ( unsigned int iNPName = 0; iNPName< NPName.size(); ++iNPName ) {
     stream << NPName[iNPName];
+    dumConfToSkip = iConfToSkip;
     for ( unsigned int iCat=0; iCat<correlations.size(); ++iCat ) {
-      stream << "," << (correlations[iCat][iNPName] ? "X" : "");
+      if ( iCat == dumConfToSkip.back() ) {
+	dumConfToSkip.pop_back();
+	continue;
+      }
+      stream << "," << (correlations[iCat][iNPName] ? "1" : "0");
     }
     stream << endl;
   }
@@ -152,7 +206,7 @@ string PrintWorkspaceCorrelationModel(string inFileName, string outFileName, vec
   }
 
 //==============================================================
-string PrintWorkspaceVariables( string inFileName, string outFileName, vector<string> inFunctionsName, string inWSName ) {
+string ChrisLib::PrintWorkspaceVariables( string inFileName, string outFileName, vector<string> inFunctionsName, string inWSName ) {
   
   TFile *inFile = new TFile( inFileName.c_str() );
   if ( !inFile ) { cout << inFileName << " not found." << endl; exit(0); }
@@ -185,7 +239,7 @@ string PrintWorkspaceVariables( string inFileName, string outFileName, vector<st
 }
 
 //==============================================================
-void RebinHist( vector<TH1*> &vectHist ) {
+void ChrisLib::RebinHist( vector<TH1*> &vectHist ) {
   set<double> s;
   for ( auto vHist : vectHist ) {
     auto array  = vHist->GetXaxis()->GetXbins();
@@ -216,20 +270,16 @@ void RebinHist( vector<TH1*> &vectHist ) {
 }
 //==============================================================
 
-double ComputeChi2( TH1 *MCHist, TH1 *DataHist ) {
+double ChrisLib::ComputeChi2( TH1 *MCHist, TH1 *DataHist ) {
 
-  if ( MCHist->GetNbinsX() != DataHist->GetNbinsX() 
-       || MCHist->GetXaxis()->GetXmin() != DataHist->GetXaxis()->GetXmin() 
-       || MCHist->GetXaxis()->GetXmax() != DataHist->GetXaxis()->GetXmax() ) 
-{
-    cout << "Histograms for chi do not match" << endl;
-    exit(1);
- }
-  
+  if ( !ComparableHists( MCHist, DataHist ) ) throw invalid_argument( "ComputeChi2 : Not comparable histograms." );
+
   double chi2 = 0;
-  for ( int i = 0; i < MCHist->GetNbinsX(); i++ ) {
-    double valdif = ( MCHist->GetBinError( i+1 )==0 && DataHist->GetBinError( i+1 )==0 ) ? 0 : MCHist->GetBinContent( i+1 ) - DataHist->GetBinContent( i+1 );
-    double sigma2 = ( valdif != 0 ) ? MCHist->GetBinError( i+1 ) * MCHist->GetBinError( i+1 ) + DataHist->GetBinError( i+1 ) * DataHist->GetBinError( i+1 ) : 1;
+  for ( int i = 1; i < MCHist->GetNbinsX()+1; ++i ) {
+    double valdif = ( MCHist->GetBinError( i )==0 && DataHist->GetBinError( i )==0 ) ? 0 : MCHist->GetBinContent( i ) - DataHist->GetBinContent( i );
+    //    cout << "valdif : " << valdif << " = " << MCHist->GetBinContent( i ) << " - " << DataHist->GetBinContent( i ) << endl;
+    double sigma2 = ( valdif != 0 ) ? MCHist->GetBinError( i ) * MCHist->GetBinError( i ) + DataHist->GetBinError( i ) * DataHist->GetBinError( i ) : 1;
+    //    cout << "sigma2 : " << sigma2 << " :  " << MCHist->GetBinError( i ) << " " << DataHist->GetBinError( i ) << endl;
     chi2 += valdif * valdif / sigma2; 
   }
     
@@ -242,7 +292,7 @@ double ComputeChi2( TH1 *MCHist, TH1 *DataHist ) {
 
 Lower and upper bins are put into binMin and binMax variables
 */
-int FindFitBestRange( TH1D *hist, int &binMin, int &binMax, double chiMinLow, double chiMinUp ) {
+int ChrisLib::FindFitBestRange( TH1D *hist, int &binMin, int &binMax, double chiMinLow, double chiMinUp ) {
 
 
   double min = hist->GetMinimum();
@@ -266,7 +316,7 @@ int FindFitBestRange( TH1D *hist, int &binMin, int &binMax, double chiMinLow, do
 //=============================================
 
 //=============================================
-void WriteLatexHeader( fstream &latexStream, string title, string author ) {
+void ChrisLib::WriteLatexHeader( fstream &latexStream, string title, string author ) {
 
   latexStream << "\\documentclass[a4paper,12pt]{article}" << endl;
   latexStream << "\\usepackage{graphicx}" << endl;
@@ -280,16 +330,15 @@ void WriteLatexHeader( fstream &latexStream, string title, string author ) {
 
 }
   //======================================
-string StripString( string &inString, bool doPrefix, bool doSuffix ) {
-  
-  if ( doPrefix ) inString = inString.substr( inString.find_last_of( "/" )+1 );
-  if ( doSuffix ) inString = inString.substr( 0, inString.find_last_of( "." ) );
-  
-  return inString;
+string ChrisLib::StripString( const string &inString, bool doPrefix, bool doSuffix ) {
+  string dumString = inString;
+  if ( doPrefix ) dumString = dumString.substr( dumString.find_last_of( "/" )+1 );
+  if ( doSuffix ) dumString = dumString.substr( 0, dumString.find_last_of( "." ) );
+  return dumString;
 }
 
 //=======================================
-void RemoveExtremalEmptyBins( TH1 *hist ) {
+void ChrisLib::RemoveExtremalEmptyBins( TH1 *hist ) {
 
   int lowBin = 1, upBin = hist->GetNbinsX();
   while ( hist->GetBinContent( lowBin ) == 0 ) lowBin++;
@@ -299,7 +348,7 @@ void RemoveExtremalEmptyBins( TH1 *hist ) {
 }
 
 //========================================================
-void ParseLegend( TGraphErrors *graph, string &legend ) {
+void ChrisLib::ParseLegend( TGraphErrors *graph, string &legend ) {
   TString dumString = legend;
   if ( graph ) { 
     dumString.ReplaceAll( "__ENTRIES", TString::Format( "%1.0d", graph->GetN() ) );
@@ -311,7 +360,7 @@ void ParseLegend( TGraphErrors *graph, string &legend ) {
   ParseLegend( legend );
 }
 //================================
-void ParseLegend( string &legend ) {
+void ChrisLib::ParseLegend( string &legend ) {
   TString dumString = legend;
   dumString.ReplaceAll( "__HASHTAG", "#" );
   dumString.ReplaceAll( "__FILL", "" );
@@ -323,7 +372,7 @@ void ParseLegend( string &legend ) {
 }
 
 //============================
-void ParseLegend( TH1* hist, string &legend ) {
+void ChrisLib::ParseLegend( TH1* hist, string &legend ) {
 
   TString dumString = legend;
   if ( hist ) { 
@@ -338,10 +387,8 @@ void ParseLegend( TH1* hist, string &legend ) {
 }
 
 //============================================
-
-TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long int seed, int mode ) {
-  cout << "Bootstrap, mode: "<<mode << endl;
-
+TTree* ChrisLib::Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long int seed, int mode ) {
+  cout << "Bootstrap" << endl;
   string outTreeName = inTrees.front()->GetName() + string( "_bootstrap" );
   TTree * outTree = new TTree ( outTreeName.c_str(), outTreeName.c_str() );
   outTree->SetDirectory(0);
@@ -407,34 +454,35 @@ TTree* Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long 
 }
 
 //================================================
-string FindDefaultTree( TFile* inFile, string  type  ) { 
-  if ( !inFile ) return "";
+string ChrisLib::FindDefaultTree( const TFile* inFile, string type, string keyWord  ) { 
+  if ( !inFile ) throw invalid_argument( "FindDefaultTree : Null inFile " );
+  if ( type == "" ) type = "TTRee";
+
   string inFileName = inFile->GetName();
   StripString( inFileName );
-  vector<string> listTreeNames;
+
+  list<string> listTreeNames;
   
   TIter nextkey( inFile->GetListOfKeys());
   TKey *key=0;
   while ((key = (TKey*)nextkey())) {
-    if (strcmp( type.c_str(),key->GetClassName())) continue;
+    if (strcmp( type.c_str(),key->GetClassName())) continue;//Check wether the class name of the object is what is looked for
     listTreeNames.push_back( key->GetName() );
   }
   delete key; key=0;
   
-  if ( !listTreeNames.size() ) {
-    cout << "No TTree in this file. exiting" << endl;
-    exit( 0 );
+  if ( !listTreeNames.size() ) throw runtime_error( "FindDefaultTree : No object of type " + type + " found." );
+  else if ( listTreeNames.size() == 1 || keyWord == "" ) return *listTreeNames.begin();
+  else {
+    for ( auto it = listTreeNames.begin(); it!=listTreeNames.end(); ++it ) {
+      if ( it->find(keyWord) != string::npos ) return *it;
+    }
   }
-  else  if ( listTreeNames.size() == 1 ) return listTreeNames.front();
-  else 
-    for ( auto treeName : listTreeNames )
-      if ( TString( treeName ).Contains( inFileName ) ) return treeName;
-  return listTreeNames.front();
-  
+  throw runtime_error( "FindDefaultTree : No object found of type " + type + " with name containing " + keyWord );
 }
 
 //===========================================
-void AddTree( TTree *treeAdd, TTree *treeAdded ) {
+void ChrisLib::AddTree( TTree *treeAdd, TTree *treeAdded ) {
   TList *list = new TList();
   list->Add( treeAdd );
   list->Add( treeAdded );
@@ -443,7 +491,7 @@ void AddTree( TTree *treeAdd, TTree *treeAdded ) {
 }
 
 //===================================
-void SaveTree( TTree *inTree, string prefix) {
+void ChrisLib::SaveTree( TTree *inTree, string prefix) {
   prefix += string( inTree->GetName()) + ".root";
   TFile *dumFile = new TFile( prefix.c_str(), "RECREATE" );
   inTree->Write();
@@ -453,7 +501,7 @@ void SaveTree( TTree *inTree, string prefix) {
 }
 
 //================================
-void DiffSystematics( string inFileName, bool update ) {
+void ChrisLib::DiffSystematics( string inFileName, bool update ) {
 
   TFile *outFile = 0;
   TH1D *totSyst = 0;
@@ -471,8 +519,7 @@ void DiffSystematics( string inFileName, bool update ) {
   unsigned int counterSyst=0;
   string other;
   while ( inStream >> rootFileName >> histName >> systName >> mode ) {
-    //remove commentaries
-    cout << rootFileName << endl;
+    //    cout << rootFileName << endl;
     if ( TString( rootFileName).Contains("#") ) continue;
     if ( !outFile ) {
       outFile = new TFile( rootFileName.c_str(), update ? "UPDATE" : "RECREATE" );
@@ -498,13 +545,11 @@ void DiffSystematics( string inFileName, bool update ) {
     else {
       TH1D* inHist = (TH1D*) inFile->Get( histName.c_str() );
       if ( !inHist ) { cout << histName << " does not exist within " << inFile->GetName() << endl; exit(0); }
-      cout << inHist->GetName() << endl;
       //If stat appears in the name, use the error bars as the systematic
       if ( TString( systName ).Contains( "__STAT" ) ) {
 	systName = string(TString( systName ).ReplaceAll( "__STAT", "" ));
 	for ( int iBin=1; iBin<=inHist->GetNbinsX(); iBin++ ) inHist->SetBinContent( iBin, inHist->GetBinError( iBin ) );
 	tempMode = 10 + ( mode % 10 );
-	cout << "mode : " << tempMode << endl;
       }
 
 
@@ -533,7 +578,6 @@ void DiffSystematics( string inFileName, bool update ) {
      
       for ( int iBin = 1; iBin<inHist->GetNbinsX()+1; iBin++ ) inHist->SetBinError(iBin, 0 );
       outFile->cd();
-      cout << "inHist name : " << inHist->GetName() << endl;
       //      inHist->Write( "", TObject::kOverwrite );
 
       if ( DEBUG ) cout << "Add systematic to the model" << endl;
@@ -581,7 +625,7 @@ void DiffSystematics( string inFileName, bool update ) {
 }//EndDiffSystematic
 
 //===================================================
-void VarOverTime( string inFileName, bool update) {
+void ChrisLib::VarOverTime( string inFileName, bool update) {
 
   fstream inStream;
   inStream.open( inFileName, fstream::in );
@@ -668,7 +712,7 @@ void VarOverTime( string inFileName, bool update) {
   delete outFile;
 }
 //=====================================
-void RescaleStack( THStack *stack, double integral ) {
+void ChrisLib::RescaleStack( THStack *stack, double integral ) {
   TIter iter(stack->GetHists());
   TH1 *hist = 0;
   double totIntegral=0;
@@ -685,54 +729,58 @@ void RescaleStack( THStack *stack, double integral ) {
   }
 
 }
+//=====================================
+void ChrisLib::CleanHist( vector<TH1*> &vect, const double removeVal ) {
 
-void CleanTMatrixHist( vector<TH1*> &vect, double removeVal ) {
-  cout << "removeVal : " << removeVal << endl;
-  cout << "NBins : " << vect.front()->GetNbinsX() << endl;
-  //Check which bins must be kept
-  vector<int> keptBins;
-  for ( int iBin = 1; iBin<=vect.front()->GetNbinsX(); iBin++ ) {
-    bool keepBin=true;
-    for ( unsigned int iVect = 0; iVect<vect.size(); iVect++ ) {
-      if ( vect[iVect]->GetBinContent(iBin) == removeVal ) {
-	keepBin = false;
-	break;
-      }
+  for ( auto itHist = ++vect.begin(); itHist!=vect.end(); ++itHist ) {
+    if ( *itHist == 0 ) {
+      vect.erase( itHist );
+      --itHist;
     }
-    if ( keepBin ) keptBins.push_back( iBin );
+    if ( !ComparableHists( *vect.begin(), *itHist ) ) throw invalid_argument( "CleanHist : Histograms not comparables." );
   }
-  cout << "keptBinsSize : " << keptBins.size() << endl;
 
-  //  int Nbins = keptBins.size();
-    //If a least one bin is 
-  if ( keptBins.size() == vect.size() ) return;
-  vector<TH1*> outVect;
-  for ( unsigned int iVect = 0; iVect<vect.size(); iVect++ ) {
-    outVect.push_back(0);
-    outVect.back() = new TH1D( vect[iVect]->GetName(), vect[iVect]->GetTitle(), (int) keptBins.size(), 0.5, keptBins.size()+0.5 );
-    outVect.back()->SetDirectory(0);
-    //outVect.back() = new TH1D( vect[iVect]->GetName(), vect[iVect]->GetTitle(), Nbins, 0.5, Nbins+0.5 );
+  if ( vect.empty() ) return;
+  int nBins = vect.front()->GetNbinsX();
+  //Check which bins must be kept
+
+
+  vector<int> keptBins;
+  for ( int iBin = 1; iBin<=nBins; ++iBin ) {
+    bool keepBin=false;
+    for ( auto itHist = vect.begin(); itHist!=vect.end(); ++itHist ) {
+      if ( (*itHist)->GetBinContent(iBin) == removeVal ) continue;
+      keepBin = true;
+      break;
     }
-  cout << "created" << endl;
-    //Fill new histograms with old values
-    for ( unsigned int iBin=0; iBin<keptBins.size(); iBin++ ) {
-      for ( unsigned int iVect = 0; iVect<vect.size(); iVect++ ) {
-	outVect[iVect]->SetBinContent( iBin+1, vect[iVect]->GetBinContent(keptBins[iBin] ) );
-	outVect[iVect]->SetBinError( iBin+1, 0 );
-	outVect[iVect]->GetXaxis()->SetBinLabel( iBin+1, vect[iVect]->GetXaxis()->GetBinLabel( keptBins[iBin] ) );
-      }
+    if ( keepBin ) keptBins.push_back( iBin );     
     }
 
-    for ( unsigned int iVect = 0; iVect<vect.size(); iVect++ ) {
-      delete vect[iVect];
-      vect[iVect] = outVect[iVect];
-      //      delete outVect[iVect];
+
+  if ( keptBins.empty() ) throw runtime_error( "CleanHist : All bins should be removed." );
+  else if ( static_cast<int>(keptBins.size()) == nBins ) return;
+
+  //Fill new histograms with old values
+  for ( unsigned int iVect = 0; iVect<vect.size(); ++iVect ) {
+    string tmpName = vect[iVect]->GetName();
+    TH1D *dumVect = new TH1D( "tmp", vect[iVect]->GetTitle(), static_cast<int>(keptBins.size()), 0.5, keptBins.size()+0.5 );
+    dumVect->SetDirectory(0);
+    
+    for ( unsigned int iBin=0; iBin<keptBins.size(); ++iBin ) {
+      dumVect->SetBinContent( iBin+1, vect[iVect]->GetBinContent(keptBins[iBin]) );
+      dumVect->SetBinError( iBin+1, 0 );
+      dumVect->GetXaxis()->SetBinLabel( iBin+1, vect[iVect]->GetXaxis()->GetBinLabel( keptBins[iBin] ) );
     }
-      
+
+    delete vect[iVect];
+    vect[iVect] = dumVect;
+    vect[iVect]->SetName( tmpName.c_str() );
+  }
+  
 }
 
 //=====================================
-void CleanName( TString &name, vector<vector<string>> vectList, string sep  ) {
+void ChrisLib::CleanName( TString &name, vector<vector<string>> vectList, string sep  ) {
 
   for ( auto vList : vectList ) {
     for ( auto vKeywd : vList ) {
@@ -750,7 +798,7 @@ void CleanName( TString &name, vector<vector<string>> vectList, string sep  ) {
 
 
 //=====================================
-string ConvertEpochToDate ( int epochTime )
+string ChrisLib::ConvertEpochToDate ( int epochTime )
 {
 
   string date="void date";
@@ -763,7 +811,7 @@ string ConvertEpochToDate ( int epochTime )
 
 
 //=====================================
-// void  GetMinMaxBranch ( vector <string> fileNames, string treeName, string branchName ,&minVal, &maxVal )
+// void  ChrisLib::GetMinMaxBranch ( vector <string> fileNames, string treeName, string branchName ,&minVal, &maxVal )
 // {
 
 //   TFile *inFile=0;
@@ -792,3 +840,64 @@ string ConvertEpochToDate ( int epochTime )
 
 //   delete inFile;
 // }
+
+//=====================================
+map<string,string> ChrisLib::MapAttrNode( TXMLNode* node ) {
+
+  map<string,string> outMap;
+  outMap["nodeName"]=node->GetNodeName();
+  TList *attr = node->GetAttributes();
+  TIterator *it = 0;
+  if(attr!=0) {
+    it = attr->MakeIterator();
+    for ( auto attr = (TXMLAttr*) it->Next(); attr!=0; attr=(TXMLAttr*)it->Next() ) {
+      outMap[attr->GetName()] = attr->GetValue();
+    }
+    delete it; it=0;
+  }
+  return outMap;
+}
+
+//=====================================
+void ChrisLib::PrintArray( const string &outName, const multi_array<double,2> &array, const vector<string> &linesTitle, const vector<string> &colsTitle ) {
+  
+   if ( !array.size() || !array[0].size() ) return;
+   if ( linesTitle.size() && linesTitle.size() != array.size() ) throw runtime_error("PrintArray : Not enough names for lines.");
+   
+   unsigned nCols = array[0].size();
+   if ( linesTitle.size() ) ++nCols;
+   if ( colsTitle.size() && colsTitle.size() != nCols ) throw runtime_error("PrintArray : Not enough names for columns.");
+   
+   fstream stream( outName.c_str(), fstream::out );
+   for ( unsigned iLine = 0; iLine<array.size(); ++iLine ) {
+     if ( !iLine && colsTitle.size() ) {
+       copy( colsTitle.begin(), colsTitle.end(), ostream_iterator<string>( stream, "," ) );
+       stream << endl;
+     }
+     for ( unsigned iCol = 0; iCol<array[0].size(); ++iCol ) {
+       if ( !iCol && linesTitle.size() ) stream << linesTitle[iLine] << ",";
+       stream << array[iLine][iCol] << "," << endl;
+     }
+   }
+
+   stream.close();
+ }
+ //===========================================================
+bool ChrisLib::ComparableHists( TH1* a, TH1* b ) {
+
+  if ( !a || !b ) throw invalid_argument( "ComparableHists : Null histograms" );
+  if ( a->GetNbinsX() != b->GetNbinsX() ) return false;
+
+  if ( a->GetXaxis()->GetXmin() != b->GetXaxis()->GetXmin() ) return false;
+  if ( a->GetXaxis()->GetXmax() != b->GetXaxis()->GetXmax() ) return false;
+
+  const TArrayD *aArray = a->GetXaxis()->GetXbins();
+  const TArrayD *bArray = b->GetXaxis()->GetXbins();
+
+  if ( aArray->GetSize() != bArray->GetSize() ) return false;
+
+  for ( int i =0; i<aArray->GetSize(); ++i ) {
+    if ( !CompareDouble( aArray->At(i), bArray->At(i) ) ) return false;
+  }
+  return true;
+}

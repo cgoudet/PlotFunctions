@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 #==================================
 #GlobalVariables
-plotColors = [ 'black', 'red', 'blue', 'green', 'orange' ]
+plotColors = [ 'black', 'red', 'blue', 'green', 'orange', 'brown' ]
 
 #==================================
 def GetLinearCoord( levelsSize, objCoords ) :

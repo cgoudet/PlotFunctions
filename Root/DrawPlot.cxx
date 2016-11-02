@@ -27,6 +27,7 @@ using std::endl;
 using std::min;
 using std::max;
 
+using namespace ChrisLib;
 using namespace RooFit;
 
 #define DEBUG 0

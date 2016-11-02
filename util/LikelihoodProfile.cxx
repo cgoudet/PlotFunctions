@@ -32,6 +32,8 @@ using namespace RooStats;
 #include <stdlib.h>  
 #include "RooProduct.h"
 
+using namespace ChrisLib;
+
 using std::fstream;
 using std::cout;
 using std::endl;

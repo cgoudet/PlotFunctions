@@ -133,8 +133,8 @@ void MapBranches::Print() const {
 }
 
 //============================================
-list< string > MapBranches::GetKeys() const {
-  list<string> keys;
+void MapBranches::GetKeys( list<string> &keys ) {
+  keys.clear();
   for ( auto it = m_mapInt.begin(); it!= m_mapInt.end(); ++it  ) keys.push_back( it->first );
   for ( auto it = m_mapDouble.begin(); it!= m_mapDouble.end(); ++it  ) keys.push_back( it->first );
   for ( auto it = m_mapULongLong.begin(); it!= m_mapULongLong.end(); ++it  ) keys.push_back( it->first );

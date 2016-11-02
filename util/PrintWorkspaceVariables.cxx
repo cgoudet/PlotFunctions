@@ -9,6 +9,8 @@
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
+using namespace ChrisLib;
+
 #include <iostream>
 #include <string>
 #include <fstream>

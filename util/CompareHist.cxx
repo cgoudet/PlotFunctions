@@ -31,7 +31,7 @@ using std::list;
 
 using std::fstream;
 namespace po = boost::program_options;
-
+using namespace ChrisLib;
 #define DEBUG 1
 
 /**

@@ -12,7 +12,7 @@ using std::cout;
 using std::endl;
 using std::vector;
 using std::string;
-
+using namespace ChrisLib;
 int main() {
 
   // vector<string> MCFileNames, DataFileNames, MCObjNames, DataObjNames;

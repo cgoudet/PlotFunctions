@@ -21,7 +21,7 @@ using std::cout;
 using std::endl;
 
 void Style_Christophe();
-
+using namespace ChrisLib;
 
 int main( int argc, char* argv[] ) {
 

@@ -29,7 +29,7 @@ class MapBranches {
   void SetVal( std::string label, unsigned int val ) { m_mapUnsigned[label] = val; }
 
   double GetVal( std::string name ) const;
-  std::list< std::string > GetKeys() const;
+  void GetKeys( std::list<std::string> &keys );
 
 
  private : 

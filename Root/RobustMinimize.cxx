@@ -13,8 +13,8 @@
 using std::cout;
 using std::endl;
 
-int robustMinimize(RooAbsReal &nll, RooMinimizer &minim, int const verbosity){
-  cout << "RobusstMinimize : Verbosity=" << verbosity << endl;
+int ChrisLib::robustMinimize(RooAbsReal &nll, RooMinimizer &minim, int const verbosity){
+  //  cout << "RobusstMinimize : Verbosity=" << verbosity << endl;
   minim.setPrintLevel(verbosity);
   double initialNll = nll.getVal();
   double nowNll = initialNll;
@@ -123,11 +123,9 @@ int robustMinimize(RooAbsReal &nll, RooMinimizer &minim, int const verbosity){
 }
 
 //====================================================
-void FitData( RooAbsData * data, RooAbsPdf* pdf, int const verbosity ) {
-
-  RooAbsReal* nll = pdf->createNLL(*data, RooFit::CloneData(false) ); 
+void ChrisLib::FitData( RooAbsData * data, RooAbsPdf* pdf, int const verbosity ) {
+  RooAbsReal* nll = pdf->createNLL(*data, RooFit::CloneData(false) );
   nll->enableOffsetting( true );
   RooMinimizer *_minuit = new  RooMinimizer(*nll);
-
   robustMinimize(*nll, *_minuit, verbosity) ;
 }

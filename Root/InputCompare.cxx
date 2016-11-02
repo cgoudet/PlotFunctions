@@ -13,12 +13,14 @@ using std::string;
 using std::cout;
 using std::endl;
 
-InputCompare::InputCompare() 
+using namespace ChrisLib;
+
+ChrisLib::InputCompare::InputCompare() 
 {
 }
 
 //##################################
-InputCompare::InputCompare( string fileName ) : InputCompare()
+ChrisLib::InputCompare::InputCompare( string fileName ) : InputCompare()
 {
   LoadFile( fileName );
   string name = m_outName;
@@ -84,7 +86,7 @@ InputCompare::InputCompare( string fileName ) : InputCompare()
  */
 //###########################
 
-void  InputCompare::LoadFile( string fileName ) {
+void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   string inLatexPos, varMin, varMax, eventID;
   vector< string > rootFileName, objName, varName, varWeight, latex, latexOpt, xBinning, varErrX, varErrY;
   po::options_description configOptions("configOptions");
@@ -179,7 +181,6 @@ void  InputCompare::LoadFile( string fileName ) {
     m_xBinning.push_back( vector<double>() );
     ParseVector( xBinning[iPlot], m_xBinning.back(), 0 );
   }
-  //  while ( m_xBinning.size() && m_xBinning.size() < m_varName.front().size() ) m_xBinning.push_back( m_xBinning.back() );
 
   for ( unsigned int iPlot = 0; iPlot < varWeight.size(); iPlot++ ) {
     m_varWeight.push_back( vector<string>() );
@@ -192,17 +193,10 @@ void  InputCompare::LoadFile( string fileName ) {
     cout << "laetx names and options have different sizes" << endl;
     exit(0);
   }
-
-  // if ( m_selectionCut.size() && m_selectionCut.size() != m_rootFileName.size() ) {
-  //   cout << "selectionCuts have non-zero size and diferent from rootFileName : " << m_selectionCut.size() << " " << m_rootFileName.size() << endl;
-  //   exit(0);
-  // }
-
-
 }
 
-
-vector<string> InputCompare::CreateVectorOptions() {
+//==========================================
+vector<string> ChrisLib::InputCompare::CreateVectorOptions() {
 
   vector<string> outVect;
   for ( map<string, string>::iterator it = m_mapOptions.begin(); it != m_mapOptions.end(); it++) {

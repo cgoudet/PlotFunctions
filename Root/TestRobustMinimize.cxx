@@ -13,19 +13,19 @@ BOOST_AUTO_TEST_SUITE( RobustMinimizeSuite )
 
 BOOST_AUTO_TEST_CASE( FitDataTest ) {
 
-  TH1D hist("hist", "hist", 100,-5, 5 );
-  hist.FillRandom( "gaus", 1e6 );
+  // TH1D hist("hist", "hist", 100,-5, 5 );
+  // hist.FillRandom( "gaus", 1e6 );
 
-  RooRealVar mass( "mass", "mass", 0, -5, 5 );
-  RooRealVar mean( "mean", "mean", 0, -5, 5 );
-  RooRealVar sigma( "sigma", "sigma", 1, 0, 3 );
+  // RooRealVar mass( "mass", "mass", 0, -5, 5 );
+  // RooRealVar mean( "mean", "mean", 0, -5, 5 );
+  // RooRealVar sigma( "sigma", "sigma", 1, 0, 3 );
 
-  RooDataHist dataHist( "datahist", "datahist", RooArgSet(mass), &hist );
-  RooGaussian pdf( "gaus", "gaus", mass, mean, sigma );
-  FitData( &dataHist, &pdf, -1 );
+  // RooDataHist dataHist( "datahist", "datahist", RooArgSet(mass), &hist );
+  // RooGaussian pdf( "gaus", "gaus", mass, mean, sigma );
+  // FitData( &dataHist, &pdf, -1 );
 
-  BOOST_CHECK( fabs(mean.getVal()) < 0.001 );
-  BOOST_CHECK( fabs(sigma.getVal()-1) < 0.001 );
+  // BOOST_CHECK( fabs(mean.getVal()) < 0.001 );
+  // BOOST_CHECK( fabs(sigma.getVal()-1) < 0.001 );
 }
 
 BOOST_AUTO_TEST_SUITE_END()

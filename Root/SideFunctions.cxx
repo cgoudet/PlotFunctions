@@ -713,49 +713,53 @@ void ChrisLib::RescaleStack( THStack *stack, double integral ) {
 
 }
 //=====================================
-void ChrisLib::CleanTMatrixHist( vector<TH1*> &vect, double removeVal ) {
-  cout << "removeVal : " << removeVal << endl;
-  cout << "NBins : " << vect.front()->GetNbinsX() << endl;
-  //Check which bins must be kept
-  vector<int> keptBins;
-  for ( int iBin = 1; iBin<=vect.front()->GetNbinsX(); iBin++ ) {
-    bool keepBin=true;
-    for ( unsigned int iVect = 0; iVect<vect.size(); iVect++ ) {
-      if ( vect[iVect]->GetBinContent(iBin) == removeVal ) {
-	keepBin = false;
-	break;
-      }
+void ChrisLib::CleanHist( vector<TH1*> &vect, const double removeVal ) {
+
+  for ( auto itHist = ++vect.begin(); itHist!=vect.end(); ++itHist ) {
+    if ( *itHist == 0 ) {
+      vect.erase( itHist );
+      --itHist;
     }
-    if ( keepBin ) keptBins.push_back( iBin );
+    if ( !ComparableHists( *vect.begin(), *itHist ) ) throw invalid_argument( "CleanHist : Histograms not comparables." );
   }
-  cout << "keptBinsSize : " << keptBins.size() << endl;
 
-  //  int Nbins = keptBins.size();
-    //If a least one bin is 
-  if ( keptBins.size() == vect.size() ) return;
-  vector<TH1*> outVect;
-  for ( unsigned int iVect = 0; iVect<vect.size(); iVect++ ) {
-    outVect.push_back(0);
-    outVect.back() = new TH1D( vect[iVect]->GetName(), vect[iVect]->GetTitle(), (int) keptBins.size(), 0.5, keptBins.size()+0.5 );
-    outVect.back()->SetDirectory(0);
-    //outVect.back() = new TH1D( vect[iVect]->GetName(), vect[iVect]->GetTitle(), Nbins, 0.5, Nbins+0.5 );
+  if ( vect.empty() ) return;
+  int nBins = vect.front()->GetNbinsX();
+  //Check which bins must be kept
+
+
+  vector<int> keptBins;
+  for ( int iBin = 1; iBin<=nBins; ++iBin ) {
+    bool keepBin=false;
+    for ( auto itHist = vect.begin(); itHist!=vect.end(); ++itHist ) {
+      if ( (*itHist)->GetBinContent(iBin) == removeVal ) continue;
+      keepBin = true;
+      break;
     }
-  cout << "created" << endl;
-    //Fill new histograms with old values
-    for ( unsigned int iBin=0; iBin<keptBins.size(); iBin++ ) {
-      for ( unsigned int iVect = 0; iVect<vect.size(); iVect++ ) {
-	outVect[iVect]->SetBinContent( iBin+1, vect[iVect]->GetBinContent(keptBins[iBin] ) );
-	outVect[iVect]->SetBinError( iBin+1, 0 );
-	outVect[iVect]->GetXaxis()->SetBinLabel( iBin+1, vect[iVect]->GetXaxis()->GetBinLabel( keptBins[iBin] ) );
-      }
+    if ( keepBin ) keptBins.push_back( iBin );     
     }
 
-    for ( unsigned int iVect = 0; iVect<vect.size(); iVect++ ) {
-      delete vect[iVect];
-      vect[iVect] = outVect[iVect];
-      //      delete outVect[iVect];
+
+  if ( keptBins.empty() ) throw runtime_error( "CleanHist : All bins should be removed." );
+  else if ( static_cast<int>(keptBins.size()) == nBins ) return;
+
+  //Fill new histograms with old values
+  for ( unsigned int iVect = 0; iVect<vect.size(); ++iVect ) {
+    string tmpName = vect[iVect]->GetName();
+    TH1D *dumVect = new TH1D( "tmp", vect[iVect]->GetTitle(), static_cast<int>(keptBins.size()), 0.5, keptBins.size()+0.5 );
+    dumVect->SetDirectory(0);
+    
+    for ( unsigned int iBin=0; iBin<keptBins.size(); ++iBin ) {
+      dumVect->SetBinContent( iBin+1, vect[iVect]->GetBinContent(keptBins[iBin]) );
+      dumVect->SetBinError( iBin+1, 0 );
+      dumVect->GetXaxis()->SetBinLabel( iBin+1, vect[iVect]->GetXaxis()->GetBinLabel( keptBins[iBin] ) );
     }
-      
+
+    delete vect[iVect];
+    vect[iVect] = dumVect;
+    vect[iVect]->SetName( tmpName.c_str() );
+  }
+  
 }
 
 //=====================================

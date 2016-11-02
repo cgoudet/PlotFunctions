@@ -17,7 +17,10 @@
 
 namespace ChrisLib {
   void RebinHist( std::vector<TH1*> &vectHist );
-  void CleanTMatrixHist( std::vector<TH1*> &vect, double removeVal );
+  /**\brief Remove some bins from a list of histograms its values is equal to input
+     Tested.
+   */
+  void CleanHist( std::vector<TH1*> &vect, const double removeVal );
 
   /**\brief Get Multidimentional coordinates of an element fro mits vector index
      \param levelsSize list of elements in each dimension

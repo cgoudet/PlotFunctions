@@ -245,7 +245,7 @@ int DrawPlot( vector< TH1* > &inHist,
 
 
   //clean if requested
-  if ( mapOptionsDouble["clean"] !=-99 ) CleanTMatrixHist( inHist, mapOptionsDouble["clean"] );
+  if ( mapOptionsDouble["clean"] !=-99 ) CleanHist( inHist, mapOptionsDouble["clean"] );
   //  bool isNegativeValue = false;
   for ( unsigned int iHist = 0; iHist < inHist.size(); iHist++ ) {
     if ( !inHist[iHist] ) continue;

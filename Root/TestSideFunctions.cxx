@@ -162,6 +162,82 @@ BOOST_AUTO_TEST_CASE( GetLinearCoordTest ) {
   BOOST_CHECK_EQUAL( GetLinearCoord( levelsSize, coords ), static_cast<unsigned>(22) );
 }
 
+//==========================================
+BOOST_AUTO_TEST_CASE( CleanHistTest ) {
+
+  TH1D *h1 = new TH1D( "h1", "h1", 2, 0, 2);
+  TH1D *h2 = new TH1D( "h2", "h2", 2, 0, 2);
+  vector<TH1*> vectHist;
+
+  h1->SetBinContent( 1, -99 );
+  h1->SetBinContent( 2, -99 );
+  vectHist = { h1 };
+  BOOST_CHECK_THROW( CleanHist( vectHist, -99 ), runtime_error );
+
+  h1->SetBinContent( 1, 0 );
+  h1->SetBinContent( 2, -99 );
+  vectHist = { static_cast<TH1D*>(h1->Clone() ) };
+  CleanHist( vectHist, -99 );
+  BOOST_REQUIRE_EQUAL( static_cast<int>(vectHist.size()), 1 );
+  BOOST_CHECK_EQUAL( vectHist.front()->GetNbinsX(), 1 );
+  BOOST_CHECK_EQUAL( vectHist.front()->GetBinContent(1), 0 );
+  delete vectHist.front();
+
+  h1->SetBinContent( 1, 0 );
+  h1->SetBinContent( 2, -99 );
+  vectHist = { static_cast<TH1D*>(h1->Clone() ), 0 };
+  CleanHist( vectHist, -99 );
+  BOOST_REQUIRE_EQUAL( static_cast<int>(vectHist.size()), 1 );
+  BOOST_CHECK_EQUAL( vectHist.front()->GetNbinsX(), 1 );
+  BOOST_CHECK_EQUAL( vectHist.front()->GetBinContent(1), 0 );
+  delete vectHist.front();
+
+  h1->SetBinContent( 1, 0 );
+  h1->SetBinContent( 2, 1 );
+  vectHist = { static_cast<TH1D*>(h1->Clone() ) };
+  TH1* dum = vectHist.front();
+  CleanHist( vectHist, -99 );
+  BOOST_REQUIRE_EQUAL( vectHist.front(), dum );
+  delete vectHist.front();
+
+  h1->SetBinContent( 1, -99 );
+  h1->SetBinContent( 2, 1 );
+  h2->SetBinContent( 1, -99 );
+  h2->SetBinContent( 2, 1 );
+  vectHist = { static_cast<TH1D*>(h1->Clone() ), static_cast<TH1D*>(h2->Clone() ) };
+  CleanHist( vectHist, -99 );
+  BOOST_REQUIRE_EQUAL( static_cast<int>(vectHist.size()), 2 );
+  BOOST_CHECK_EQUAL( vectHist.front()->GetNbinsX(), 1 );
+  BOOST_CHECK_EQUAL( vectHist.back()->GetNbinsX(), 1 );
+  BOOST_CHECK_EQUAL( vectHist.front()->GetBinContent(1), 1 );
+  BOOST_CHECK_EQUAL( vectHist.back()->GetBinContent(1), 1 );
+  delete vectHist.front();
+  delete vectHist.back();
+
+  h1->SetBinContent( 1, 0 );
+  h1->SetBinContent( 2, -99 );
+  h2->SetBinContent( 1, -99 );
+  h2->SetBinContent( 2, 1 );
+  vectHist = { static_cast<TH1D*>(h1->Clone() ), static_cast<TH1D*>(h2->Clone() ) };
+  TH1 *dum2 = vectHist.back();
+  dum = vectHist.front();
+  CleanHist( vectHist, -99 );
+  BOOST_REQUIRE_EQUAL( vectHist.front(), dum );
+  BOOST_REQUIRE_EQUAL( vectHist.back(), dum2 );
+  delete vectHist.front();
+  delete vectHist.back();
+
+  double x[]={0, 0.2, 2, 3};
+  TH1D *h3 = new TH1D( "h3", "h3", 3, x );
+  vectHist = { static_cast<TH1D*>(h1->Clone() ), static_cast<TH1D*>(h3->Clone() ) };
+  BOOST_CHECK_THROW( CleanHist( vectHist, -99 ), invalid_argument );
+  delete vectHist.front();
+  delete vectHist.back();
+  
+  delete h1;
+  delete h2;
+  delete h3;
+}
 
 BOOST_AUTO_TEST_SUITE_END()
 

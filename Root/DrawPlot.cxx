@@ -36,11 +36,11 @@ using namespace RooFit;
 //               kOrange=800, kSpring=820, kTeal=840, kAzure =860, kViolet =880, kPink=900 };
 
 
-  int colors[] = {1, 
-		  632, 600, 616, 416, 800, 
-		  921,
-		  629, 597, 613, 413, 797, 
-		  635, 603, 619, 419, 807 };
+int colors[] = {1, 
+		632, 600, 616, 416, 800, 
+		921,
+		629, 597, 613, 413, 797, 
+		635, 603, 619, 419, 807 };
 
 int fillColors[] = { 3, 5 };
 
@@ -130,7 +130,7 @@ int fillColors[] = { 3, 5 };
  */
 
 
-int DrawPlot( vector< TH1* > &inHist,  
+int ChrisLib::DrawPlot( vector< TH1* > &inHist,  
 	      string outName, 
 	      vector<string> inOptions
 	       ) {
@@ -551,7 +551,7 @@ int DrawPlot( vector< TH1* > &inHist,
 
 //===================================
 
-int DrawPlot( RooRealVar *frameVar,
+int ChrisLib::DrawPlot( RooRealVar *frameVar,
 	      vector<TObject*> inObj,
 	      string outName,
 	      vector<string> inOptions
@@ -642,9 +642,8 @@ int DrawPlot( RooRealVar *frameVar,
   return 0;
 }
 
-
-//void PlotPerCategory( RooRealVar *varFrame, vector<TObject*> vectObj, RooCategory *cat, string prefix, vector<string> options ) {
-vector<string> PlotPerCategory( vector<TObject*> vectObj, RooCategory *cat, string prefix, vector<string> options ) {
+//================================================
+vector<string> ChrisLib::PlotPerCategory( vector<TObject*> vectObj, RooCategory *cat, string prefix, vector<string> options ) {
 
   vector<string> plotNames;
 
@@ -697,7 +696,7 @@ vector<string> PlotPerCategory( vector<TObject*> vectObj, RooCategory *cat, stri
 }
 
 //================================================
-int DrawPlot( vector< TGraphErrors* > inGraph,  
+int ChrisLib::DrawPlot( vector< TGraphErrors* > inGraph,  
 	      string outName, 
 	      vector<string> inOptions
 	       ) {

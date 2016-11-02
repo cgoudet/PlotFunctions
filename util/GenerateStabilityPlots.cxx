@@ -21,6 +21,7 @@
 #include "PlotFunctions/DrawPlot.h"
 #include "PlotFunctions/SideFunctions.h"
 
+using namespace ChrisLib;
 using namespace std;
 
 int main(int argc, char *argv[])

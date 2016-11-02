@@ -239,5 +239,11 @@ BOOST_AUTO_TEST_CASE( CleanHistTest ) {
   delete h3;
 }
 
+//========================================
+BOOST_AUTO_TEST_CASE( RebinHistTest ) {
+  TH1D *h1 = new TH1D( "h1", "h1", 2, 0, 2);
+  TH1D *h2 = new TH1D( "h2", "h2", 2, 0, 2);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 

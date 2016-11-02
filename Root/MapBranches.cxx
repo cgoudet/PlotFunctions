@@ -11,17 +11,26 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <stdexcept>
+
 using std::string;
 using std::map;
 using std::cout;
 using std::endl;
+using std::list;
+using std::runtime_error;
+using std::invalid_argument;
+using std::range_error;
 
-MapBranches::MapBranches() { 
+using namespace ChrisLib;
+
+ChrisLib::MapBranches::MapBranches() { 
 }
 
-MapBranches::~MapBranches(){}
+ChrisLib::MapBranches::~MapBranches(){}
 
-void MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, list< string > branchesToLink ) {
+//=================================================
+void ChrisLib::MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, list< string > branchesToLink ) {
   ClearMaps();
 
   if ( !inTree ) throw invalid_argument( "MapBranches::LInkTreeBranches : Null input TTree." );
@@ -92,7 +101,7 @@ void MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, list< string 
 }
 
 //==============================================
-void MapBranches::ClearMaps() {
+void ChrisLib::MapBranches::ClearMaps() {
   m_mapInt.clear();
   m_mapDouble.clear();
   m_mapLongLong.clear();
@@ -101,7 +110,7 @@ void MapBranches::ClearMaps() {
 }
 
 //============================================
-double MapBranches::GetVal( string name ) const {
+double ChrisLib::MapBranches::GetVal( string name ) const {
 
   auto itInt = m_mapInt.find( name );
   if ( itInt != m_mapInt.end() ) return static_cast<double>(itInt->second);
@@ -122,7 +131,7 @@ double MapBranches::GetVal( string name ) const {
 }
 
 //=============================================
-void MapBranches::Print() const {
+void ChrisLib::MapBranches::Print() const {
 
   for ( auto it = m_mapInt.begin(); it!= m_mapInt.end(); ++it  ) cout << it->first << " " << it->second << endl;
   for ( auto it = m_mapDouble.begin(); it!= m_mapDouble.end(); ++it  ) cout << it->first << " " << it->second << endl;
@@ -133,7 +142,7 @@ void MapBranches::Print() const {
 }
 
 //============================================
-void MapBranches::GetKeys( list<string> &keys ) {
+void ChrisLib::MapBranches::GetKeys( list<string> &keys ) {
   keys.clear();
   for ( auto it = m_mapInt.begin(); it!= m_mapInt.end(); ++it  ) keys.push_back( it->first );
   for ( auto it = m_mapDouble.begin(); it!= m_mapDouble.end(); ++it  ) keys.push_back( it->first );

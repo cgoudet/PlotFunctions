@@ -33,7 +33,11 @@ using std::endl;
 
 
 namespace ChrisLib {
+
+  /*\brief Modify histograms to have a common binning as the one with most granularity.
+   */
   void RebinHist( std::vector<TH1*> &vectHist );
+
   /**\brief Remove some bins from a list of histograms its values is equal to input
      Tested.
    */

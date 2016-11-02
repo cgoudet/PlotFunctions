@@ -27,6 +27,7 @@
 #include "PlotFunctions/AtlasUtils.h"
 #include "PlotFunctions/AtlasLabels.h"
 
+using namespace ChrisLib;
 using namespace std;
 using std::map;
 

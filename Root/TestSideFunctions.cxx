@@ -242,8 +242,91 @@ BOOST_AUTO_TEST_CASE( CleanHistTest ) {
 //========================================
 BOOST_AUTO_TEST_CASE( RebinHistTest ) {
   TH1D *h1 = new TH1D( "h1", "h1", 2, 0, 2);
+  h1->SetBinContent( 1, 0 );
+  h1->SetBinContent( 2, 1 );
+
   TH1D *h2 = new TH1D( "h2", "h2", 2, 0, 2);
+  h2->SetBinContent( 1, 0 );
+  h2->SetBinContent( 2, 1 );
+
+  double x[] = { 0, 0.5, 1, 2 };
+  TH1D* h3 = new TH1D( "h3", "h3", 3, x );
+  h3->SetBinContent( 1, 0 );
+  h3->SetBinContent( 2, 1 );
+  h3->SetBinContent( 3, 2 );
+
+  vector<TH1*> vectHist;
+
+  vectHist = { static_cast<TH1D*>(h1->Clone() ), 0 };
+  RebinHist( vectHist );
+  BOOST_REQUIRE_EQUAL( static_cast<int>(vectHist.size() ), 1 );
+  BOOST_CHECK_EQUAL( vectHist.front()->GetNbinsX(), 2 );
+  BOOST_CHECK_EQUAL( vectHist.front()->GetBinContent(1), 0 );
+  BOOST_CHECK_EQUAL( vectHist.front()->GetBinContent(2), 1 );
+  delete vectHist.front();
+
+  vectHist = { static_cast<TH1D*>(h1->Clone() ), static_cast<TH1D*>(h2->Clone() ) };
+  RebinHist( vectHist );
+  BOOST_REQUIRE_EQUAL( static_cast<int>(vectHist.size() ), 2 );
+  BOOST_CHECK_EQUAL( vectHist.front()->GetNbinsX(), 2 );
+  BOOST_CHECK_EQUAL( vectHist.back()->GetNbinsX(), 2 );
+  BOOST_CHECK_EQUAL( vectHist.front()->GetBinContent(1), 0 );
+  BOOST_CHECK_EQUAL( vectHist.front()->GetBinContent(2), 1 );
+  BOOST_CHECK_EQUAL( vectHist.back()->GetBinContent(1), 0 );
+  BOOST_CHECK_EQUAL( vectHist.back()->GetBinContent(2), 1 );
+  delete vectHist.front();
+  delete vectHist.back();
+
+  vectHist = { static_cast<TH1D*>(h1->Clone() ), static_cast<TH1D*>(h3->Clone() ) };
+  RebinHist( vectHist );
+  BOOST_REQUIRE_EQUAL( static_cast<int>(vectHist.size() ), 2 );
+  BOOST_CHECK_EQUAL( vectHist.front()->GetNbinsX(), 3 );
+  BOOST_CHECK_EQUAL( vectHist.back()->GetNbinsX(), 3 );
+  BOOST_CHECK_EQUAL( vectHist.front()->GetBinContent(1), 0 );
+  BOOST_CHECK_EQUAL( vectHist.front()->GetBinContent(2), 0 );
+  BOOST_CHECK_EQUAL( vectHist.front()->GetBinContent(3), 1 );
+  BOOST_CHECK_EQUAL( vectHist.back()->GetBinContent(1), 0 );
+  BOOST_CHECK_EQUAL( vectHist.back()->GetBinContent(2), 1 );
+  BOOST_CHECK_EQUAL( vectHist.back()->GetBinContent(3), 2 );
+  delete vectHist.front();
+  delete vectHist.back();
+
+
+  delete h1;
+  delete h2;
+  delete h3;
 }
+
+//============================
+BOOST_AUTO_TEST_CASE( FillDefaultFrontiersTest ) {
+  vector<double> testVect = { 0., 1., 2., 3. };
+  vector<double> outVect;
+  
+  FillDefaultFrontiers( outVect, 3, 0, 3 );
+  BOOST_CHECK_EQUAL( outVect.size(), testVect.size() );
+  BOOST_CHECK( equal( outVect.begin(), outVect.end(), testVect.begin() ) );
+}
+
+//============================
+BOOST_AUTO_TEST_CASE( RemoveSeparatorTest ) {
+  BOOST_CHECK_EQUAL( RemoveSeparator( "a__b" ), "a_b" );
+  BOOST_CHECK_EQUAL( RemoveSeparator( "a___b" ), "a_b" );
+  BOOST_CHECK_EQUAL( RemoveSeparator( "a_b_" ), "a_b" );
+
+  BOOST_CHECK_EQUAL( RemoveSeparator( "azzzzzb", "zz" ), "azzzb" );
+  BOOST_CHECK_EQUAL( RemoveSeparator( "a_bzzzz", "zz" ), "a_b" );
+  BOOST_CHECK_EQUAL( RemoveSeparator( "a_bzzzzz", "zz" ), "a_bz" );
+}
+//============================
+BOOST_AUTO_TEST_CASE( RemoveWordsTest ) {
+  const list<string> words = { "baba", "barn", "zzzz" };
+
+  BOOST_CHECK_EQUAL( RemoveWords( "babaty", words ), "ty" );
+  BOOST_CHECK_EQUAL( RemoveWords( "babazzzzty", words ), "ty" );
+  BOOST_CHECK_EQUAL( RemoveWords( "zzzzbabaty", words ), "ty" );
+  BOOST_CHECK_EQUAL( RemoveWords( "babarnty", words ), "rnty" );
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
 

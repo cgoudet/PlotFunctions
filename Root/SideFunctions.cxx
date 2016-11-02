@@ -41,6 +41,7 @@ using RooStats::ModelConfig;
 using boost::multi_array;
 using boost::extents;
 using namespace ChrisLib;
+using std::swap;
 
 //=====================================
 /**\brief Create a name from levels of components
@@ -127,22 +128,21 @@ string ChrisLib::PrintWorkspaceCorrelationModel(string inFileName, string outFil
   for ( unsigned int iConf = 0; iConf< nConfig; ++iConf ) {
     vector<unsigned> coords;
     GetCoordFromLinear( configurationsDepth, iConf, coords );
-    TString name = "";
+    string name = "";
     for ( unsigned int iList = 0; iList<coords.size(); ++iList ) {
       name += inConfigurationsName[iList][coords[iList]] + "_";
     }
-    CleanName( name );
-    configName.push_back( string(name) );
-    //    cout << name << endl;
-    RooProduct *var = (RooProduct*) ws->function( name );
+    configName.push_back( RemoveSeparator( name ) );
+    RooProduct *var = (RooProduct*) ws->function( name.c_str() );
     if ( !var ) { 
       cout << name << " not found in " << ws->GetName() << endl; 
       iConfToSkip.push_back( iConf );
       continue;
     }
 
-    TString nameWoVariable = name;
-    CleanName( nameWoVariable, { inConfigurationsName.front() } );
+    list<string> removeList;
+    copy( inConfigurationsName.front().begin(), inConfigurationsName.front().end(), back_inserter(removeList) );
+    string nameWoVariable = RemoveSeparator( RemoveWords( name, removeList ) );
 
     iter = var->getComponents()->createIterator();
     while ( RooRealVar* v = (RooRealVar* ) iter->Next() ) {
@@ -155,7 +155,7 @@ string ChrisLib::PrintWorkspaceCorrelationModel(string inFileName, string outFil
 	if ( nStep==2 ) dumName.ReplaceAll( nameWoVariable, "" );
 	else if ( nStep ==3 ) dumName.Resize( dumName.Last('_') );
 	else if ( nStep ==4 ) dumName+="_"+nameWoVariable;
-	CleanName( dumName);
+	dumName = RemoveSeparator(string(dumName));
 	NPPos = SearchVectorBin( string(dumName), NPName );
 	//	if ( dumName.Contains( "ATLAS_pdf_acc" ) ) cout << dumName << " " << NPPos << " " << NPName.size() << endl;
       }
@@ -240,26 +240,35 @@ string ChrisLib::PrintWorkspaceVariables( string inFileName, string outFileName,
 
 //==============================================================
 void ChrisLib::RebinHist( vector<TH1*> &vectHist ) {
-  set<double> s;
-  for ( auto vHist : vectHist ) {
-    auto array  = vHist->GetXaxis()->GetXbins();
-    for ( int iBin = 0; iBin < array->GetSize(); iBin++ ) {
-      s.insert( array->At( iBin ) );
-    }
+
+  for ( auto itHist = vectHist.begin(); itHist!=vectHist.end(); ++itHist ) {
+    if ( *itHist  ) continue;
+    vectHist.erase( itHist );
+    --itHist;
   }
-  vector<double> axisLimits;
-  axisLimits.assign( s.begin(), s.end() );
-  cout << axisLimits.size() << endl;
-  PrintVector( axisLimits );
-  for ( unsigned int iHist = 0; iHist < vectHist.size(); iHist++ ) {
-    if ( (int) axisLimits.size()-1 == vectHist[iHist]->GetNbinsX() ) continue;
+  if ( vectHist.empty() ) return;
+  vector<double> axisLimits;//axisLimits;
+  for ( auto itHist = vectHist.begin(); itHist!=vectHist.end(); ++itHist ) {
+    auto array  = (*itHist)->GetXaxis()->GetXbins();
+    if ( array->GetSize() ) {
+      for ( int iBin = 0; iBin < array->GetSize(); iBin++ ) 
+	axisLimits.push_back( array->At( iBin ) );
+    }
+    else FillDefaultFrontiers( axisLimits, (*itHist)->GetNbinsX(), (*itHist)->GetXaxis()->GetXmin(), (*itHist)->GetXaxis()->GetXmax() );
+  }
+
+  sort( axisLimits.begin(), axisLimits.end() );
+  axisLimits.erase( unique( axisLimits.begin(), axisLimits.end() ), axisLimits.end() );
+
+  for ( unsigned int iHist = 0; iHist < vectHist.size(); ++iHist ) {
+    if ( static_cast<int>(axisLimits.size())-1 == vectHist[iHist]->GetNbinsX() ) continue;
     TH1* dumHist = vectHist[iHist];
     TString dumName = dumHist->GetName();
     vectHist[iHist] = new TH1D( dumName+"_dum", dumName+"_dum", axisLimits.size()-1, &axisLimits[0] );
     vectHist[iHist]->GetXaxis()->SetTitle( dumHist->GetXaxis()->GetTitle() );
     vectHist[iHist]->GetYaxis()->SetTitle( dumHist->GetYaxis()->GetTitle() );
 
-    for ( int iBin =1; iBin <= vectHist[iHist]->GetNbinsX(); iBin++ ) {
+    for ( int iBin =1; iBin <= vectHist[iHist]->GetNbinsX(); ++iBin ) {
       double centralValueBin = vectHist[iHist]->GetXaxis()->GetBinCenter( iBin );
       vectHist[iHist]->SetBinContent( iBin, dumHist->GetBinContent( dumHist->FindFixBin( centralValueBin ) ) );
       vectHist[iHist]->SetBinError( iBin, 0 );
@@ -732,7 +741,7 @@ void ChrisLib::RescaleStack( THStack *stack, double integral ) {
 //=====================================
 void ChrisLib::CleanHist( vector<TH1*> &vect, const double removeVal ) {
 
-  for ( auto itHist = ++vect.begin(); itHist!=vect.end(); ++itHist ) {
+  for ( auto itHist = vect.begin(); itHist!=vect.end(); ++itHist ) {
     if ( *itHist == 0 ) {
       vect.erase( itHist );
       --itHist;
@@ -778,24 +787,6 @@ void ChrisLib::CleanHist( vector<TH1*> &vect, const double removeVal ) {
   }
   
 }
-
-//=====================================
-void ChrisLib::CleanName( TString &name, vector<vector<string>> vectList, string sep  ) {
-
-  for ( auto vList : vectList ) {
-    for ( auto vKeywd : vList ) {
-      name.ReplaceAll( vKeywd, "" );
-    }
-  }
-  
-  while( name.EndsWith(&sep.back()) ) name.Resize( name.Length()-1 );
-  TString dumName = "";
-  while( dumName != name ) {
-    dumName = name;
-    name.ReplaceAll( sep+sep, sep );
-  }
-}
-
 
 //=====================================
 string ChrisLib::ConvertEpochToDate ( int epochTime )
@@ -882,10 +873,11 @@ void ChrisLib::PrintArray( const string &outName, const multi_array<double,2> &a
 
    stream.close();
  }
- //===========================================================
+//===========================================================
 bool ChrisLib::ComparableHists( TH1* a, TH1* b ) {
 
   if ( !a || !b ) throw invalid_argument( "ComparableHists : Null histograms" );
+  if ( a==b ) return true;
   if ( a->GetNbinsX() != b->GetNbinsX() ) return false;
 
   if ( a->GetXaxis()->GetXmin() != b->GetXaxis()->GetXmin() ) return false;
@@ -901,3 +893,41 @@ bool ChrisLib::ComparableHists( TH1* a, TH1* b ) {
   }
   return true;
 }
+
+//===========================================================
+void ChrisLib::FillDefaultFrontiers( vector<double> &list, const int nBins, double xMin, double xMax ) {
+  if ( !nBins ) return;
+  if ( xMin>xMax ) swap( xMin, xMax );
+
+  double width = (xMax-xMin)/nBins;
+
+  for ( int i=0; i<=nBins; ++i ) {
+    list.push_back( xMin + i*width );
+  }
+
+}
+//======================================================
+string ChrisLib::RemoveSeparator( string name, const string sep ) {
+  size_t pos = name.find( sep+sep );
+  while ( pos != string::npos ) {
+    name.erase( pos, sep.size() );
+    pos = name.find( sep+sep );
+  }
+  
+  while ( name.substr(name.size()-sep.size() ) == sep ) name.erase( name.size() - sep.size() );
+
+  return name;
+}
+
+//======================================================
+string ChrisLib::RemoveWords( string name,const list<string> &toRemove ) {
+  for ( auto itRemove = toRemove.begin(); itRemove!=toRemove.end(); ++itRemove ) {
+    size_t pos = name.find( *itRemove );
+    while ( pos != string::npos ) {
+      name.erase( pos, itRemove->size() );
+      pos = name.find( *itRemove );
+    }
+  }
+  return name;
+}
+

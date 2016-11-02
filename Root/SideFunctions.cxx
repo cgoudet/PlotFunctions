@@ -1,5 +1,6 @@
 #include "PlotFunctions/SideFunctions.h"
 #include <iostream>
+#include <fstream>
 #include "TF1.h"
 #include "TCanvas.h"
 #include "TLegend.h"
@@ -23,6 +24,9 @@
 #include <RooStats/ModelConfig.h>
 #include "RooProduct.h"
 #include <algorithm> 
+#include <stdio.h>
+#include <string>
+
 
 #define DEBUG 1
 using std::stringstream;
@@ -462,9 +466,10 @@ void DiffSystematics( string inFileName, bool update ) {
     cout << inFileName << " does not exist." << endl;
     exit(0);
   }
-
+  
   string rootFileName, histName, systName, outSystName;
   unsigned int counterSyst=0;
+  string other;
   while ( inStream >> rootFileName >> histName >> systName >> mode ) {
     //remove commentaries
     cout << rootFileName << endl;
@@ -741,4 +746,17 @@ void CleanName( TString &name, vector<vector<string>> vectList, string sep  ) {
     dumName = name;
     name.ReplaceAll( sep+sep, sep );
   }
+}
+
+
+//=====================================
+string ConvertEpochToDate ( int epochTime )
+{
+
+  string date="void date";
+  time_t currentTime = (time_t) epochTime;
+  struct tm *currentDate = localtime(&currentTime);
+  date=std::to_string(currentDate->tm_year+1900)+"/"+std::to_string(currentDate->tm_mon+1)+"/"+std::to_string(currentDate->tm_mday);
+  return date;
+
 }

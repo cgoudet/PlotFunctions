@@ -7,8 +7,10 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <stdio.h>
 #include <map>
 #include "boost/multi_array.hpp"
+#include <cstdio>
 using boost::multi_array;
 using boost::extents;
 #include "PlotFunctions/SideFunctionsTpp.h"
@@ -139,5 +141,9 @@ void VarOverTime( string inFileName, bool update=0);
 /* 		       map<string, long long int > &mapLongLong */
 /* 		       ); */
 void RescaleStack( THStack *stack, double integral );
+
+
+//Converts Epoch/Unix time into a readable date year/month
+string ConvertEpochToDate( int epochTime );
 #endif
 

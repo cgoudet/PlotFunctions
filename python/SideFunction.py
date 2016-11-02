@@ -162,15 +162,16 @@ def LatexHeader( title, subtitle='', mode = 0 ) :
                     +'\\usepackage{adjustbox}\n'
                     +'\\usepackage{pdfpages}\n'
                     +'\\usepackage{cleveref}\n'
-                    +'\\usepackage[orientation=paysage,size=A4]{beamerposter}\n'
+                   # +'\\usepackage[orientation=paysage,size=A4]{beamerposter}\n'
                     +'\\captionsetup{labelformat=empty,labelsep=none}\n' )
     output += ( '\\usetheme{Boadilla}\n'
                 +'\\beamertemplatenavigationsymbolsempty\n'
                 +'\\title[' + subtitle +']{' + title + '}\n'
                 +'\\author[Guerguichon]{Antinea Guerguichon}\n' )
     
-    if mode : output += '\\institute[LAL]{\includegraphics[width=0.3\\linewidth]{/home/goudet/Hgg/ExternalPlot/LAL.jpg} }\n'
+    if mode : output += '\\institute[LAL]{\includegraphics[width=0.3\\linewidth]{LAL.jpg} }\n'
     else : output += '\\institute[LAL]{\includegraphics[width=0.3\\linewidth]{/afs/in2p3.fr/home/a/aguergui/LAL.jpg} }\n'
+    #output += '\\institute[LAL]{\includegraphics[width=0.3\\linewidth]{/afs/in2p3.fr/home/a/aguergui/LAL.jpg} }\n' 
     output +=  ( '\\date{\\today}\n'
              +'\\begin{document}\n'
              +'\\transboxin\n'

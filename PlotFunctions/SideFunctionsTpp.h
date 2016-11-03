@@ -11,22 +11,22 @@
 namespace ChrisLib {
   //============================================
   /**\brief Get the number of possible configurations containing a single key per vector line
+     Tested.
    */
-  template<typename Type1 > unsigned int GetNConfigurations( std::vector<std::vector<Type1>> &inVect ) {
+  template<typename Type1 > unsigned int GetNConfigurations( const std::vector<std::vector<Type1>> &inVect ) {
+    if ( inVect.empty() ) return 0;
     unsigned int nConfig = 1;
-    for ( auto vList : inVect ) nConfig*=vList.size();
+    for ( auto itList = inVect.begin(); itList!=inVect.end(); ++itList ) nConfig*=itList->size();
     return nConfig;
   }
 
   //============================================
   /**\brief Get the size of the each component of a 2D vector
+Tested.
    */
-  template<typename Type1 > std::vector<unsigned int> GetLevelsSize( std::vector<std::vector<Type1>> &inVect ) {
-    std::vector<unsigned int> outVect;
-    for ( auto vList : inVect ) {
-      outVect.push_back( vList.size() );
-    }
-    return outVect;
+  template<typename Type1 > void GetLevelsSize( const std::vector<std::vector<Type1>> &inVect, std::vector<unsigned> &outVect ) {
+    outVect.clear();
+    for ( auto itList = inVect.begin(); itList!=inVect.end(); ++itList ) outVect.push_back( itList->size() );
   }
   //============================================
   /**\brief Plot the content of a vector
@@ -38,17 +38,18 @@ namespace ChrisLib {
      \param val value to be searched
      \param vect vector to look into
      \return int position of the value
-
+     Tested.
   */
-  template< typename Type1 > unsigned int SearchVectorBin( Type1 val, const std::vector< Type1 > &vect ) {
+  template< typename Type1 > unsigned int SearchVectorBin( const Type1 &val, const std::vector< Type1 > &vect ) {
     unsigned int outBin= 0;
-    for ( ;  outBin < vect.size(); outBin++ )
+    for ( ;  outBin < vect.size(); ++outBin )
       if ( vect[outBin] == val ) break;
     return outBin;
   }
 
   //============================================
   /**\brief Dirac Function
+     Tested.
    */
   template< typename Type1 > unsigned int Delta( Type1 val1, Type1 val2 ) {
     return ( val1==val2 ) ? 1 : 0;
@@ -58,9 +59,10 @@ namespace ChrisLib {
   /**\brief Parse a string into a vector of a given type elements
      \param string string to be parsed
      \param result vector
+     Tested.
   */
-  template< typename Type1 > int ParseVector( std::string &stringVector, std::vector< Type1 > &outVector, bool doClear=1 );
-  template< typename Type1 > int ParseVector( std::string &stringVector, std::vector< Type1 > &outVector, bool doClear ) {
+  template< typename Type1 > void ParseVector( const std::string &stringVector, std::vector< Type1 > &outVector, bool doClear=1 );
+  template< typename Type1 > void ParseVector( const std::string &stringVector, std::vector< Type1 > &outVector, bool doClear ) {
 
     if ( doClear )  outVector.clear();
   
@@ -71,8 +73,6 @@ namespace ChrisLib {
     while ( stream >> value ) {
       outVector.push_back( value );
     }
-
-    return 0;
   }
 
   //============================================
@@ -105,11 +105,26 @@ namespace ChrisLib {
   /**\brief Print keys of a map
    */
   template< typename Type1 > void PrintMapKeys( std::map<std::string, Type1> &inMap ) {
-    for ( auto vKey : inMap ) std::cout << vKey.first << " ";
+    for ( auto itKey = inMap.begin(); itKey!=inMap.end(); ++itKey ) std::cout << itKey->first << " ";
     std::cout << std::endl;
   }
 
   //============================================
+  template< typename cont > void RemoveNullPointers( cont &c ) {
+    for ( auto it = c.begin(); it!=c.end(); ++it ) {
+      if ( *it ) continue;
+      c.erase( it );
+      --it;
+    }
+  }
+  //=============================================
+  template< typename cont > void DeleteContainer( cont &c ) {
+    for ( auto it = c.begin(); it!=c.end(); ++it ) {
+      if ( !*it ) continue;
+      delete *it;
+      *it = 0;
+    }
+  }
 
 }
 #endif

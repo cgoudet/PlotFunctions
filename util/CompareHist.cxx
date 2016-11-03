@@ -2,6 +2,7 @@
 #include "PlotFunctions/InputCompare.h"
 #include "PlotFunctions/SideFunctions.h"
 #include "PlotFunctions/MapBranches.h"
+#include "PlotFunctions/PlotFunctions.h"
 
 #include "TTree.h"
 #include <TROOT.h>
@@ -94,6 +95,12 @@ int main( int argc, char* argv[] ) {
     cout << "iFile : " << iFile << " " << inFiles[iFile] << endl;
     InputCompare input( inFiles[iFile] );
     if ( DEBUG ) cout << "config file loaded" << endl;
+    int inputType = atoi(input.GetOption("inputType").c_str());
+    if ( inputType==0 ) {
+      PlotHist( input );
+      continue;
+    }
+
     plotPath = input.GetOption("plotDirectory");
     vector< vector< TH1* > > vectHist;
     vector< vector< TGraphErrors* > > vectGraph;
@@ -106,6 +113,7 @@ int main( int argc, char* argv[] ) {
     TTree *treePassSel=0, *treeRejSel=0;
     MapBranches mapBranch;
 
+
     for ( unsigned int iPlot = 0; iPlot < inputRootFile.size(); iPlot++ ) {
       for ( unsigned int iAdd = 0; iAdd < inputRootFile[iPlot].size(); iAdd ++ ) {
 	string dumString = inputRootFile[iPlot][iAdd];
@@ -116,24 +124,24 @@ int main( int argc, char* argv[] ) {
 	TFile inFile( inputRootFile[iPlot][iAdd].c_str() );	
 	if ( DEBUG ) cout << iPlot << " " << iAdd << endl;
 
-	switch( atoi(input.GetOption("inputType").c_str()) ) {
-	case 0 : {//histograms
-	  if ( !iPlot && !iAdd ) vectHist.push_back( vector< TH1* >() );
-	  if ( !iAdd ) vectHist.back().push_back( 0 );
-	  if ( !vectHist.back().back() ) {
-	    //Get the histograms from input file and rename it to avoid root overwritting
-	    vectHist.front().back() = (TH1D*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
-	    if ( !vectHist.front().back() ) {
-	      cout << "histogram not found : " << inputObjName[iPlot][iAdd] << " in file " << inputRootFile[iPlot][iAdd] << endl;
-	      return 1 ;
-	    }
-	    vectHist.front().back()->SetName( TString::Format( "%s_%d", inputObjName[iPlot][iAdd].c_str(), iPlot ) );
-	    vectHist.front().back()->SetDirectory( 0 );  
-	  }
-	  //If the histogram have already been created, we have to add the new one.
-	  else vectHist.front().back()->Add( (TH1D*) inFile.Get( inputObjName[iPlot][iAdd].c_str() ) );
-	  break;
-	}
+	switch( inputType ) {
+	// case 0 : {//histograms
+	//   if ( !iPlot && !iAdd ) vectHist.push_back( vector< TH1* >() );
+	//   if ( !iAdd ) vectHist.back().push_back( 0 );
+	//   if ( !vectHist.back().back() ) {
+	//     //Get the histograms from input file and rename it to avoid root overwritting
+	//     vectHist.front().back() = (TH1D*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
+	//     if ( !vectHist.front().back() ) {
+	//       cout << "histogram not found : " << inputObjName[iPlot][iAdd] << " in file " << inputRootFile[iPlot][iAdd] << endl;
+	//       return 1 ;
+	//     }
+	//     vectHist.front().back()->SetName( TString::Format( "%s_%d", inputObjName[iPlot][iAdd].c_str(), iPlot ) );
+	//     vectHist.front().back()->SetDirectory( 0 );  
+	//   }
+	//   //If the histogram have already been created, we have to add the new one.
+	//   else vectHist.front().back()->Add( (TH1D*) inFile.Get( inputObjName[iPlot][iAdd].c_str() ) );
+	//   break;
+	// }
 	  
 	  //############################################
 	case 1 : {//TTree plotting

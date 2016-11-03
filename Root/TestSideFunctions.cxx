@@ -175,12 +175,16 @@ BOOST_AUTO_TEST_CASE( CleanHistTest ) {
   BOOST_CHECK_THROW( CleanHist( vectHist, -99 ), runtime_error );
 
   h1->SetBinContent( 1, 0 );
+  h1->SetBinError( 1, 2 );
+  h1->GetXaxis()->SetBinLabel( 1, "binLabel1" );
   h1->SetBinContent( 2, -99 );
   vectHist = { static_cast<TH1D*>(h1->Clone() ) };
   CleanHist( vectHist, -99 );
   BOOST_REQUIRE_EQUAL( static_cast<int>(vectHist.size()), 1 );
   BOOST_CHECK_EQUAL( vectHist.front()->GetNbinsX(), 1 );
   BOOST_CHECK_EQUAL( vectHist.front()->GetBinContent(1), 0 );
+  BOOST_CHECK_EQUAL( vectHist.front()->GetBinError(1), 2 );
+  BOOST_CHECK_EQUAL( string(vectHist.front()->GetXaxis()->GetBinLabel(1)), "binLabel1" );
   delete vectHist.front();
 
   h1->SetBinContent( 1, 0 );

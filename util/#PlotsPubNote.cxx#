@@ -348,27 +348,27 @@ int main()
       myLineText( x, y-iHist*0.08, vectHist[iHist]->GetLineColor(), vectHist[iHist]->GetLineStyle(), "", sizeText, vectHist[iHist]->GetLineWidth(), lsize  ); 
       myMarkerText( x, y-iHist*0.08, vectHist[iHist]->GetMarkerColor(), vectHist[iHist]->GetMarkerStyle(), yearHist.c_str(), sizeText, vectHist[iHist]->GetMarkerSize(), lsize); 
       vectHist[iHist]->GetXaxis()->SetTitle("#mu");
-      vectHist[iHist]->GetXaxis()->SetTitleSize(0.05);
-      vectHist[iHist]->GetXaxis()->SetTitleOffset(1.20);
-      vectHist[iHist]->GetXaxis()->SetLabelSize(0.05);
-      vectHist[iHist]->GetYaxis()->SetTitle("m_{ee} / <m_{ee}(2015)>");
-      vectHist[iHist]->GetYaxis()->SetLabelSize(0.04);
-      vectHist[iHist]->GetYaxis()->SetTitleSize(0.05);
-      vectHist[iHist]->GetYaxis()->SetTitleOffset(1.10);
-      //cout<<"mean "<<yearHist<<": "<<vectHist[iHist]->GetMean()<<endl;
-    }
+->SetTitleSize(0.05);
+->SetTitleOffset(1.20);
+->SetLabelSize(0.05);
+->SetTitle("m_{ee} / <m_{ee}(2015)>");
+->SetLabelSize(0.04);
+->SetTitleSize(0.05);
+->SetTitleOffset(1.10);
+": "<<vectHist[iHist]->GetMean()<<endl;
 
 
 
-  ATLASLabel(0.22, 0.87, "Work in progress", 1);
-  myText(0.22, 0.79, 1,"#sqrt{s}=13 TeV, L = 3.1 (2015) + 25.5 (2016) fb^{-1}", sizeText);
 
-  if (isEndcap)   myText(0.43, y, 1,"|#eta| > 1.55", sizeText);
+ progress", 1);
+13 TeV, L = 3.1 (2015) + 25.5 (2016) fb^{-1}", sizeText);
 
-  c1->Update();
-  c1->SaveAs((savePath+"Mee_mu.root").c_str());
+ 1,"|#eta| > 1.55", sizeText);
 
-  //  muFile->Close();
+
+ot").c_str());
+
+
 
 
 

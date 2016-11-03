@@ -20,6 +20,9 @@
 #include "PlotFunctions/MapBranches.h"
 #include "PlotFunctions/DrawPlot.h"
 #include "PlotFunctions/SideFunctions.h"
+#include "PlotFunctions/AtlasStyle.h"
+#include "PlotFunctions/AtlasUtils.h"
+#include "PlotFunctions/AtlasLabels.h"
 
 using namespace ChrisLib;
 using namespace std;
@@ -32,14 +35,15 @@ int main(int argc, char *argv[])
 
   // string path= "/sps/atlas/a/aguerguichon/Calibration/DataxAOD/BackUp/";
   string path= "/sps/atlas/a/aguerguichon/Calibration/DataxAOD/";
+  string savePath= "/afs/in2p3.fr/home/a/aguergui/public/Calibration/PlotFunctions/PubNote/";
   string fileName, pattern, name;  
   vector <string> vectYear (2);
   vector <TH1*> vectProf; 
   TFile *inFile=0;
   TTree *inTree=0;
   TProfile *prof=0;
-  TH1D *hist=0;
-  unsigned int binToRemove=100;
+  TCanvas *c1=0;
+
   unsigned int nEntries;
   unsigned int timeMin=1e11;
   unsigned int timeMax=0;
@@ -51,7 +55,7 @@ int main(int argc, char *argv[])
   bool isMuPU=0;
 
   if (isMuPU) name="/afs/in2p3.fr/home/a/aguergui/public/Calibration/PlotFunctions/PubNote/Mutest";
-  else name="/afs/in2p3.fr/home/a/aguergui/public/Calibration/PlotFunctions/PubNote/Timetest";
+  else name="/afs/in2p3.fr/home/a/aguergui/public/Calibration/PlotFunctions/PubNote/Time";
   vectYear[0]= "15";
   vectYear[1]= "16";
 
@@ -71,12 +75,14 @@ int main(int argc, char *argv[])
       for (int iFile=0; iFile<10; iFile++) 
 	{
 	  fileName=path+pattern+"/"+pattern+"_"+to_string(iFile)+".root";
+	  inFile=0;
 	  inFile= TFile::Open(fileName.c_str());
 
 	  if (!inFile) break;
-	  cout<<fileName.c_str()<<endl;
+	  cout<<"File: "<<fileName.c_str()<<endl;
+	  inTree=0;
 	  inTree= (TTree*) inFile->Get( (pattern+"_"+to_string(iFile)+"_selectionTree").c_str() );
-      
+
 	  MapBranches mapBranches;
 	  mapBranches.LinkTreeBranches(inTree);
 
@@ -94,8 +100,9 @@ int main(int argc, char *argv[])
 	      timeStamp=mapLong.at("timeStamp");
   
 	      if (m12<80 || m12>100) continue;
-	      // if ( fabs( mapDouble.at("eta_calo_1") )>1.55 && fabs( mapDouble.at("eta_calo_2") )>1.55) continue;
-	  
+	      if ( fabs( mapDouble.at("eta_calo_1") )>1.37 && fabs( mapDouble.at("eta_calo_2") )>1.37) continue;
+	      //if ( mapDouble.at("eta_calo_1") <1.55 && mapDouble.at("eta_calo_2") <1.55) continue;
+	      //if ( mapDouble.at("eta_calo_1") > -1.55 && mapDouble.at("eta_calo_2") > -1.55) continue;
 	      if (isMuPU) prof->Fill(muPU, m12, weight);
 	      else
 		{
@@ -124,7 +131,20 @@ int main(int argc, char *argv[])
 	}
     }//end year
 
-  if (!isMuPU)
+
+  if (isMuPU)
+    {
+      vectOpt.push_back("xTitle= #mu");
+      vectOpt.push_back("yTitle= m_{ee} / <m_{ee}(2015)>");
+      vectOpt.push_back("rangeUserY= 0.998 1.005");
+      vectOpt.push_back("rangeUserX= 5 31");
+      vectOpt.push_back("line=1");
+      vectOpt.push_back("drawStyle=4");
+      DrawPlot(vectProf, name, vectOpt);
+    }
+
+
+  else
     {
       unsigned int nBins= (timeMax-timeMin)/(7*24*60*60); //nb of weeks
       for (unsigned int year=0; year<vectYear.size(); year++)
@@ -149,94 +169,76 @@ int main(int argc, char *argv[])
 
 		  m12=mapDouble.at("m12");
 		  if (m12<80 || m12>100) continue;
+		  if ( fabs( mapDouble.at("eta_calo_1") )>1.37 && fabs( mapDouble.at("eta_calo_2") )>1.37) continue;
+		  //if ( mapDouble.at("eta_calo_1") <1.55 && mapDouble.at("eta_calo_2") <1.55) continue;
+		  // if ( mapDouble.at("eta_calo_1") > -1.55 && mapDouble.at("eta_calo_2") > -1.55) continue;
 		  weight=mapDouble.at("weight");
 		  prof->Fill( mapLong.at("timeStamp"), m12, weight);
 		}
 	    }//end iFile
-	  
 	  prof->Scale(1/meanZDistri);
 	  vectProf.push_back(prof);
-
-	  //for (unsigned int iBin=1; iBin<=nBins; iBin++)
-	  //{
-	  // if ( prof->GetBinContent(iBin)==0 ) {binToRemove=iBin; continue;}
-		  
-	  // if ( iBin > 15 && iBin > binToRemove)
-	  //   {
-	  //     hist->SetBinContent( iBin-binToRemove+20, prof->GetBinContent(iBin) );
-	  //     hist->SetBinError( iBin-binToRemove+20, prof->GetBinError(iBin));
-	  //     if (iBin % 6 ==0 ) hist->GetXaxis()->SetBinLabel( iBin-binToRemove+20, ConvertEpochToDate(hist->GetBinCenter(iBin)).c_str() );
-	  //     else hist->GetXaxis()->SetBinLabel( iBin-binToRemove+20, " " );
-		      
-	  //   }
-
-	  // else
-	  //   {
-	  //     hist->SetBinContent( iBin, prof->GetBinContent(iBin) );
-	  //     hist->SetBinError( iBin, prof->GetBinError(iBin));
-	  //     if (iBin % 6 ==0 ) hist->GetXaxis()->SetBinLabel( iBin, ConvertEpochToDate(hist->GetBinCenter(iBin)).c_str() );
-	  //     else hist->GetXaxis()->SetBinLabel( iBin, " " );
-
-	  //   }
-		  		  
-	     
-	  // if (iBin>30 && prof->GetBinContent(iBin)!=0)
-	  //   {
-	  // hist->SetBinContent( iBin-20, prof->GetBinContent(iBin) );
-	  //     hist->SetBinError( iBin-20, prof->GetBinError(iBin));
-	  //   }
-	  // else
-	  //   {
-	  //     hist->SetBinContent( iBin, prof->GetBinContent(iBin) );
-	  //     hist->SetBinError( iBin, prof->GetBinError(iBin));		  
-	  //   }
-		  
-	  //}
-	    
-	  //  delete ZMass;
-
 	}//end year
-    }//end time plot
-
-
-
-  if (isMuPU)
-    {
-      vectOpt.push_back("xTitle= #mu");
-      vectOpt.push_back("yTitle= m_{ee} / <m_{ee}(2015)>");
-      vectOpt.push_back("rangeUserY= 0.998 1.0035");
-      vectOpt.push_back("rangeUserX= 5 31");
-      vectOpt.push_back("line=1");
-      vectOpt.push_back("drawStyle=4");
-    }
-
-  else
-    {
-
+ 
       for ( unsigned int iProf=0; iProf< vectProf.size(); iProf++)
 	{
 	  for (unsigned int iBin=1; iBin<= vectProf[0]->GetXaxis()->GetNbins(); iBin++)
 	    {
-	      if (vectProf[iProf]->GetBinContent(iBin) == 0) {cout<<"Bin0\n";vectProf[iProf]->SetBinContent(iBin, -99); cout<<"iProf: "<<iProf<<" "<<vectProf[iProf]->GetBinContent(iBin)<<endl;}
-		//	      vectProf[iProf]->GetXaxis()->SetBinLabel( iBin, ConvertEpochToDate(vectProf[iProf]->GetBinCenter(iBin)).c_str() );
+	      vectProf[iProf]->GetXaxis()->SetBinLabel( iBin, ConvertEpochToDate(vectProf[iProf]->GetBinCenter(iBin)).c_str() );
 
 	    }
 	}
+
       CleanHist(vectProf, 0);
 
-      //prof->GetXaxis()->SetTitle("Date (day/month/year)");
+      for ( unsigned int iProf=0; iProf< vectProf.size(); iProf++)
+	{
+	  for (unsigned int iBin=1; iBin<= vectProf[iProf]->GetXaxis()->GetNbins(); iBin++)
+	    {
+	      if (iBin%4!=0 && iBin!=1)  vectProf[iProf]->GetXaxis()->SetBinLabel( iBin, " " );
+	    }
+	}
+      vectOpt.push_back("xTitle= Date (day/month/year) ");
       vectOpt.push_back("yTitle= m_{ee} / <m_{ee}(2015)>");
-      vectOpt.push_back("rangeUserY= 0.998 1.0035");
-      //      vectOpt.push_back("rangeUserX= 0 23");
+      vectOpt.push_back("rangeUserY= 0.998 1.01");
       vectOpt.push_back("line=1");
-      vectOpt.push_back("extendUp=0.3");
-    }
 
-  DrawPlot(vectProf, name, vectOpt);
+      DrawPlot(vectProf, name, vectOpt);
+
+
+      //Cosmetics
+      TFile *timeFile=TFile::Open((savePath+"Time.root").c_str());
+      c1=(TCanvas*)timeFile->Get("c1");
+      c1->cd();
+      TH1D* histTmp =(TH1D*)c1->GetListOfPrimitives()->At(2);
+
+      ATLASLabel(0.22, 0.87, "Work in progress", 1, 0.06);
+      myText(0.22, 0.79, 1,"#sqrt{s}=13 TeV, L = 3.2 (2015) + 25.5 (2016) fb^{-1}", 0.05);
+      myText(0.43, 0.73, 1,"|#eta| < 1.37 (B-B events)", 0.05);
+      histTmp->SetLineColor(kRed);
+      histTmp->SetMarkerColor(kRed);
+      
+      histTmp =(TH1D*)c1->GetListOfPrimitives()->At(0);
+      histTmp->GetYaxis()->SetTitleSize(0.05);
+      histTmp->GetYaxis()->SetTitleOffset(1.10);
+      histTmp->GetYaxis()->SetLabelSize(0.04);
+
+      histTmp->GetXaxis()->SetTitleSize(0.05);
+      histTmp->GetXaxis()->SetTitleOffset(1.20);
+      histTmp->GetXaxis()->SetLabelSize(0.05);
+
+      
+      c1->SaveAs((savePath+"Mee_time_BB.pdf").c_str());
+      timeFile->Close();
+      delete timeFile;
+
+
+    }//end time plot
+
+
 
   cout<<"End of plotting"<<endl;
   delete inFile;
-  delete prof;
   return 0;
 }
 

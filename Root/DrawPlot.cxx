@@ -539,8 +539,8 @@ int ChrisLib::DrawPlot( vector< TH1* > &inHist,
     }//end doRatio
 
   if ( DEBUG ) cout << "saving" << endl;
-  canvas.SaveAs( TString(outName) + ".pdf" );
-  //  canvas.SaveAs( TString(outName) + ".root" );
+  //  canvas.SaveAs( TString(outName) + ".pdf" );
+  canvas.SaveAs( TString(outName) + ".root" );
   
 
   //========== CLEANING 

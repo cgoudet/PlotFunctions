@@ -5,9 +5,9 @@
 #include <string>
 #include <map>
 
-using std::map;
-using std::vector;
-using std::string;
+/* using std::map; */
+/* using std::vector; */
+/* using std::string; */
 
 namespace ChrisLib {
   class InputCompare 
@@ -15,55 +15,58 @@ namespace ChrisLib {
 
   public : 
     InputCompare();
-    InputCompare( string fileName );
+    InputCompare( std::string fileName );
 
-    vector< vector< string > > &GetRootFileName() { return m_rootFileName; }
-    vector< vector< string > > &GetObjName() { return m_objName; }
-    vector< string > &GetLegend() { return m_legend; }
-    vector< vector<string> > &GetVarName() { return m_varName; }
-    vector< vector<string> > &GetVarErrX() { return m_varErrX; }
-    vector< vector<string> > &GetVarErrY() { return m_varErrY; }
-    vector< double > &GetVarMin() { return m_varMin; }
-    vector< double > &GetVarMax() { return m_varMax; }
-    vector<vector< double >> &GetXBinning() { return m_xBinning; }
-    vector< string > &GetLatex() { return m_latex; }
-    vector< string > &GetSelectionCut() { return m_selectionCut;}
-    vector< string > &GetEventID() { return m_eventID; }
-    vector< string > &GetLatexOpt() { return m_latexOpt; }
-    vector< vector<string> > &GetVarWeight() { return m_varWeight; }
+    //new style
+    const std::vector<std::vector<std::string>> &GetRootFilesName() const { return m_rootFilesName; }
+    //old (wrong style
+    std::vector< std::vector< std::string > > &GetRootFileName() { return m_rootFilesName; }
+    std::vector< std::vector< std::string > > &GetObjName() { return m_objName; }
+    std::vector< std::string > &GetLegend() { return m_legend; }
+    std::vector< std::vector<std::string> > &GetVarName() { return m_varName; }
+    std::vector< std::vector<std::string> > &GetVarErrX() { return m_varErrX; }
+    std::vector< std::vector<std::string> > &GetVarErrY() { return m_varErrY; }
+    std::vector< double > &GetVarMin() { return m_varMin; }
+    std::vector< double > &GetVarMax() { return m_varMax; }
+    std::vector<std::vector< double >> &GetXBinning() { return m_xBinning; }
+    std::vector< std::string > &GetLatex() { return m_latex; }
+    std::vector< std::string > &GetSelectionCut() { return m_selectionCut;}
+    std::vector< std::string > &GetEventID() { return m_eventID; }
+    std::vector< std::string > &GetLatexOpt() { return m_latexOpt; }
+    std::vector< std::vector<std::string> > &GetVarWeight() { return m_varWeight; }
 
-    string &GetOutName() { return m_outName; }
-    string GetOption( string option ) { return m_mapOptions[option]; }
-    void  LoadFile( string fileName );
-    vector<string> CreateVectorOptions();
+    std::string &GetOutName() { return m_outName; }
+    std::string GetOption( std::string option ) { return m_mapOptions[option]; }
+    void  LoadFile( std::string fileName );
+    std::vector<std::string> CreateVectorOptions();
   private : 
     /**\brief names of the root files
 
        Files with the same first index will be added.
        Histograms generated for each index will be superimposed in the plot.
     */
-    vector< vector< string > > m_rootFileName;
+    std::vector< std::vector< std::string > > m_rootFilesName;
 
     /**\brief names of the objects to print in each root file
 
        No default behaviour defined. Number of files and nae must be identical.
     */
-    vector< vector< string > > m_objName;
+    std::vector< std::vector< std::string > > m_objName;
 
     /**\brief legend texts 
 
-       No default behaviour defined. m_legend size must be either 0 or equal to m_rootFileName.size()
+       No default behaviour defined. m_legend size must be either 0 or equal to m_rootfilesname.size()
     */
-    vector< string > m_legend;
+    std::vector< std::string > m_legend;
 
     /**\brief List of branches to print in a TTree
      */
-    vector< vector<string> > m_varName;
-    vector<vector<string> > m_varErrX;
-    vector<vector<string> > m_varErrY;
+    std::vector< std::vector<std::string> > m_varName;
+    std::vector<std::vector<std::string> > m_varErrX;
+    std::vector<std::vector<std::string> > m_varErrY;
     /**\brief Vector of latex texts to print
      */
-    vector< string > m_latex;
+    std::vector< std::string > m_latex;
 
     /**\brief Options for latex printing
        0 : latex X
@@ -73,36 +76,36 @@ namespace ChrisLib {
 
     /**\brief low bound for histogram X axis for TTree drawing
      */
-    vector< double > m_varMin;
+    std::vector< double > m_varMin;
 
     /**\brief high bound for histogram X axis for TTree drawing
      */
-    vector< double > m_varMax;
+    std::vector< double > m_varMax;
 
     /**\brief Name of the plot without suffix or prefix
      */
-    string m_outName ;
-    vector< string > m_latexOpt;
+    std::string m_outName ;
+    std::vector< std::string > m_latexOpt;
   
-    /**\brief string of selection for tree events
+    /**\brief std::string of selection for tree events
      */
-    vector< string > m_selectionCut;
+    std::vector< std::string > m_selectionCut;
   
 
-    /**\brief string of branch names to id the event
+    /**\brief std::string of branch names to id the event
 
        branch must hold long long int
     */
-    vector< string > m_eventID;
+    std::vector< std::string > m_eventID;
 
-    /**\brief string for name of weight branch.
+    /**\brief std::string for name of weight branch.
 
        Put X for no weight
     */
-    vector< vector<string> > m_varWeight;
-    vector< string > m_loadFiles;
-    map<string,string>  m_mapOptions;
-    vector<vector<double>> m_xBinning;
+    std::vector< std::vector<std::string> > m_varWeight;
+    std::vector< std::string > m_loadFiles;
+    std::map<std::string,std::string>  m_mapOptions;
+    std::vector<std::vector<double>> m_xBinning;
     //  bool m_doTabular;
 
   };

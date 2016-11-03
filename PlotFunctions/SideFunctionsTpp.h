@@ -12,9 +12,9 @@ namespace ChrisLib {
   //============================================
   /**\brief Get the number of possible configurations containing a single key per vector line
    */
-  template<typename Type1 > unsigned int GetNConfigurations( std::vector<std::vector<Type1>> &inVect ) {
+  template<typename Type1 > unsigned int GetNConfigurations( const std::vector<std::vector<Type1>> &inVect ) {
     unsigned int nConfig = 1;
-    for ( auto vList : inVect ) nConfig*=vList.size();
+    for ( auto itList = inVect.begin(); itList!=inVect.end(); ++itList ) nConfig*=itList->size();
     return nConfig;
   }
 
@@ -38,7 +38,7 @@ namespace ChrisLib {
      \param val value to be searched
      \param vect vector to look into
      \return int position of the value
-
+     Tested.
   */
   template< typename Type1 > unsigned int SearchVectorBin( const Type1 &val, const std::vector< Type1 > &vect ) {
     unsigned int outBin= 0;
@@ -49,6 +49,7 @@ namespace ChrisLib {
 
   //============================================
   /**\brief Dirac Function
+     Tested.
    */
   template< typename Type1 > unsigned int Delta( Type1 val1, Type1 val2 ) {
     return ( val1==val2 ) ? 1 : 0;
@@ -110,6 +111,14 @@ namespace ChrisLib {
   }
 
   //============================================
+  /* template< typename cont > void RemoveNullPointers( cont c ) { */
+  /*   for ( auto it = c.begin(); it!=c.end(); ++it ) { */
+  /*     if ( *it ) continue; */
+  /*     c.erase( it ); */
+  /*     --it; */
+  /*   } */
+  /* } */
+  //=============================================
 
 }
 #endif

@@ -30,14 +30,14 @@ ChrisLib::InputCompare::InputCompare( string fileName ) : InputCompare()
     LoadFile( dumName );
   }
     m_outName=name;
-    cout << "rootFileName : " << m_rootFileName.size() << endl;
+    cout << "rootfilesname : " << m_rootFilesName.size() << endl;
 }
 
 /**
    Read a configuration file.
    Options not documented here are documented in DrawPlot.cxx.
 
-   rootFileName= file1 file2 ... \n
+   rootfilesname= file1 file2 ... \n
    Names of the rootFiles whose objects will be added.
    \n
    \n
@@ -88,10 +88,10 @@ ChrisLib::InputCompare::InputCompare( string fileName ) : InputCompare()
 
 void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   string inLatexPos, varMin, varMax, eventID;
-  vector< string > rootFileName, objName, varName, varWeight, latex, latexOpt, xBinning, varErrX, varErrY;
+  vector< string > rootFilesName, objName, varName, varWeight, latex, latexOpt, xBinning, varErrX, varErrY;
   po::options_description configOptions("configOptions");
   configOptions.add_options()
-    ( "rootFileName", po::value< vector< string > >( &rootFileName )->multitoken(), "" )
+    ( "rootFilesName", po::value< vector< string > >( &rootFilesName )->multitoken(), "" )
     ( "objName", po::value< vector< string > >( &objName )->multitoken(), "" )
     ( "legend", po::value< vector< string > >( &m_legend )->multitoken(), "" )
     ( "legendPos", po::value<string>( &m_mapOptions["legendPos"] ), "" )
@@ -140,9 +140,9 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   m_outName = StripString( fileName );
   
   if ( m_mapOptions["plotDirectory"] != "" && m_mapOptions["plotDirectory"].back() != '/' ) m_mapOptions["plotDirectory"] += "/";
-  for ( unsigned int iHist = 0; iHist < rootFileName.size(); iHist++ ) {
-    m_rootFileName.push_back( vector< string >() );
-    ParseVector( rootFileName[iHist], m_rootFileName.back(), 0 );
+  for ( unsigned int iHist = 0; iHist < rootFilesName.size(); iHist++ ) {
+    m_rootFilesName.push_back( vector< string >() );
+    ParseVector( rootFilesName[iHist], m_rootFilesName.back(), 0 );
   }
   
   for ( unsigned int iHist = 0; iHist < objName.size(); iHist++ ) {
@@ -158,7 +158,7 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   for ( auto vErr : varErrX ) { m_varErrX.push_back( vector<string>() ); ParseVector( vErr, m_varErrX.back(), 0 ); }
   for ( auto vErr : varErrX ) { m_varErrY.push_back( vector<string>() ); ParseVector( vErr, m_varErrY.back(), 0 ); }
 
-  while ( m_varName.size() && m_varName.size() < m_rootFileName.size() ) m_varName.push_back( m_varName.back() );
+  while ( m_varName.size() && m_varName.size() < m_rootFilesName.size() ) m_varName.push_back( m_varName.back() );
 
   for ( unsigned int iPlot = 0; iPlot < m_varName.size(); iPlot++ ) {
     if ( m_varName.front().size() <= m_varName[iPlot].size() ) continue;

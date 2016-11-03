@@ -59,6 +59,7 @@ Tested.
   /**\brief Parse a string into a vector of a given type elements
      \param string string to be parsed
      \param result vector
+     Tested.
   */
   template< typename Type1 > void ParseVector( const std::string &stringVector, std::vector< Type1 > &outVector, bool doClear=1 );
   template< typename Type1 > void ParseVector( const std::string &stringVector, std::vector< Type1 > &outVector, bool doClear ) {
@@ -109,13 +110,13 @@ Tested.
   }
 
   //============================================
-  /* template< typename cont > void RemoveNullPointers( cont c ) { */
-  /*   for ( auto it = c.begin(); it!=c.end(); ++it ) { */
-  /*     if ( *it ) continue; */
-  /*     c.erase( it ); */
-  /*     --it; */
-  /*   } */
-  /* } */
+  template< typename cont > void RemoveNullPointers( cont &c ) {
+    for ( auto it = c.begin(); it!=c.end(); ++it ) {
+      if ( *it ) continue;
+      c.erase( it );
+      --it;
+    }
+  }
   //=============================================
 
 }

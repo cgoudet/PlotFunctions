@@ -14,12 +14,12 @@ class MapBranches {
   MapBranches();
   ~MapBranches();
 
-  const std::map< std::string, int > &GetMapInt() const { return m_mapInt; }
+  std::map< std::string, int > &GetMapInt()  { return m_mapInt; }
   std::map< std::string, double > &GetMapDouble()  { return m_mapDouble; }
-  const std::map< std::string, unsigned long long > &GetMapULongLong() const { return m_mapULongLong; }
-  const std::map< std::string, long long > &GetMapLongLong() const { return m_mapLongLong; }
-  const std::map< std::string, unsigned int > &GetMapUnsigned() const { return m_mapUnsigned; }
-
+  std::map< std::string, unsigned long long > &GetMapULongLong()  { return m_mapULongLong; }
+  std::map< std::string, long long > &GetMapLongLong()  { return m_mapLongLong; }
+  std::map< std::string, unsigned int > &GetMapUnsigned()  { return m_mapUnsigned; }
+  
   void LinkTreeBranches( TTree *inTree, TTree *outTree = 0, std::list<std::string> branchesToLink = std::list<std::string>() );
   void Print() const;
 

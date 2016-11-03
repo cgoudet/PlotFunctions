@@ -320,6 +320,9 @@ BOOST_AUTO_TEST_CASE( RemoveSeparatorTest ) {
   BOOST_CHECK_EQUAL( RemoveSeparator( "azzzzzb", "zz" ), "azzzb" );
   BOOST_CHECK_EQUAL( RemoveSeparator( "a_bzzzz", "zz" ), "a_b" );
   BOOST_CHECK_EQUAL( RemoveSeparator( "a_bzzzzz", "zz" ), "a_bz" );
+
+  BOOST_CHECK_EQUAL( RemoveSeparator( "" ), "" );
+  BOOST_CHECK_EQUAL( RemoveSeparator( "_" ), "" );
 }
 //============================
 BOOST_AUTO_TEST_CASE( RemoveWordsTest ) {

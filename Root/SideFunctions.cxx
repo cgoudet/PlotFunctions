@@ -864,6 +864,7 @@ void ChrisLib::PrintArray( const string &outName, const multi_array<double,2> &a
    if ( linesTitle.size() ) ++nCols;
    if ( colsTitle.size() && colsTitle.size() != nCols ) throw runtime_error("PrintArray : Not enough names for columns.");
    
+   cout << "writting in : " << outName << endl;
    fstream stream( outName.c_str(), fstream::out );
    for ( unsigned iLine = 0; iLine<array.size(); ++iLine ) {
      if ( !iLine && colsTitle.size() ) {
@@ -872,8 +873,9 @@ void ChrisLib::PrintArray( const string &outName, const multi_array<double,2> &a
      }
      for ( unsigned iCol = 0; iCol<array[0].size(); ++iCol ) {
        if ( !iCol && linesTitle.size() ) stream << linesTitle[iLine] << ",";
-       stream << array[iLine][iCol] << "," << endl;
+       stream << array[iLine][iCol] << ",";
      }
+     stream << endl;
    }
 
    stream.close();
@@ -919,7 +921,7 @@ string ChrisLib::RemoveSeparator( string name, const string sep ) {
     pos = name.find( sep+sep );
   }
   
-  while ( name.substr(name.size()-sep.size() ) == sep ) name.erase( name.size() - sep.size() );
+  while ( name.size()>=sep.size() && name.substr(name.size()-sep.size() ) == sep ) name.erase( name.size() - sep.size() );
 
   return name;
 }

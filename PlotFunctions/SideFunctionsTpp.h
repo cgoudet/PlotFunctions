@@ -23,12 +23,9 @@ namespace ChrisLib {
   //============================================
   /**\brief Get the size of the each component of a 2D vector
    */
-  template<typename Type1 > std::vector<unsigned int> GetLevelsSize( const std::vector<std::vector<Type1>> &inVect ) {
-    std::vector<unsigned int> outVect;
-    for ( auto vList : inVect ) {
-      outVect.push_back( vList.size() );
-    }
-    return outVect;
+  template<typename Type1 > void GetLevelsSize( const std::vector<std::vector<Type1>> &inVect, std::vector<unsigned int> &outVect ) {
+    outVect.clear();
+    for ( auto itList = inVect.begin(); itList!=inVect.end(); ++itList ) outVect.push_back( itList->size() );
   }
   //============================================
   /**\brief Plot the content of a vector

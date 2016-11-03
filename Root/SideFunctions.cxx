@@ -151,16 +151,19 @@ string ChrisLib::PrintWorkspaceCorrelationModel(string inFileName, string outFil
       dumName.ReplaceAll( (NPPrefix+"_").c_str(), "" );
       unsigned int nStep = 0;
       unsigned int NPPos = NPName.size();
-      while ( NPPos == NPName.size() && ++nStep!=5 ) {
+      vector<string>::iterator pos = find( NPName.begin(), NPName.end(), string(dumName) );
+      //      while ( NPPos == NPName.size() && ++nStep!=5 ) {
+      while ( pos == NPName.end() && ++nStep!=5 ) {
 	if ( nStep==2 ) dumName.ReplaceAll( nameWoVariable, "" );
 	else if ( nStep ==3 ) dumName.Resize( dumName.Last('_') );
 	else if ( nStep ==4 ) dumName+="_"+nameWoVariable;
 	dumName = RemoveSeparator(string(dumName));
-	NPPos = SearchVectorBin( string(dumName), NPName );
+	pos = find( NPName.begin(), NPName.end(), string(dumName) );
+	//NPPos = SearchVectorBin( string(dumName), NPName );
 	//	if ( dumName.Contains( "ATLAS_pdf_acc" ) ) cout << dumName << " " << NPPos << " " << NPName.size() << endl;
       }
       
-      if ( NPPos == NPName.size() ) { 
+      if ( pos == NPName.end() ) { 
 	cout << dumName << " not found" << endl;
 	continue;
       }

@@ -40,9 +40,9 @@ namespace ChrisLib {
      \return int position of the value
 
   */
-  template< typename Type1 > unsigned int SearchVectorBin( Type1 val, const std::vector< Type1 > &vect ) {
+  template< typename Type1 > unsigned int SearchVectorBin( const Type1 &val, const std::vector< Type1 > &vect ) {
     unsigned int outBin= 0;
-    for ( ;  outBin < vect.size(); outBin++ )
+    for ( ;  outBin < vect.size(); ++outBin )
       if ( vect[outBin] == val ) break;
     return outBin;
   }
@@ -105,7 +105,7 @@ namespace ChrisLib {
   /**\brief Print keys of a map
    */
   template< typename Type1 > void PrintMapKeys( std::map<std::string, Type1> &inMap ) {
-    for ( auto vKey : inMap ) std::cout << vKey.first << " ";
+    for ( auto itKey = inMap.begin(); itKey!=inMap.end(); ++itKey ) std::cout << itKey->first << " ";
     std::cout << std::endl;
   }
 

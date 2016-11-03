@@ -114,7 +114,9 @@ string ChrisLib::PrintWorkspaceCorrelationModel(string inFileName, string outFil
   sort( NPName.begin(), NPName.end() );
   //  PrintVector(NPName);
 
-  vector<unsigned int> configurationsDepth = GetLevelsSize( inConfigurationsName );
+  vector<unsigned int> configurationsDepth;
+  GetLevelsSize( inConfigurationsName, configurationsDepth );
+
   PrintVector( configurationsDepth );
   unsigned int nConfig = GetNConfigurations( inConfigurationsName );
   cout << "nConfig : " << nConfig << endl;

@@ -22,8 +22,9 @@ namespace ChrisLib {
 
   //============================================
   /**\brief Get the size of the each component of a 2D vector
+Tested.
    */
-  template<typename Type1 > void GetLevelsSize( const std::vector<std::vector<Type1>> &inVect, std::vector<unsigned int> &outVect ) {
+  template<typename Type1 > void GetLevelsSize( const std::vector<std::vector<Type1>> &inVect, std::vector<unsigned> &outVect ) {
     outVect.clear();
     for ( auto itList = inVect.begin(); itList!=inVect.end(); ++itList ) outVect.push_back( itList->size() );
   }
@@ -59,8 +60,8 @@ namespace ChrisLib {
      \param string string to be parsed
      \param result vector
   */
-  template< typename Type1 > int ParseVector( std::string &stringVector, std::vector< Type1 > &outVector, bool doClear=1 );
-  template< typename Type1 > int ParseVector( std::string &stringVector, std::vector< Type1 > &outVector, bool doClear ) {
+  template< typename Type1 > void ParseVector( const std::string &stringVector, std::vector< Type1 > &outVector, bool doClear=1 );
+  template< typename Type1 > void ParseVector( const std::string &stringVector, std::vector< Type1 > &outVector, bool doClear ) {
 
     if ( doClear )  outVector.clear();
   
@@ -71,8 +72,6 @@ namespace ChrisLib {
     while ( stream >> value ) {
       outVector.push_back( value );
     }
-
-    return 0;
   }
 
   //============================================

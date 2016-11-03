@@ -18,7 +18,14 @@ namespace ChrisLib {
     InputCompare( std::string fileName );
 
     //new style
+    const std::vector< std::vector< std::string > > &GetObjName() const { return m_objName; }
     const std::vector<std::vector<std::string>> &GetRootFilesName() const { return m_rootFilesName; }
+
+    std::string GetOption( std::string option ) const { return m_mapOptions.at(option); }    
+    std::string GetOutName() const { return m_outName; }
+
+    std::vector<std::string> CreateVectorOptions() const;
+
     //old (wrong style
     std::vector< std::vector< std::string > > &GetRootFileName() { return m_rootFilesName; }
     std::vector< std::vector< std::string > > &GetObjName() { return m_objName; }
@@ -35,10 +42,10 @@ namespace ChrisLib {
     std::vector< std::string > &GetLatexOpt() { return m_latexOpt; }
     std::vector< std::vector<std::string> > &GetVarWeight() { return m_varWeight; }
 
-    std::string &GetOutName() { return m_outName; }
-    std::string GetOption( std::string option ) { return m_mapOptions[option]; }
+    //    std::string &GetOutName() { return m_outName; }
+
     void  LoadFile( std::string fileName );
-    std::vector<std::string> CreateVectorOptions();
+  
   private : 
     /**\brief names of the root files
 

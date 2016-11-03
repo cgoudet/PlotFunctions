@@ -118,6 +118,13 @@ Tested.
     }
   }
   //=============================================
+  template< typename cont > void DeleteContainer( cont &c ) {
+    for ( auto it = c.begin(); it!=c.end(); ++it ) {
+      if ( !*it ) continue;
+      delete *it;
+      *it = 0;
+    }
+  }
 
 }
 #endif

@@ -91,7 +91,7 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   vector< string > rootFilesName, objName, varName, varWeight, latex, latexOpt, xBinning, varErrX, varErrY;
   po::options_description configOptions("configOptions");
   configOptions.add_options()
-    ( "rootFilesName", po::value< vector< string > >( &rootFilesName )->multitoken(), "" )
+    ( "rootFileName", po::value< vector< string > >( &rootFilesName )->multitoken(), "" )
     ( "objName", po::value< vector< string > >( &objName )->multitoken(), "" )
     ( "legend", po::value< vector< string > >( &m_legend )->multitoken(), "" )
     ( "legendPos", po::value<string>( &m_mapOptions["legendPos"] ), "" )
@@ -196,10 +196,10 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
 }
 
 //==========================================
-vector<string> ChrisLib::InputCompare::CreateVectorOptions() {
+vector<string> ChrisLib::InputCompare::CreateVectorOptions() const {
 
   vector<string> outVect;
-  for ( map<string, string>::iterator it = m_mapOptions.begin(); it != m_mapOptions.end(); it++) {
+  for ( map<string, string>::const_iterator it = m_mapOptions.begin(); it != m_mapOptions.end(); it++) {
     if ( it->second == "" 
 	 || it->first == "inputType" 
 	 //	 || it->first == "nComparedEvents" 
@@ -209,6 +209,7 @@ vector<string> ChrisLib::InputCompare::CreateVectorOptions() {
 	 ) continue;
     outVect.push_back( it->first +"=" + it->second );
   }
+
   for ( auto legend : m_legend ) outVect.push_back( "legend=" + legend );
   for ( auto latex : m_latex ) outVect.push_back( "latex=" + latex );
   for ( auto latexOpt : m_latexOpt ) outVect.push_back( "latexOpt=" + latexOpt );

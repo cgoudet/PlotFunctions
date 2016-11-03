@@ -33,7 +33,12 @@ using std::endl;
 
 
 namespace ChrisLib {
+
+  /*\brief Modify histograms to have a common binning as the one with most granularity.
+    Tested
+   */
   void RebinHist( std::vector<TH1*> &vectHist );
+
   /**\brief Remove some bins from a list of histograms its values is equal to input
      Tested.
    */
@@ -71,18 +76,6 @@ namespace ChrisLib {
 
   */
   std::string PrintWorkspaceCorrelationModel(std::string inFileName, std::string outFileName, std::vector<std::vector<std::string>> inConfigurationsName, std::string NPPrefix, std::string inWSName="", std::string inMCName="mconfig" );
-
-  /**\brief Remove signs and words from a TString
-     \param name TString to be modified
-     \param vectList vector containing keywords to be removed
-     \param sep separator between keyworkds to be undoubled
-
-     After removing keywords, several separator may remain togter in the string. 
-     In the same way, the string may be finished by a separator.
-     The function remove the doubles and the final separator
-  */
-
-  void CleanName( TString &name, std::vector<std::vector<std::string>> vectList = std::vector<std::vector<std::string>>(), std::string sep = "_" );
 
   /**\brief Compute Chi2 of two matching histograms
      \param MCHist Histogram with MC role
@@ -182,6 +175,20 @@ namespace ChrisLib {
   string ConvertEpochToDate( int epochTime );
   //string GetMinMaxBranch ( vector <string> fileNames, &minVal, &maxVal );
 
+  /**\brief Fill the values to create bin frontiers from extramal values and number of bins
+     Tested.
+   */
+  void FillDefaultFrontiers( vector<double> &list, const int nBins, double xMin, double xMax );
+
+  /**\brief Clean a sstring by removing successive occurences of the separator
+     Tested.
+   */
+  std::string RemoveSeparator( std::string name, const std::string sep="_" );
+
+  /**\brief Remove a list of words from a string
+     Tested.
+   */
+  std::string RemoveWords( std::string name, const std::list<std::string> &toRemove );
 }
 
 #endif

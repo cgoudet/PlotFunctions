@@ -36,7 +36,7 @@ using boost::extents;
 using namespace RooFit;
 
 void Style_Christophe();
-
+using namespace ChrisLib;
 
 void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<double>& outMatrix, TMatrixT<double> &outErrMatrix, unsigned int inversionProcedure ) {
   /*

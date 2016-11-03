@@ -11,8 +11,10 @@
 namespace ChrisLib {
   //============================================
   /**\brief Get the number of possible configurations containing a single key per vector line
+     Tested.
    */
   template<typename Type1 > unsigned int GetNConfigurations( const std::vector<std::vector<Type1>> &inVect ) {
+    if ( inVect.empty() ) return 0;
     unsigned int nConfig = 1;
     for ( auto itList = inVect.begin(); itList!=inVect.end(); ++itList ) nConfig*=itList->size();
     return nConfig;
@@ -21,7 +23,7 @@ namespace ChrisLib {
   //============================================
   /**\brief Get the size of the each component of a 2D vector
    */
-  template<typename Type1 > std::vector<unsigned int> GetLevelsSize( std::vector<std::vector<Type1>> &inVect ) {
+  template<typename Type1 > std::vector<unsigned int> GetLevelsSize( const std::vector<std::vector<Type1>> &inVect ) {
     std::vector<unsigned int> outVect;
     for ( auto vList : inVect ) {
       outVect.push_back( vList.size() );

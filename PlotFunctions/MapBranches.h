@@ -32,9 +32,10 @@ namespace ChrisLib {
 
     double GetVal( std::string name ) const;
     void GetKeys( std::list<std::string> &keys );
+    void ClearMaps();
 
   private : 
-    void ClearMaps();
+
 
     std::map< std::string, int > m_mapInt;
     std::map< std::string, double > m_mapDouble;

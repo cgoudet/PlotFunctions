@@ -37,9 +37,10 @@ BOOST_AUTO_TEST_CASE( CombineNamesTest ) {
   list<string> prefix = { "pref1", "pref2" };
   list<string> suffix = { "suff1", "suff2" };
   list<list<string>> inCombi = { prefix, suffix };
-  list<string> outList = { "pref1_suff1", "pref1_suff2", "pref2_suff1", "pref2_suff2" };
-
-  BOOST_CHECK( outList == CombineNames( inCombi ) );
+  list<string> testList = { "pref1_suff1", "pref1_suff2", "pref2_suff1", "pref2_suff2" };
+  list<string> outList;
+  CombineNames( inCombi, outList );
+  BOOST_CHECK( outList == testList );
 }
 
 //====================================================

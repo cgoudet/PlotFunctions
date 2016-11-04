@@ -46,19 +46,19 @@ using std::swap;
 //=====================================
 /**\brief Create a name from levels of components
  */
-list<string> ChrisLib::CombineNames( list<list<string>> &components, string separator ) {
-  list<string> tmpVect, outVect(1,"");
+void ChrisLib::CombineNames( const list<list<string>> &components, list<string> &outNames, string separator ) {
+  list<string> tmpVect;
+  outNames = list<string>(1,"");
   for( auto vLevel : components ) {
-    tmpVect = outVect;
-    outVect.clear();
+    tmpVect = outNames;
+    outNames.clear();
     for( auto vCurrentName : tmpVect ) {
       for ( auto vString : vLevel ) {
 	string name  = vCurrentName == "" ? vString : vCurrentName + separator + vString;
-  	outVect.push_back( name );
+  	outNames.push_back( name );
       }
     }
   }
-  return outVect;
 }
 
 //============================================

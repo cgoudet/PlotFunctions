@@ -147,7 +147,7 @@ namespace ChrisLib {
 
     Tested.
   */
-  std::list<std::string> CombineNames( std::list< std::list<std::string> > &components, std::string separator="_" );
+  void CombineNames( const std::list< std::list<std::string> > &components, std::list<std::string> &outNames, std::string separator="_" );
 
   /*\brief Check the equality of double numbers by comparing them up to the 7th digit
 

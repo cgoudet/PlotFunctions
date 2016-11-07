@@ -9,12 +9,24 @@ namespace ChrisLib {
   ReplaceString( std::string toRemove ) : m_toRemove(toRemove),m_toReplace("") {}
   ReplaceString( std::string toRemove, std::string toReplace ) : m_toRemove(toRemove),m_toReplace(toReplace) {}
     std::string operator()( std::string name ) { 
-      size_t start_pos = 0;
-      while((start_pos = name.find(m_toRemove, start_pos)) != std::string::npos) {
-        name.replace(start_pos, m_toRemove.length(), m_toReplace);
-        start_pos += m_toReplace.length(); // Handles case where 'to' is a substring of 'from'
-      }
-      return name;
+
+      std::string newString;
+      newString.reserve( name.length() );  // avoids a few memory allocations
+      
+      std::string::size_type lastPos = 0;
+      std::string::size_type findPos;
+      
+      while( std::string::npos != ( findPos = name.find( m_toRemove, lastPos )))
+	{
+	  newString.append( name, lastPos, findPos - lastPos );
+	  newString += m_toReplace;
+	  lastPos = findPos + m_toRemove.length();
+	}
+
+      // Care for the rest after last occurrence
+      newString += name.substr( lastPos );
+      
+      return newString;
     }
 
   private : 

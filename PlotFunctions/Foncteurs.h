@@ -1,21 +1,22 @@
 #ifndef FONCTERURS_H
 #define FONCTERURS_H
 #include <string>
+#include <iostream>
 
 namespace ChrisLib {
   class ReplaceString {
   public :
   ReplaceString( std::string toRemove ) : m_toRemove(toRemove),m_toReplace("") {}
   ReplaceString( std::string toRemove, std::string toReplace ) : m_toRemove(toRemove),m_toReplace(toReplace) {}
-    std::string operator()( std::string const &name ) { 
-      std::string outStr = name;
-      std::size_t pos = outStr.find(m_toRemove);
-      while( pos != std::string::npos ) {
-	outStr.replace( pos, pos+m_toRemove.size(), m_toReplace );
-	pos = outStr.find(m_toRemove);
+    std::string operator()( std::string name ) { 
+      size_t start_pos = 0;
+      while((start_pos = name.find(m_toRemove, start_pos)) != std::string::npos) {
+        name.replace(start_pos, m_toRemove.length(), m_toReplace);
+        start_pos += m_toReplace.length(); // Handles case where 'to' is a substring of 'from'
       }
-      return outStr;
+      return name;
     }
+
   private : 
     std::string m_toRemove;
     std::string m_toReplace;

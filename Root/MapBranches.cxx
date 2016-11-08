@@ -37,13 +37,13 @@ void ChrisLib::MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, lis
   if ( branchesToLink.size() ) inTree->SetBranchStatus( "*", 0);
 
   TObjArray *branches = inTree->GetListOfBranches();
-  TClass *expectedClass;
-  EDataType expectedType;
-  string name;
   for ( unsigned int iBranch = 0; iBranch < (unsigned int) branches->GetEntries(); iBranch++ ) {
+
+    TClass *expectedClass;
+    EDataType expectedType;
     
     ( (TBranch*) (*branches)[iBranch])->GetExpectedType( expectedClass, expectedType );
-    name=(*branches)[iBranch]->GetName();
+    string name=(*branches)[iBranch]->GetName();
 
     if ( branchesToLink.size() && find( branchesToLink.begin(), branchesToLink.end(), name ) == branchesToLink.end() ) continue;
     inTree->SetBranchStatus( name.c_str(), 1 );

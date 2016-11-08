@@ -132,7 +132,13 @@ namespace ChrisLib {
   */
   TTree* Bootstrap( std::vector< TTree* > inTrees, unsigned int nEvents=0, unsigned long seed = 0, int mode = 0 );
 
+  /**\brief Find the name of an object from the class type in the given tfile
+     \param inFile 
+     \param type Class name of the looked for object
+     \param keyword keyword to be present in the searched object name
+   */
   std::string FindDefaultTree( const TFile* inFile, std::string type = "TTree", std::string keyWord = "" );
+
   void AddTree( TTree *treeAdd, TTree *treeAdded );
   void SaveTree( TTree *inTree, std::string prefix );
 
@@ -144,13 +150,11 @@ namespace ChrisLib {
   std::map<std::string,std::string> MapAttrNode( TXMLNode* node );
 
   /*\brief Create the list with the all the possible combination of given name.
-
     Tested.
   */
-  std::list<std::string> CombineNames( std::list< std::list<std::string> > &components, std::string separator="_" );
+  void CombineNames( const std::list< std::list<std::string> > &components, std::list<std::string> &outNames, std::string separator="_" );
 
   /*\brief Check the equality of double numbers by comparing them up to the 7th digit
-
     Tested.
   */
   inline bool CompareDouble( double a, double b )  {

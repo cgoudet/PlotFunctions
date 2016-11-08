@@ -46,19 +46,19 @@ using std::swap;
 //=====================================
 /**\brief Create a name from levels of components
  */
-list<string> ChrisLib::CombineNames( list<list<string>> &components, string separator ) {
-  list<string> tmpVect, outVect(1,"");
+void ChrisLib::CombineNames( const list<list<string>> &components, list<string> &outNames, string separator ) {
+  list<string> tmpVect;
+  outNames = list<string>(1,"");
   for( auto vLevel : components ) {
-    tmpVect = outVect;
-    outVect.clear();
+    tmpVect = outNames;
+    outNames.clear();
     for( auto vCurrentName : tmpVect ) {
       for ( auto vString : vLevel ) {
 	string name  = vCurrentName == "" ? vString : vCurrentName + separator + vString;
-  	outVect.push_back( name );
+  	outNames.push_back( name );
       }
     }
   }
-  return outVect;
 }
 
 //============================================
@@ -832,6 +832,7 @@ void ChrisLib::PrintArray( const string &outName, const multi_array<double,2> &a
    if ( linesTitle.size() ) ++nCols;
    if ( colsTitle.size() && colsTitle.size() != nCols ) throw runtime_error("PrintArray : Not enough names for columns.");
    
+   cout << "writting in : " << outName << endl;
    fstream stream( outName.c_str(), fstream::out );
    for ( unsigned iLine = 0; iLine<array.size(); ++iLine ) {
      if ( !iLine && colsTitle.size() ) {
@@ -840,8 +841,9 @@ void ChrisLib::PrintArray( const string &outName, const multi_array<double,2> &a
      }
      for ( unsigned iCol = 0; iCol<array[0].size(); ++iCol ) {
        if ( !iCol && linesTitle.size() ) stream << linesTitle[iLine] << ",";
-       stream << array[iLine][iCol] << "," << endl;
+       stream << array[iLine][iCol] << ",";
      }
+     stream << endl;
    }
 
    stream.close();
@@ -887,7 +889,7 @@ string ChrisLib::RemoveSeparator( string name, const string sep ) {
     pos = name.find( sep+sep );
   }
   
-  while ( name.substr(name.size()-sep.size() ) == sep ) name.erase( name.size() - sep.size() );
+  while ( name.size()>=sep.size() && name.substr(name.size()-sep.size() ) == sep ) name.erase( name.size() - sep.size() );
 
   return name;
 }

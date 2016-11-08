@@ -96,10 +96,10 @@ int main( int argc, char* argv[] ) {
     InputCompare input( inFiles[iFile] );
     if ( DEBUG ) cout << "config file loaded" << endl;
     int inputType = atoi(input.GetOption("inputType").c_str());
-    if ( inputType==0 ) {
-      PlotHist( input );
-      continue;
-    }
+    // if ( inputType==0 ) {
+    //   PlotHist( input );
+    //   continue;
+    // }
 
     plotPath = input.GetOption("plotDirectory");
     vector< vector< TH1* > > vectHist;
@@ -125,23 +125,23 @@ int main( int argc, char* argv[] ) {
 	if ( DEBUG ) cout << iPlot << " " << iAdd << endl;
 
 	switch( inputType ) {
-	// case 0 : {//histograms
-	//   if ( !iPlot && !iAdd ) vectHist.push_back( vector< TH1* >() );
-	//   if ( !iAdd ) vectHist.back().push_back( 0 );
-	//   if ( !vectHist.back().back() ) {
-	//     //Get the histograms from input file and rename it to avoid root overwritting
-	//     vectHist.front().back() = (TH1D*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
-	//     if ( !vectHist.front().back() ) {
-	//       cout << "histogram not found : " << inputObjName[iPlot][iAdd] << " in file " << inputRootFile[iPlot][iAdd] << endl;
-	//       return 1 ;
-	//     }
-	//     vectHist.front().back()->SetName( TString::Format( "%s_%d", inputObjName[iPlot][iAdd].c_str(), iPlot ) );
-	//     vectHist.front().back()->SetDirectory( 0 );  
-	//   }
-	//   //If the histogram have already been created, we have to add the new one.
-	//   else vectHist.front().back()->Add( (TH1D*) inFile.Get( inputObjName[iPlot][iAdd].c_str() ) );
-	//   break;
-	// }
+	case 0 : {//histograms
+	  if ( !iPlot && !iAdd ) vectHist.push_back( vector< TH1* >() );
+	  if ( !iAdd ) vectHist.back().push_back( 0 );
+	  if ( !vectHist.back().back() ) {
+	    //Get the histograms from input file and rename it to avoid root overwritting
+	    vectHist.front().back() = (TH1D*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
+	    if ( !vectHist.front().back() ) {
+	      cout << "histogram not found : " << inputObjName[iPlot][iAdd] << " in file " << inputRootFile[iPlot][iAdd] << endl;
+	      return 1 ;
+	    }
+	    vectHist.front().back()->SetName( TString::Format( "%s_%d", inputObjName[iPlot][iAdd].c_str(), iPlot ) );
+	    vectHist.front().back()->SetDirectory( 0 );  
+	  }
+	  //If the histogram have already been created, we have to add the new one.
+	  else vectHist.front().back()->Add( (TH1D*) inFile.Get( inputObjName[iPlot][iAdd].c_str() ) );
+	  break;
+	}
 	  
 	  //############################################
 	case 1 : {//TTree plotting
@@ -169,7 +169,7 @@ int main( int argc, char* argv[] ) {
 
 	  //if requested perform a selection on the tree using copyTree
 	  if ( input.GetSelectionCut().size() ){
-	    TFile *dumFile = new TFile( "/tmp/cgoudet/dumFile", "RECREATE" );
+	    TFile *dumFile = new TFile( "/tmp/aguergui/dumFile", "RECREATE" );
 	    gROOT->cd();
 	    TTree* dumTree = inTree->CopyTree( input.GetSelectionCut()[iPlot].c_str() );
 	    if ( dumTree ) {

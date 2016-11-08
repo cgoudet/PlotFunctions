@@ -83,6 +83,10 @@ ChrisLib::InputCompare::InputCompare( string fileName ) : InputCompare()
    \n
    path= value \n
    Directory in which to write the plot
+   \n
+   \n
+   extension=value\n
+   Extension of the output plot without the point. Accepts 'pdf', 'root', 'png'
  */
 //###########################
 
@@ -130,6 +134,7 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
     ( "offset", po::value<string>( &m_mapOptions["offset"] ), "" )
     ( "orderX", po::value<string>( &m_mapOptions["orderX"] ), "" )
     ( "clean", po::value<string>( &m_mapOptions["clean"] ), "" )
+    ( "extension", po::value<string>( &m_mapOptions["extension"] ), "" )
     ;
 
   po::variables_map vm;

@@ -16,6 +16,7 @@
 #include "TBranch.h"
 #include "TCanvas.h"
 #include "TProfile.h"
+#include "TLine.h"
 
 #include "PlotFunctions/MapBranches.h"
 #include "PlotFunctions/DrawPlot.h"
@@ -26,7 +27,7 @@
 
 using namespace ChrisLib;
 using namespace std;
-using namespace ChrisLib;
+
 
 int main(int argc, char *argv[])
 {
@@ -36,25 +37,35 @@ int main(int argc, char *argv[])
   // string path= "/sps/atlas/a/aguerguichon/Calibration/DataxAOD/BackUp/";
   string path= "/sps/atlas/a/aguerguichon/Calibration/DataxAOD/";
   string savePath= "/afs/in2p3.fr/home/a/aguergui/public/Calibration/PlotFunctions/PubNote/";
-  string fileName, pattern, name;  
+  string fileName, pattern, name, yearHist;  
   vector <string> vectYear (2);
   vector <TH1*> vectProf; 
+  vector <TH1*> vectHist; 
   TFile *inFile=0;
   TTree *inTree=0;
   TProfile *prof=0;
   TCanvas *c1=0;
+  TH1D *histTmp=0;
 
   unsigned int nEntries;
   unsigned int timeMin=1e11;
   unsigned int timeMax=0;
   map <string, double> mapDouble;
   map <string, long long int> mapLong;
-  double meanZDistri, m12, muPU, weight, timeStamp; 
+  double meanZDistri, m12, muPU, timeStamp; 
   vector <string> vectOpt;
+
+
+  float sizeText=0.05;
+  float x=0.3;
+  float y=0.73;
+  float lsize = 0.04;
+  
+  vector <double> mean (2);
 
   bool isMuPU=0;
 
-  if (isMuPU) name="/afs/in2p3.fr/home/a/aguergui/public/Calibration/PlotFunctions/PubNote/Mutest";
+  if (isMuPU) name="/afs/in2p3.fr/home/a/aguergui/public/Calibration/PlotFunctions/PubNote/Mu";
   else name="/afs/in2p3.fr/home/a/aguergui/public/Calibration/PlotFunctions/PubNote/Time";
   vectYear[0]= "15";
   vectYear[1]= "16";
@@ -66,10 +77,15 @@ int main(int argc, char *argv[])
   TH1 *ZMass= (TH1*) inFile->Get( "Data15_13TeV_Zee_Lkh1_0_ZMass");
   meanZDistri= ZMass->GetMean();
   cout<<meanZDistri<<endl;
+  ZMass->SetBinContent(0,0);
+  ZMass->SetBinContent(ZMass->GetNbinsX()+1,0);
+  cout<<ZMass->GetMean()<<endl;
   inFile->Close();
 
   for (unsigned int year=0; year<vectYear.size(); year++)
     {
+      float counter=0;
+      mean[year]=0;
       pattern="Data"+vectYear[year]+"_13TeV_Zee_Lkh1";
       if (isMuPU) prof = new TProfile ("hprof", "", 30, 0, 30 );
       for (int iFile=0; iFile<10; iFile++) 
@@ -96,14 +112,16 @@ int main(int argc, char *argv[])
 
 	      m12=mapDouble.at("m12");
 	      muPU=mapDouble.at("muPU");
-	      weight=mapDouble.at("weight");
 	      timeStamp=mapLong.at("timeStamp");
-  
+
+	      
 	      if (m12<80 || m12>100) continue;
-	      if ( fabs( mapDouble.at("eta_calo_1") )>1.37 && fabs( mapDouble.at("eta_calo_2") )>1.37) continue;
+	      //if ( fabs( mapDouble.at("eta_calo_1") )>1.37 && fabs( mapDouble.at("eta_calo_2") )>1.37) continue;
 	      //if ( mapDouble.at("eta_calo_1") <1.55 && mapDouble.at("eta_calo_2") <1.55) continue;
-	      //if ( mapDouble.at("eta_calo_1") > -1.55 && mapDouble.at("eta_calo_2") > -1.55) continue;
-	      if (isMuPU) prof->Fill(muPU, m12, weight);
+	      if ( mapDouble.at("eta_calo_1") > -1.55 && mapDouble.at("eta_calo_2") > -1.55) continue;
+	      mean[year]+=m12;
+	      counter++;
+	      if (isMuPU) prof->Fill(muPU, m12);
 	      else
 		{
 		  if (timeStamp < timeMin) timeMin=timeStamp;
@@ -128,8 +146,9 @@ int main(int argc, char *argv[])
 	      prof->SetMarkerSize(1.3);
 	    }
 	  vectProf.push_back(prof);
-	}
-    }//end year
+	} 
+      mean[year]=(mean[year]/counter)/meanZDistri;
+   }//end year
 
 
   if (isMuPU)
@@ -141,9 +160,44 @@ int main(int argc, char *argv[])
       vectOpt.push_back("line=1");
       vectOpt.push_back("drawStyle=4");
       DrawPlot(vectProf, name, vectOpt);
+    
+      //Cosmetics
+      TFile *muFile=TFile::Open((savePath+"Mu.root").c_str());
+      c1=(TCanvas*)muFile->Get("c1");
+      c1->cd();
+      
+      ATLASLabel(0.22, 0.87, "Work in progress", 1, 0.06);
+      myText(0.22, 0.79, 1,"#sqrt{s}=13 TeV, L = 3.1 (2015) + 25.5 (2016) fb^{-1}", sizeText);
+
+      histTmp=(TH1D*)c1->GetListOfPrimitives()->At(4);
+      histTmp->SetMarkerStyle(25);
+      histTmp->SetMarkerColor(kRed);
+      histTmp->SetLineColor(kRed);
+      histTmp->SetMarkerSize(1);
+      yearHist="2016";
+      myLineText( x, y, histTmp->GetLineColor(), histTmp->GetLineStyle(), "", sizeText, histTmp->GetLineWidth(), lsize  ); 
+      myMarkerText( x, y, histTmp->GetMarkerColor(), histTmp->GetMarkerStyle(), yearHist.c_str(), sizeText, histTmp->GetMarkerSize(), lsize); 
+          
+      histTmp =(TH1D*)c1->GetListOfPrimitives()->At(2);  
+      histTmp->SetMarkerStyle(8);
+      histTmp->SetMarkerSize(1);
+      yearHist="2015";
+      myLineText( x, y-0.08, histTmp->GetLineColor(), histTmp->GetLineStyle(), "", sizeText, histTmp->GetLineWidth(), lsize  ); 
+      myMarkerText( x, y-0.08, histTmp->GetMarkerColor(), histTmp->GetMarkerStyle(), yearHist.c_str(), sizeText, histTmp->GetMarkerSize(), lsize); 
+      //histTmp->BufferEmpty(1);
+      //histTmp->GetYaxis()->SetTitleSize(0.05);
+      //histTmp->GetYaxis()->SetTitleOffset(1.10);
+      //histTmp->GetYaxis()->SetLabelSize(0.04);
+      histTmp->GetXaxis()->SetTitleSize(0.5);
+      //      histTmp->GetXaxis()->SetTitleOffset(1.20);
+      //      histTmp->GetXaxis()->SetLabelSize(0.05);
+
+      c1->SaveAs((savePath+"Mee_mu.pdf").c_str());
+
+      muFile->Close();
+      delete muFile;
     }
-
-
+  
   else
     {
       unsigned int nBins= (timeMax-timeMin)/(7*24*60*60); //nb of weeks
@@ -169,11 +223,10 @@ int main(int argc, char *argv[])
 
 		  m12=mapDouble.at("m12");
 		  if (m12<80 || m12>100) continue;
-		  if ( fabs( mapDouble.at("eta_calo_1") )>1.37 && fabs( mapDouble.at("eta_calo_2") )>1.37) continue;
+		  //if ( fabs( mapDouble.at("eta_calo_1") )>1.37 && fabs( mapDouble.at("eta_calo_2") )>1.37) continue;
 		  //if ( mapDouble.at("eta_calo_1") <1.55 && mapDouble.at("eta_calo_2") <1.55) continue;
-		  // if ( mapDouble.at("eta_calo_1") > -1.55 && mapDouble.at("eta_calo_2") > -1.55) continue;
-		  weight=mapDouble.at("weight");
-		  prof->Fill( mapLong.at("timeStamp"), m12, weight);
+		  if ( mapDouble.at("eta_calo_1") > -1.55 && mapDouble.at("eta_calo_2") > -1.55) continue;
+		  prof->Fill( mapLong.at("timeStamp"), m12);
 		}
 	    }//end iFile
 	  prof->Scale(1/meanZDistri);
@@ -182,10 +235,10 @@ int main(int argc, char *argv[])
  
       for ( unsigned int iProf=0; iProf< vectProf.size(); iProf++)
 	{
+	  histTmp=(TH1D*)vectProf[iProf];
 	  for (unsigned int iBin=1; iBin<= vectProf[0]->GetXaxis()->GetNbins(); iBin++)
 	    {
-	      vectProf[iProf]->GetXaxis()->SetBinLabel( iBin, ConvertEpochToDate(vectProf[iProf]->GetBinCenter(iBin)).c_str() );
-
+	      histTmp->GetXaxis()->SetBinLabel( iBin, ConvertEpochToDate(histTmp->GetBinCenter(iBin)).c_str() );
 	    }
 	}
 
@@ -210,14 +263,13 @@ int main(int argc, char *argv[])
       TFile *timeFile=TFile::Open((savePath+"Time.root").c_str());
       c1=(TCanvas*)timeFile->Get("c1");
       c1->cd();
-      TH1D* histTmp =(TH1D*)c1->GetListOfPrimitives()->At(2);
+      histTmp =(TH1D*)c1->GetListOfPrimitives()->At(2);
 
-      ATLASLabel(0.22, 0.87, "Work in progress", 1, 0.06);
-      myText(0.22, 0.79, 1,"#sqrt{s}=13 TeV, L = 3.2 (2015) + 25.5 (2016) fb^{-1}", 0.05);
-      myText(0.43, 0.73, 1,"|#eta| < 1.37 (B-B events)", 0.05);
+      ATLASLabel(0.22, 0.87-0.4, "Work in progress", 1, 0.06);
+      myText(0.22, 0.79-0.4, 1,"#sqrt{s}=13 TeV, L = 3.2 (2015) + 25.5 (2016) fb^{-1}", sizeText);
+      myText(0.43, 0.73-0.4, 1,"#eta < -1.55 (EC(C)-EC(C) events)", 0.05);
       histTmp->SetLineColor(kRed);
       histTmp->SetMarkerColor(kRed);
-      
       histTmp =(TH1D*)c1->GetListOfPrimitives()->At(0);
       histTmp->GetYaxis()->SetTitleSize(0.05);
       histTmp->GetYaxis()->SetTitleOffset(1.10);
@@ -226,9 +278,16 @@ int main(int argc, char *argv[])
       histTmp->GetXaxis()->SetTitleSize(0.05);
       histTmp->GetXaxis()->SetTitleOffset(1.20);
       histTmp->GetXaxis()->SetLabelSize(0.05);
+     
+      TLine *line= new TLine (histTmp->GetBinCenter(1), mean[0], histTmp->GetBinCenter(histTmp->GetNbinsX()), mean[0]);
+      line->SetLineColor(kBlack);
+      line->Draw();
+      line= new TLine (histTmp->GetBinCenter(1), mean[1], histTmp->GetBinCenter(histTmp->GetNbinsX()) , mean[1]);
+      line->SetLineColor(kRed);
+      line->Draw();
 
       
-      c1->SaveAs((savePath+"Mee_time_BB.pdf").c_str());
+      c1->SaveAs((savePath+"Mee_time_ECC.pdf").c_str());
       timeFile->Close();
       delete timeFile;
 

@@ -20,12 +20,15 @@
 
 #include <iostream>
 #include <map>
+#include <list>
 
+using std::runtime_error;
 using std::map;
 using std::cout;
 using std::endl;
 using std::min;
 using std::max;
+using std::list;
 
 using namespace ChrisLib;
 using namespace RooFit;
@@ -158,6 +161,7 @@ int ChrisLib::DrawPlot( vector< TH1* > &inHist,
   map<string, string> mapOptionsString;
   mapOptionsString["xTitle"]="";
   mapOptionsString["yTitle"]="";
+  mapOptionsString["extension"]="pdf";
   for ( auto iOption : inOptions ) {
 
     string option = iOption.substr( 0, iOption.find_first_of('=' ) );
@@ -194,6 +198,12 @@ int ChrisLib::DrawPlot( vector< TH1* > &inHist,
 
   if ( inHist.size() == 1 ) mapOptionsInt["drawStyle"] = 0;
   if ( inHist.size() < 2 ) mapOptionsInt["doRatio"] = 0;
+
+  //  if ( mapOptionsString["extension"] == "" ) mapOptionsString["extension"] = "pdf";
+  list<string> allowedExtension = { "pdf", "root", "png" };
+  if ( find(allowedExtension.begin(), allowedExtension.end(), mapOptionsString["extension"] ) == allowedExtension.end() ) throw runtime_error( "DrawPlot : Wrong output file extension provided" );
+
+
   SetAtlasStyle();
 
   if ( DEBUG ) cout << "Options read" << endl;
@@ -209,7 +219,8 @@ int ChrisLib::DrawPlot( vector< TH1* > &inHist,
 
       myText( latexPos[iLatex][0], latexPos[iLatex][1], 1, inLatex[iLatex].c_str() );
     }
-    canvas.SaveAs( TString(outName) + ".pdf" );
+    string canOutName = outName + "." + mapOptionsString["extension"];
+    canvas.SaveAs( canOutName.c_str() );
     return 0;
   }
 
@@ -452,6 +463,7 @@ int ChrisLib::DrawPlot( vector< TH1* > &inHist,
   }
 
   // =========== PRINT LEGENDS AND LATEX
+  canvas.cd();
   for ( unsigned int iLegend=0; iLegend<inLegend.size(); iLegend++ ) {
     if ( !inHist[iLegend] ) continue;
     bool doFill = inLegend.size() > iLegend && TString( inLegend[iLegend].c_str() ).Contains( "__FILL" );
@@ -539,8 +551,11 @@ int ChrisLib::DrawPlot( vector< TH1* > &inHist,
     }//end doRatio
 
   if ( DEBUG ) cout << "saving" << endl;
+  string canOutName = outName + "." + mapOptionsString["extension"];
+  canvas.SaveAs( canOutName.c_str() );
+
   //  canvas.SaveAs( TString(outName) + ".pdf" );
-  canvas.SaveAs( TString(outName) + ".root" );
+  //  canvas.SaveAs( TString(outName) + ".root" );
   
 
   //========== CLEANING 
@@ -636,7 +651,10 @@ int ChrisLib::DrawPlot( RooRealVar *frameVar,
     else myText( latexPos[iLatex][0], latexPos[iLatex][1], 1, inLatex[iLatex].c_str() );
   }
 
-  canvas->SaveAs( TString( outName + ".pdf") );
+  string canOutName = outName + "." + mapOptionsString["extension"];
+  canvas->SaveAs( canOutName.c_str() );
+
+  //  canvas->SaveAs( TString( outName + ".pdf") );
   delete frame;
   delete canvas; canvas=0;
   return 0;
@@ -925,7 +943,10 @@ int ChrisLib::DrawPlot( vector< TGraphErrors* > inGraph,
 
 
   if ( DEBUG ) cout << "saving" << endl;
-  canvas.SaveAs( TString(outName) + ".pdf" );
+  string canOutName = outName + "." + mapOptionsString["extension"];
+  canvas.SaveAs( canOutName.c_str() );
+
+  //  canvas.SaveAs( TString(outName) + ".pdf" );
   
 
   //========== CLEANING 

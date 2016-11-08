@@ -314,62 +314,68 @@ int main()
 
   // //========================STABILITY PLOTS==========================//
 
-  string yearHist;
-  sizeText=0.05;
-  x=0.3;
-  y=0.73;
+  // TFile *muFile=TFile::Open((savePath+"Mu.root").c_str());
+  // TCanvas *c1=(TCanvas*)muFile->Get("c1");
+  // vectHist.clear(); 
+  // vectHist.push_back( (TH1D*)c1->GetListOfPrimitives()->At(2) );
+  // vectHist.push_back( (TH1D*)c1->GetListOfPrimitives()->At(4) );
 
+  // c1->cd();
+  // string yearHist;
+  // sizeText=0.05;
+  // x=0.3;
+  // y=0.73;
 
-  TFile *muFile=TFile::Open((savePath+"Mu.root").c_str());
-  TCanvas *c1=(TCanvas*)muFile->Get("c1");
-  vectHist.clear(); 
-  vectHist.push_back( (TH1D*)c1->GetListOfPrimitives()->At(2) );
-  vectHist.push_back( (TH1D*)c1->GetListOfPrimitives()->At(4) );
+  // for (unsigned int iHist=0; iHist<vectHist.size(); iHist++)
+  //   {
+  //     if (iHist == 0)
+  // {
+  //   vectHist[iHist]->SetMarkerStyle(8);
+  //   yearHist="2015";
+  // }
+  //     if (iHist==1)
+  // {
+  //   vectHist[iHist]->SetMarkerStyle(25);
+  //   vectHist[iHist]->SetMarkerColor(kRed);
+  //   vectHist[iHist]->SetLineColor(kRed);
+  //   yearHist="2016";
+  // }
 
-  c1->cd();
-
-  for (unsigned int iHist=0; iHist<vectHist.size(); iHist++)
-    {
-      if (iHist == 0)
-  	{
-  	  vectHist[iHist]->SetMarkerStyle(8);
-  	  yearHist="2015";
-  	}
-      if (iHist==1)
-  	{
-  	  vectHist[iHist]->SetMarkerStyle(25);
-  	  vectHist[iHist]->SetMarkerColor(kRed);
-  	  vectHist[iHist]->SetLineColor(kRed);
-  	  yearHist="2016";
-  	}
-
-      //      vectHist[iHist]->GetYaxis()->SetRangeUser(0.997, 1.003);
-      vectHist[iHist]->SetMarkerSize(1);
-      myLineText( x, y-iHist*0.08, vectHist[iHist]->GetLineColor(), vectHist[iHist]->GetLineStyle(), "", sizeText, vectHist[iHist]->GetLineWidth(), lsize  ); 
-      myMarkerText( x, y-iHist*0.08, vectHist[iHist]->GetMarkerColor(), vectHist[iHist]->GetMarkerStyle(), yearHist.c_str(), sizeText, vectHist[iHist]->GetMarkerSize(), lsize); 
-      vectHist[iHist]->GetXaxis()->SetTitle("#mu");
-      vectHist[iHist]->GetXaxis()->SetTitleSize(0.05);
-      vectHist[iHist]->GetXaxis()->SetTitleOffset(1.20);
-      vectHist[iHist]->GetXaxis()->SetLabelSize(0.05);
-      vectHist[iHist]->GetYaxis()->SetTitle("m_{ee} / <m_{ee}(2015)>");
-      vectHist[iHist]->GetYaxis()->SetLabelSize(0.04);
-      vectHist[iHist]->GetYaxis()->SetTitleSize(0.05);
-      vectHist[iHist]->GetYaxis()->SetTitleOffset(1.10);
-      //cout<<"mean "<<yearHist<<": "<<vectHist[iHist]->GetMean()<<endl;
-    }
+  //     //      vectHist[iHist]->GetYaxis()->SetRangeUser(0.997, 1.003);
+  //     vectHist[iHist]->SetMarkerSize(1);
+  //     myLineText( x, y-iHist*0.08, vectHist[iHist]->GetLineColor(), vectHist[iHist]->GetLineStyle(), "", sizeText, vectHist[iHist]->GetLineWidth(), lsize  ); 
+  //     myMarkerText( x, y-iHist*0.08, vectHist[iHist]->GetMarkerColor(), vectHist[iHist]->GetMarkerStyle(), yearHist.c_str(), sizeText, vectHist[iHist]->GetMarkerSize(), lsize); 
+  //     vectHist[iHist]->GetXaxis()->SetTitle("#mu");
+  //     vectHist[iHist]->GetXaxis()->SetTitleSize(0.05);
+  //     vectHist[iHist]->GetXaxis()->SetTitleOffset(1.20);
+  //     vectHist[iHist]->GetXaxis()->SetLabelSize(0.05);
+  //     vectHist[iHist]->GetYaxis()->SetTitle("m_{ee} / <m_{ee}(2015)>");
+  //     vectHist[iHist]->GetYaxis()->SetLabelSize(0.04);
+  //     vectHist[iHist]->GetYaxis()->SetTitleSize(0.05);
+  //     vectHist[iHist]->GetYaxis()->SetTitleOffset(1.10);
+  //     //cout<<"mean "<<yearHist<<": "<<vectHist[iHist]->GetMean()<<endl;
+  //   }
 
 
 
-  ATLASLabel(0.22, 0.87, "Work in progress", 1);
-  myText(0.22, 0.79, 1,"#sqrt{s}=13 TeV, L = 3.1 (2015) + 25.5 (2016) fb^{-1}", sizeText);
+  // ATLASLabel(0.22, 0.87, "Preliminary", 1, 0.06);
+  // myText(0.22, 0.79, 1,"#sqrt{s}=13 TeV, L = 3.2 (2015) + 2.7 (2016) fb^{-1}", sizeText);
+  // if (isEndcap)   myText(0.43, y, 1,"|#eta| > 1.55", sizeText);
 
-  if (isEndcap)   myText(0.43, y, 1,"|#eta| > 1.55", sizeText);
+  // c1->Update();
+  // c1->SaveAs((savePath+"Mee_mu.root").c_str());
 
-  c1->Update();
-  c1->SaveAs((savePath+"Mee_mu.root").c_str());
+  // //  muFile->Close();
 
-  //  muFile->Close();
 
+
+  // TFile *timeFile=TFile::Open((savePath+"Time.root").c_str());
+  // c1=(TCanvas*)timeFile->Get("c1");
+  // c1->cd();
+
+  // ATLASLabel(0.22, 0.87, "Preliminary", 1, 0.06);
+  // myText(0.22, 0.79, 1,"#sqrt{s}=13 TeV, L = 3.2 (2015) + 2.7 (2016) fb^{-1}", sizeText);
+  // c1->SaveAs((savePath+"Mee_time.root").c_str());
 
 
 

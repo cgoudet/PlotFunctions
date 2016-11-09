@@ -1,6 +1,7 @@
 #include "PlotFunctions/SideFunctions.h"
 #include "PlotFunctions/SideFunctionsTpp.h"
 #include "PlotFunctions/MapBranches.h"
+#include "PlotFunctions/Foncteurs.h"
 
 #include "TRandom.h"
 #include "TClass.h"
@@ -334,6 +335,8 @@ void ChrisLib::WriteLatexHeader( fstream &latexStream, string title, string auth
 
   latexStream << "\\documentclass[a4paper,12pt]{article}" << endl;
   latexStream << "\\usepackage{graphicx}" << endl;
+  latexStream << "\\usepackage{csvsimple}" << endl;
+  latexStream << "\\usepackage{adjustbox}" << endl;
   latexStream << "\\usepackage{xcolor}" << endl;
   latexStream << "\\usepackage[a4paper, textwidth=0.9\\paperwidth, textheight=0.9\\paperheight]{geometry}" << endl;
   latexStream << "\\usepackage[toc]{multitoc}" << endl;
@@ -859,7 +862,9 @@ void ChrisLib::PrintArray( const string &outName, const multi_array<double,2> &a
   
    if ( !array.size() || !array[0].size() ) return;
    if ( linesTitle.size() && linesTitle.size() != array.size() ) throw runtime_error("PrintArray : Not enough names for lines.");
-   
+   ReplaceString repStr( "_", "\\_" );
+   ReplaceString repSpace( "_", " " );
+
    unsigned nCols = array[0].size();
    if ( linesTitle.size() ) ++nCols;
    if ( colsTitle.size() && colsTitle.size() != nCols ) throw runtime_error("PrintArray : Not enough names for columns.");
@@ -868,12 +873,14 @@ void ChrisLib::PrintArray( const string &outName, const multi_array<double,2> &a
    fstream stream( outName.c_str(), fstream::out );
    for ( unsigned iLine = 0; iLine<array.size(); ++iLine ) {
      if ( !iLine && colsTitle.size() ) {
-       copy( colsTitle.begin(), colsTitle.end(), ostream_iterator<string>( stream, "," ) );
+       transform( colsTitle.begin(), --colsTitle.end(), ostream_iterator<string>( stream, "," ), repSpace );
+       stream << repSpace(colsTitle.back());
        stream << endl;
      }
      for ( unsigned iCol = 0; iCol<array[0].size(); ++iCol ) {
-       if ( !iCol && linesTitle.size() ) stream << linesTitle[iLine] << ",";
-       stream << array[iLine][iCol] << ",";
+       if ( !iCol && linesTitle.size() ) stream << repStr(linesTitle[iLine]) << ",";
+       if ( iCol ) stream << ",";
+       stream << array[iLine][iCol];
      }
      stream << endl;
    }

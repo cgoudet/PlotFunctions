@@ -57,16 +57,9 @@ void ChrisLib::PlotHist( const InputCompare &inputCompare ) {
 	
       }
     }
-    RemoveNullPointers( drawVect );
-    if ( drawVect.empty() ) throw runtime_error( "PlotHist : No histogram to draw." );
 
-    string outName = inputCompare.GetOption("plotDirectory") + inputCompare.GetOutName();
-    DrawPlot( drawVect, outName, inputCompare.CreateVectorOptions() );
-
-    int doTabular = atoi(inputCompare.GetOption("doTabular").c_str());
-    if ( doTabular ) PrintHist( drawVect, outName, doTabular );
-
-    if ( atoi(inputCompare.GetOption( "saveRoot" ).c_str()) ) WriteVectHist( drawVect, outName );
+    vector<vector<TH1*>> vectHist = { drawVect };
+    DrawVect( vectHist, inputCompare );
   }//end try
   catch( const exception e ) {
     cout << e.what() << endl;
@@ -180,20 +173,11 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare ) {
 	inFile.Close( "R" ); 
       }
     }//end iPlot
-    
-    string plotPath = inputCompare.GetOption( "plotDirectory" ) + inputCompare.GetOutName();
-    int doTabular = atoi(inputCompare.GetOption("doTabular").c_str());
-    int saveRoot = atoi(inputCompare.GetOption( "saveRoot" ).c_str());
-    const vector<string> vectorOptions = inputCompare.CreateVectorOptions();
-    for ( unsigned iPlot=0; iPlot<varName[0].size(); ++iPlot ) {
-      string outPlotName = plotPath + "_" + varName[0][iPlot];
-      DrawPlot( vectHist[iPlot], outPlotName, vectorOptions );
-      if ( doTabular ) PrintHist( vectHist[iPlot], outPlotName, doTabular );
-      if ( saveRoot ) WriteVectHist( vectHist[iPlot], outPlotName );
-    }
+
+    DrawVect( vectHist, inputCompare );    
 
     if ( !eventID.empty() ) {
-      string outName = plotPath + "_compareEvents";
+      string outName = inputCompare.GetOption( "plotDirectory" ) + inputCompare.GetOutName() + "_compareEvents";
       PrintOutputCompareEvents( varValues, IDValues, eventID, vectHist, outName );
     }
 
@@ -206,7 +190,7 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare ) {
 
 
 //====================================================================
-void PrintOutputCompareEvents( const multi_array<double,2> &varValues, const multi_array<long long,2> &IDValues, const vector<string> &eventID, const vector<vector<TH1*>> &vectHist, const string &outName ) {
+void ChrisLib::PrintOutputCompareEvents( const multi_array<double,2> &varValues, const multi_array<long long,2> &IDValues, const vector<string> &eventID, const vector<vector<TH1*>> &vectHist, const string &outName ) {
   if ( vectHist.empty() ) return;
 
   unsigned nBins = varValues.size();
@@ -232,4 +216,89 @@ void PrintOutputCompareEvents( const multi_array<double,2> &varValues, const mul
   }
   
   PrintArray( outName, varValues, linesTitle, colsTitle );
+}
+
+//==================================================================
+void PlotTextFile( const InputCompare &inputCompare ) {
+
+  const vector<vector<string>> inputObjName = inputCompare.GetObjName();
+  const vector<vector<string>> rootFilesName = inputCompare.GetRootFilesName();
+  if ( rootFilesName.empty() ) throw invalid_argument( "PlotTextFile : No input file." );
+  const vector< vector<string> > varName = inputCompare.GetVarName();
+  if ( varName.empty() || varName[0].empty() ) throw invalid_argument( "PlotTextFile : empty varName." );
+  const vector< double > varMin = inputCompare.GetVarMin();
+  const vector< double > varMax = inputCompare.GetVarMax();
+  const vector< vector<string> > varWeight = inputCompare.GetVarWeight();
+
+  vector<vector<TH1*> > vectHist( rootFilesName.size(), vector<TH1*>(varName[0].size(), 0 ) );;
+  vector< unsigned > varIndex( varName[0].size(), 0 );
+
+  try {   
+    for ( unsigned int iPlot = 0; iPlot < rootFilesName.size(); ++iPlot ) {
+      for ( unsigned int iAdd = 0; iAdd < rootFilesName[iPlot].size(); ++iAdd ) {
+	
+	fstream inputStream;
+	inputStream.open( rootFilesName[iPlot][iAdd].c_str(), fstream::in );
+	string dumString;
+	getline( inputStream, dumString );
+	vector< string > titleVect;
+	ParseVector(  dumString , titleVect );
+	vector< double > varVal( titleVect.size(), 0 );
+
+	for ( unsigned int iVar = 0; iVar < varName[iPlot].size(); ++iVar ) {
+	  varIndex[iVar] = SearchVectorBin( varName[iPlot][iVar], titleVect );
+	  if ( varIndex[iVar] == titleVect.size() ) throw invalid_argument( "PlotTestFile : varName not found in header : " + varName[iPlot][iVar] );
+
+	  vector<unsigned> weightIndices( varWeight[iPlot].size() );
+	  for ( unsigned int iWeight = 0; iWeight < varWeight[iPlot].size(); iWeight++ ) weightIndices[iWeight] = SearchVectorBin( varWeight[iPlot][iWeight], titleVect );
+
+	  while ( true ) {
+	    for ( unsigned int iTxtVar = 0; iTxtVar < titleVect.size(); iTxtVar++ ) inputStream >> varVal[iTxtVar];
+	    if ( inputStream.eof() ) break;
+
+	    double weight = 1;
+	    for_each( weightIndices.begin(), weightIndices.end(), [&weight, &varVal, &weightIndices]( const unsigned &i ) { weight*=varVal[weightIndices[i]];} );
+
+	    for ( unsigned int iVar = 0; iVar < varName[iPlot].size(); ++iVar ) {
+	      if ( vectHist.size() == iVar ) vectHist.push_back( vector<TH1*>() );
+	      if ( vectHist[iVar].size() == iPlot ) {
+	  	string dumString = inputCompare.GetOutName() + string( TString::Format( "_%s_%d", varName[iPlot][iVar].c_str(), iPlot ));
+	  	vectHist[iVar].push_back(0);
+	  	vectHist[iVar].back() = new TH1D( dumString.c_str(), dumString.c_str(), 100, varMin[iVar], varMax[iVar] );
+	  	vectHist[iVar].back()->SetDirectory(0);
+	  	vectHist[iVar].back()->GetXaxis()->SetTitle( varName[iPlot][iVar].c_str() );
+	  	vectHist[iVar].back()->GetYaxis()->SetTitle( "#events" );
+	  	vectHist[iVar].back()->Sumw2();
+	      }
+	      
+	      vectHist[iVar][iPlot]->Fill( varVal[varIndex[iVar]], weight );
+	    }//end for iVar
+	  }//end while
+	}
+      }
+    }//end iPlot
+
+    DrawVect( vectHist, inputCompare );
+  }
+  catch( const exception e ) {
+    cout << e.what() << endl;
+  }
+  for ( auto it=vectHist.begin(); it!=vectHist.end(); ++it ) DeleteContainer( *it );  
+  
+}
+//==============================================================
+void ChrisLib::DrawVect( vector<vector<TH1*>> &vectHist, const InputCompare &inputCompare ) {
+
+  const string plotPath = inputCompare.GetOption( "plotDirectory" ) + inputCompare.GetOutName();
+  const int doTabular = atoi(inputCompare.GetOption("doTabular").c_str());
+  const int saveRoot = atoi(inputCompare.GetOption( "saveRoot" ).c_str());
+  const vector< vector<string> > varName = inputCompare.GetVarName();
+  const vector<string> vectorOptions = inputCompare.CreateVectorOptions();
+  for ( unsigned iPlot=0; iPlot<vectHist.size(); ++iPlot ) {
+    string outPlotName = plotPath;
+    if ( !varName.empty() ) outPlotName += "_" + varName[0][iPlot];
+    DrawPlot( vectHist[iPlot], outPlotName, vectorOptions );
+    if ( doTabular ) PrintHist( vectHist[iPlot], outPlotName, doTabular );
+    if ( saveRoot ) WriteVectHist( vectHist[iPlot], outPlotName );
+  }
 }

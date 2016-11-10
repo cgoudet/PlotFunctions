@@ -6,7 +6,7 @@
 namespace ChrisLib {
 
   void PlotHist( const ChrisLib::InputCompare &inputCompare );
-
+  void PlotTree( const InputCompare &inputCompare );
 }
 
 #endif

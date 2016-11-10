@@ -200,6 +200,11 @@ namespace ChrisLib {
      \param mode If 2 also print the histograms uncertainties
    */
   void PrintHist( std::vector<TH1*> &vectHist, std::string outName, int mode );
+
+  /**\brief Replace input pointer by a copy after applying a selection
+   */
+  void CopyTreeSelection( TTree* inTree, const std::string &selection );
+
 }
 
 #endif

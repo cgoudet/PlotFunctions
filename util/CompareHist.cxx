@@ -96,10 +96,13 @@ int main( int argc, char* argv[] ) {
     InputCompare input( inFiles[iFile] );
     if ( DEBUG ) cout << "config file loaded" << endl;
     int inputType = atoi(input.GetOption("inputType").c_str());
-    if ( inputType==0 ) {
-      PlotHist( input );
+    list<int> authorizedInput = { 0, 1 };
+    if ( find( authorizedInput.begin(), authorizedInput.end(), inputType ) != authorizedInput.end() ) {
+      if ( inputType==0 ) PlotHist( input );
+      else if ( inputType==1 ) PlotTree( input );
       continue;
     }
+
 
     plotPath = input.GetOption("plotDirectory");
     vector< vector< TH1* > > vectHist;

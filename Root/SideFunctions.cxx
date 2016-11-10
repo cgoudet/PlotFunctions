@@ -3,6 +3,7 @@
 #include "PlotFunctions/MapBranches.h"
 #include "PlotFunctions/Foncteurs.h"
 
+#include <TROOT.h>
 #include "TRandom.h"
 #include "TClass.h"
 #include "TKey.h"
@@ -949,4 +950,17 @@ void ChrisLib::PrintHist( vector<TH1*> &vectHist, string outName, int mode ) {
   }
   stream.close();
   cout << "Wrote " << outName  << endl;
+}
+//======================================================
+void ChrisLib::CopyTreeSelection( TTree* inTree, const string &selection ) {
+  if ( selection == "" ) return;
+  TFile *dumFile = new TFile( "/tmp/dumFile", "RECREATE" );
+  gROOT->cd();
+  TTree* dumTree = inTree->CopyTree( selection.c_str() );
+  if ( dumTree ) {
+    delete inTree;
+    inTree= dumTree;
+    inTree->SetDirectory(0);
+  }
+  delete dumFile; dumFile=0;
 }

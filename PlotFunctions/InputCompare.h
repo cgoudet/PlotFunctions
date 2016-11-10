@@ -19,7 +19,14 @@ namespace ChrisLib {
 
     //new style
     const std::vector< std::vector< std::string > > &GetObjName() const { return m_objName; }
+
     const std::vector<std::vector<std::string>> &GetRootFilesName() const { return m_rootFilesName; }
+    const std::vector< std::string > &GetSelectionCut() const { return m_selectionCut;}
+    const std::vector< double > &GetVarMin() const { return m_varMin; }
+    const std::vector< double > &GetVarMax() const { return m_varMax; }
+    const std::vector< std::vector<std::string> > &GetVarName() const { return m_varName; }
+    const std::vector< std::vector<std::string> > &GetVarWeight() const { return m_varWeight; }
+    const std::vector<std::vector< double >> &GetXBinning() const { return m_xBinning; }
 
     std::string GetOption( std::string option ) const { return m_mapOptions.at(option); }    
     std::string GetOutName() const { return m_outName; }
@@ -30,7 +37,7 @@ namespace ChrisLib {
     std::vector< std::vector< std::string > > &GetRootFileName() { return m_rootFilesName; }
     std::vector< std::vector< std::string > > &GetObjName() { return m_objName; }
     std::vector< std::string > &GetLegend() { return m_legend; }
-    std::vector< std::vector<std::string> > &GetVarName() { return m_varName; }
+    std::vector< std::vector<std::string> > &GetVarName()  { return m_varName; }
     std::vector< std::vector<std::string> > &GetVarErrX() { return m_varErrX; }
     std::vector< std::vector<std::string> > &GetVarErrY() { return m_varErrY; }
     std::vector< double > &GetVarMin() { return m_varMin; }
@@ -40,7 +47,7 @@ namespace ChrisLib {
     std::vector< std::string > &GetSelectionCut() { return m_selectionCut;}
     std::vector< std::string > &GetEventID() { return m_eventID; }
     std::vector< std::string > &GetLatexOpt() { return m_latexOpt; }
-    std::vector< std::vector<std::string> > &GetVarWeight() { return m_varWeight; }
+       std::vector< std::vector<std::string> > &GetVarWeight() { return m_varWeight; }
 
     //    std::string &GetOutName() { return m_outName; }
 

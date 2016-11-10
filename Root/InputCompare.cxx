@@ -7,6 +7,8 @@ namespace po = boost::program_options;
 
 #include <iostream>
 #include <fstream>
+#include <stdexcept>
+using std::runtime_error;
 using std::ifstream;
 using std::vector;
 using std::string;
@@ -34,7 +36,7 @@ ChrisLib::InputCompare::InputCompare( string fileName ) : InputCompare()
 }
 
 /**
-   Read a configuration file.
+   \brief Read a configuration file.
    Options not documented here are documented in DrawPlot.cxx.
 
    rootfilesname= file1 file2 ... \n
@@ -43,14 +45,17 @@ ChrisLib::InputCompare::InputCompare( string fileName ) : InputCompare()
    \n
    objName= name1 name2 ... \n
    Names of the objects to be added.
+   If the structure is different than rootFilesName, the function @ChrisLib::FindDefaultTree() will be called.
    \n
    \n
    inputType=number\n
-   Number of the rountine in CompareHist to call. Routines and requirede parameters defined in CompareHist.cxx.
+   Number of the rountine in CompareHist to call. Routines and required parameters defined in @ChrisLib::CompareHist
    \n
    \n
    varName= name1 name2 ...\n
    Names of tree branches to be read
+   varName should be have the same size than rootFilesName and contain the same number of components for each file
+   If varNames is smaller than rootFilesNames, the last entered varName component will be duplicated.
    \n
    \n
    varMin= value1 value2 ... \n
@@ -62,7 +67,7 @@ ChrisLib::InputCompare::InputCompare( string fileName ) : InputCompare()
    \n
    \n
    selectionCut= cut \n
-   Perform the given cut on a TTree with same index.
+   Perform the given cut on a TTree with same index. If less selectionCut provided than rootFilesName, no selection is performed.
    \n
    \n
    eventID= value1 value2 ...\n
@@ -75,6 +80,7 @@ ChrisLib::InputCompare::InputCompare( string fileName ) : InputCompare()
    \n
    varWeight= var1 var2 ...\n
    branch names to be used as weights. If several values, they are multiplied.
+   If less components than rootFilesName, no weights are considered.
    \n
    \n
    xBinning= frontier1 frontier2 ... \n
@@ -145,31 +151,26 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   m_outName = StripString( fileName );
   
   if ( m_mapOptions["plotDirectory"] != "" && m_mapOptions["plotDirectory"].back() != '/' ) m_mapOptions["plotDirectory"] += "/";
-  for ( unsigned int iHist = 0; iHist < rootFilesName.size(); iHist++ ) {
-    m_rootFilesName.push_back( vector< string >() );
-    ParseVector( rootFilesName[iHist], m_rootFilesName.back(), 0 );
+  m_rootFilesName = vector<vector<string>>( rootFilesName.size() );
+  for ( unsigned int iHist = 0; iHist < rootFilesName.size(); ++iHist ) ParseVector( rootFilesName[iHist], m_rootFilesName[iHist], 0 );
+
+  m_objName = vector<vector<string>>( rootFilesName.size() );
+  for ( unsigned int iHist = 0; iHist < objName.size(); ++iHist ) ParseVector( objName[iHist], m_objName.back(), 0 );
+
+
+  m_varName = vector<vector<string>>( varName.size() );
+  for ( unsigned int iName = 0; iName < varName.size(); ++iName ) {
+    ParseVector( varName[iName], m_varName[iName], 0 );
+    if ( m_varName[iName] != m_varName[0] ) throw runtime_error( "InputConpare::LoadFiles : varName structure not identical for all files." );
   }
+  while ( m_varName.size() < m_rootFilesName.size() ) m_varName.push_back( m_varName.back() );
+
+  m_varWeight = vector<vector<string>>( m_rootFilesName.size() );
+  for ( unsigned int iPlot = 0; iPlot < varWeight.size(); iPlot++ ) ParseVector( varWeight[iPlot], m_varWeight[iPlot], 0 );
   
-  for ( unsigned int iHist = 0; iHist < objName.size(); iHist++ ) {
-    m_objName.push_back( vector< string >() );
-    ParseVector( objName[iHist], m_objName.back(), 0 );
-  }
-
-
-  for ( unsigned int iName = 0; iName < varName.size(); iName++ ) {
-    m_varName.push_back( vector<string>() );
-    ParseVector( varName[iName], m_varName.back(), 0 );
-  }
   for ( auto vErr : varErrX ) { m_varErrX.push_back( vector<string>() ); ParseVector( vErr, m_varErrX.back(), 0 ); }
   for ( auto vErr : varErrX ) { m_varErrY.push_back( vector<string>() ); ParseVector( vErr, m_varErrY.back(), 0 ); }
 
-  while ( m_varName.size() && m_varName.size() < m_rootFilesName.size() ) m_varName.push_back( m_varName.back() );
-
-  for ( unsigned int iPlot = 0; iPlot < m_varName.size(); iPlot++ ) {
-    if ( m_varName.front().size() <= m_varName[iPlot].size() ) continue;
-    cout << "Missing variables for dataset " << iPlot << endl;
-    exit(0);
-  }
 
   if ( eventID != "" ) ParseVector( eventID, m_eventID, 0 );
   if ( varMax != "" ) {
@@ -187,10 +188,6 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
     ParseVector( xBinning[iPlot], m_xBinning.back(), 0 );
   }
 
-  for ( unsigned int iPlot = 0; iPlot < varWeight.size(); iPlot++ ) {
-    m_varWeight.push_back( vector<string>() );
-    ParseVector( varWeight[iPlot], m_varWeight.back(), 0 );
-  }
 
   for ( auto vLatex = latex.begin(); vLatex!= latex.end(); vLatex++ ) m_latex.push_back( *vLatex );
   for ( auto vLatexOpt = latexOpt.begin(); vLatexOpt!= latexOpt.end(); vLatexOpt++ ) m_latexOpt.push_back( *vLatexOpt );

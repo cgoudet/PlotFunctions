@@ -914,7 +914,7 @@ string ChrisLib::RemoveWords( string name,const list<string> &toRemove ) {
 }
 
 //==========================================================
-void ChrisLib::PrintHist( string outName, vector<TH1*> &vectHist, int mode ) {
+void ChrisLib::PrintHist( vector<TH1*> &vectHist, string outName, int mode ) {
   RemoveNullPointers( vectHist );
   if ( vectHist.empty() ) throw invalid_argument( "PrintHist : Empty input vector of histograms" );
 

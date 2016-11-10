@@ -96,10 +96,10 @@ int main( int argc, char* argv[] ) {
     InputCompare input( inFiles[iFile] );
     if ( DEBUG ) cout << "config file loaded" << endl;
     int inputType = atoi(input.GetOption("inputType").c_str());
-    // if ( inputType==0 ) {
-    //   PlotHist( input );
-    //   continue;
-    // }
+    if ( inputType==0 ) {
+      PlotHist( input );
+      continue;
+    }
 
     plotPath = input.GetOption("plotDirectory");
     vector< vector< TH1* > > vectHist;
@@ -688,7 +688,7 @@ int main( int argc, char* argv[] ) {
     if ( vectHist.size() && atoi(input.GetOption("doTabular").c_str()) ) {
       for ( auto itVectHist=vectHist.begin(); itVectHist!=vectHist.end(); ++itVectHist ) {
 	string outName = plotPath + input.GetOutName() + ( input.GetVarName().size() && input.GetVarName().front().size() ? "_" + input.GetVarName().front().front() : "");
-	PrintHist( outName, *itVectHist, atoi(input.GetOption("doTabular").c_str()) );
+	PrintHist( *itVectHist, outName, atoi(input.GetOption("doTabular").c_str()) );
       }
     }
 

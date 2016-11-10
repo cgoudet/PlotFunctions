@@ -199,7 +199,7 @@ namespace ChrisLib {
      \param vectHist 
      \param mode If 2 also print the histograms uncertainties
    */
-  void PrintHist( std::string outName, std::vector<TH1*> &vectHist, int mode );
+  void PrintHist( std::vector<TH1*> &vectHist, std::string outName, int mode );
 }
 
 #endif

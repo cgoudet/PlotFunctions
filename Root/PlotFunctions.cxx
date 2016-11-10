@@ -45,11 +45,13 @@ void ChrisLib::PlotHist( const InputCompare &inputCompare ) {
       }
     }
     RemoveNullPointers( drawVect );
-    if ( drawVect.empty() ) return;
+    if ( drawVect.empty() ) throw runtime_error( "PlotHist : No histogram to draw." );
 
     string outName = inputCompare.GetOption("plotDirectory") + inputCompare.GetOutName();
     DrawPlot( drawVect, outName, inputCompare.CreateVectorOptions() );
 
+    int doTabular = atoi(inputCompare.GetOption("doTabular").c_str());
+    if ( doTabular ) PrintHist( drawVect, outName, doTabular );
   }//end try
   catch( const exception e ) {
     cout << e.what() << endl;

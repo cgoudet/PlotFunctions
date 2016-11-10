@@ -8,13 +8,15 @@ namespace po = boost::program_options;
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
+#include <list>
+
 using std::runtime_error;
 using std::ifstream;
 using std::vector;
 using std::string;
 using std::cout;
 using std::endl;
-
+using std::list;
 using namespace ChrisLib;
 
 ChrisLib::InputCompare::InputCompare() 
@@ -141,6 +143,7 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
     ( "orderX", po::value<string>( &m_mapOptions["orderX"] ), "" )
     ( "clean", po::value<string>( &m_mapOptions["clean"] ), "" )
     ( "extension", po::value<string>( &m_mapOptions["extension"] ), "" )
+    ( "saveRoot", po::value<string>( &m_mapOptions["saveRoot"] ), "" )
     ;
 
   po::variables_map vm;
@@ -188,7 +191,6 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
     ParseVector( xBinning[iPlot], m_xBinning.back(), 0 );
   }
 
-
   for ( auto vLatex = latex.begin(); vLatex!= latex.end(); vLatex++ ) m_latex.push_back( *vLatex );
   for ( auto vLatexOpt = latexOpt.begin(); vLatexOpt!= latexOpt.end(); vLatexOpt++ ) m_latexOpt.push_back( *vLatexOpt );
   if ( m_latex.size() != m_latexOpt.size() ) {
@@ -200,22 +202,17 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
 //==========================================
 vector<string> ChrisLib::InputCompare::CreateVectorOptions() const {
 
+  list<string> nonDrawOptions = { "", "inputType", "diagonalize", "doTabular", "plotDirectory", "saveRoot" };
+
   vector<string> outVect;
   for ( map<string, string>::const_iterator it = m_mapOptions.begin(); it != m_mapOptions.end(); it++) {
-    if ( it->second == "" 
-	 || it->first == "inputType" 
-	 //	 || it->first == "nComparedEvents" 
-	 || it->first == "diagonalize" 
-	 || it->first == "doTabular" 
-	 || it->first == "plotDirectory" 
-	 ) continue;
+    if ( find ( nonDrawOptions.begin(), nonDrawOptions.end(), it->second ) != nonDrawOptions.end() ) continue;
     outVect.push_back( it->first +"=" + it->second );
   }
 
   for ( auto legend : m_legend ) outVect.push_back( "legend=" + legend );
   for ( auto latex : m_latex ) outVect.push_back( "latex=" + latex );
   for ( auto latexOpt : m_latexOpt ) outVect.push_back( "latexOpt=" + latexOpt );
-
 
   return outVect;
 

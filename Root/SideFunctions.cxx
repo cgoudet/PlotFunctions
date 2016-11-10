@@ -964,3 +964,9 @@ void ChrisLib::CopyTreeSelection( TTree* inTree, const string &selection ) {
   }
   delete dumFile; dumFile=0;
 }
+//============================================================
+void ChrisLib::WriteVectHist( const vector<TH1*> &vectHist, const string &outName ) {
+  TFile outFile( (outName+".root").c_str(), "recreate" );
+  for ( auto it = vectHist.begin(); it != vectHist.end(); ++it ) (*it)->Write( "", TObject::kOverwrite );
+  outFile.Close();
+}

@@ -25,6 +25,8 @@ using std::list;
 using std::invalid_argument;
 using std::copy;
 using std::for_each;
+
+//=====================================================
 void ChrisLib::PlotHist( const InputCompare &inputCompare ) {
   vector<TH1*> drawVect;;
 
@@ -59,6 +61,8 @@ void ChrisLib::PlotHist( const InputCompare &inputCompare ) {
 
     int doTabular = atoi(inputCompare.GetOption("doTabular").c_str());
     if ( doTabular ) PrintHist( drawVect, outName, doTabular );
+
+    if ( atoi(inputCompare.GetOption( "saveRoot" ).c_str()) ) WriteVectHist( drawVect, outName );
   }//end try
   catch( const exception e ) {
     cout << e.what() << endl;
@@ -67,7 +71,7 @@ void ChrisLib::PlotHist( const InputCompare &inputCompare ) {
 
 }//end PlotHist
 
-//=====================================================
+
 //=====================================================
 void ChrisLib::PlotTree( const InputCompare &inputCompare ) {
 
@@ -140,17 +144,18 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare ) {
 
 	delete inTree; 
 	inFile.Close( "R" ); 
-	continue;
       }
     }//end iPlot
 
     string plotPath = inputCompare.GetOption( "plotDirectory" ) + inputCompare.GetOutName();
     int doTabular = atoi(inputCompare.GetOption("doTabular").c_str());
+    int saveRoot = atoi(inputCompare.GetOption( "saveRoot" ).c_str());
     const vector<string> vectorOptions = inputCompare.CreateVectorOptions();
     for ( unsigned iPlot=0; iPlot<varName[0].size(); ++iPlot ) {
       string outPlotName = plotPath + "_" + varName[0][iPlot];
       DrawPlot( vectHist[iPlot], outPlotName, vectorOptions );
       if ( doTabular ) PrintHist( vectHist[iPlot], outPlotName, doTabular );
+      if ( saveRoot ) WriteVectHist( vectHist[iPlot], outPlotName );
     }
   }
   catch( const exception e ) {
@@ -158,3 +163,6 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare ) {
   }
   for ( auto it=vectHist.begin(); it!=vectHist.end(); ++it ) DeleteContainer( *it );  
 }
+
+
+//====================================================================

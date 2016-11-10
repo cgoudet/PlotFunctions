@@ -205,6 +205,9 @@ namespace ChrisLib {
    */
   void CopyTreeSelection( TTree* inTree, const std::string &selection );
 
+  /**\brief Write a vector of histogram into a TFile
+   */
+  void WriteVectHist( const std::vector<TH1*> &vectHist, const std::string &outName );
 }
 
 #endif

@@ -18,8 +18,8 @@ namespace ChrisLib {
     InputCompare( std::string fileName );
 
     //new style
+    const std::vector< std::string > &GetEventID() const { return m_eventID; }
     const std::vector< std::vector< std::string > > &GetObjName() const { return m_objName; }
-
     const std::vector<std::vector<std::string>> &GetRootFilesName() const { return m_rootFilesName; }
     const std::vector< std::string > &GetSelectionCut() const { return m_selectionCut;}
     const std::vector< double > &GetVarMin() const { return m_varMin; }

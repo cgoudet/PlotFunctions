@@ -12,8 +12,7 @@
 #include "boost/multi_array.hpp"
 
 #include <cstdio>
-using boost::multi_array;
-using boost::extents;
+
 #include "PlotFunctions/SideFunctionsTpp.h"
 #include "TGraphErrors.h"
 #include "TString.h"

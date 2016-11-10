@@ -1,4 +1,5 @@
 #include "PlotFunctions/SideFunctionsTpp.h"
+#include "PlotFunctions/SideFunctions.h"
 #include "PlotFunctions/DrawPlot.h"
 #include "PlotFunctions/PlotFunctions.h"
 #include "PlotFunctions/MapBranches.h"
@@ -12,6 +13,7 @@
 #include <iterator>
 #include <list>
 #include <algorithm>
+#include <sstream>
 
 using namespace ChrisLib;
 using std::vector;
@@ -25,7 +27,9 @@ using std::list;
 using std::invalid_argument;
 using std::copy;
 using std::for_each;
-
+using std::stringstream;
+using boost::extents;
+using boost::multi_array;
 //=====================================================
 void ChrisLib::PlotHist( const InputCompare &inputCompare ) {
   vector<TH1*> drawVect;;
@@ -82,20 +86,30 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare ) {
   const vector< vector<string> > varName = inputCompare.GetVarName();
   if ( varName.empty() || varName[0].empty() ) throw invalid_argument( "PlotTree : empty varName." );
 
-
-
   const vector< double > varMin  = inputCompare.GetVarMin();
   const vector< double > varMax  = inputCompare.GetVarMax();
   const vector< vector<string> > varWeight = inputCompare.GetVarWeight();
   const vector< vector< double > > xBinning = inputCompare.GetXBinning();
   const vector<string> selectionCut = inputCompare.GetSelectionCut();
+  const vector< string > &eventID = inputCompare.GetEventID();
+
 
   vector<vector<TH1*>> vectHist( varName[0].size(), vector<TH1*>(rootFilesName.size(), 0) );
 
-  vector< double > varVal( varName[0].size(), 0 );
+
   unsigned int nBins = atoi(inputCompare.GetOption("nComparedEvents").c_str());
   if ( !nBins ) nBins = 100;
-	     
+
+  vector< double > varVal( varName[0].size(), 0 );
+  vector< long long > eventIDVal( eventID.size(), 0 );
+  int nCols = rootFilesName.size()*varName[0].size();
+  multi_array<double,2> varValues;
+  multi_array<long long, 2> IDValues;
+  if ( !eventID.empty() ) {
+    varValues.resize( extents[nBins][nCols] );
+    IDValues.resize( extents[nBins][nCols] );
+  }
+
   try {   
     for ( unsigned int iPlot = 0; iPlot < rootFilesName.size(); ++iPlot ) {
       for ( unsigned int iAdd = 0; iAdd < rootFilesName[iPlot].size(); ++iAdd ) {
@@ -111,6 +125,7 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare ) {
   	if ( selectionCut.size()>iPlot && selectionCut[iPlot]!="" ) CopyTreeSelection( inTree, selectionCut[iPlot] );
 	
   	int nEntries = inTree->GetEntries();
+	if ( !eventID.empty() && !iPlot ) nEntries = nBins;
 
   	//create a vector to store all branches names to be linked
   	list<string> linkedVariables;
@@ -125,8 +140,30 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare ) {
 
 	  double totWeight=1;
 	  for_each( varWeight[iPlot].begin(), varWeight[iPlot].end(), [&totWeight, &mapBranch]( const string &s ) { totWeight*=mapBranch.GetVal(s);} );
+
+	  int foundIndex=-1;
+	  if ( !eventID.empty() && !iPlot ) {
+	    for ( unsigned i=0; i<eventID.size(); ++i ) IDValues[iEvent][i] = mapBranch.GetVal( eventID[i] );
+	    foundIndex=iEvent;
+	  }
+	  else if ( !eventID.empty() )  {
+	    for ( unsigned int iSavedEvent = 0; iSavedEvent < nBins; ++iSavedEvent ) {
+	      bool foundEvent =true;
+	      for ( unsigned int iID = 0; iID < eventID.size(); ++iID ) {
+		if ( IDValues[iSavedEvent][iID] == mapBranch.GetVal( eventID[iPlot] ) ) continue;
+		foundEvent = false;
+		break;
+	      }
+	      if ( !foundEvent ) continue;
+	      foundIndex = iSavedEvent;
+	      break;
+	    }
+	  }
 	  
 	  for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
+
+	    if ( !eventID.empty() && ( !iPlot || foundIndex != -1 ) ) varValues[foundIndex][iHist*rootFilesName.size()+iPlot] = mapBranch.GetVal( varName[iPlot][iHist] );
+	      
 	    if ( !vectHist[iHist][iPlot] ) {
 	      string dumName = string( TString::Format( "%s_%s_%d", inputObjName[iPlot][iAdd].c_str(), varName[iPlot][iHist].c_str(), iPlot ) );
 	      if ( xBinning[iHist].empty() ) vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), nBins, varMin[iHist], varMax[iHist] );
@@ -136,17 +173,16 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare ) {
 	      vectHist[iHist][iPlot]->SetDirectory( 0 );
 	      vectHist[iHist][iPlot]->Sumw2();
 	    }
-		
+	    
 	    if ( totWeight ) vectHist[iHist][iPlot]->Fill( mapBranch.GetVal(varName[iPlot][iHist] ) , totWeight );
-  	    }// End iHist
-
-	  }// end iEvent
-
+	  }// End iHist
+	}
+	
 	delete inTree; 
 	inFile.Close( "R" ); 
       }
     }//end iPlot
-
+    
     string plotPath = inputCompare.GetOption( "plotDirectory" ) + inputCompare.GetOutName();
     int doTabular = atoi(inputCompare.GetOption("doTabular").c_str());
     int saveRoot = atoi(inputCompare.GetOption( "saveRoot" ).c_str());
@@ -157,6 +193,32 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare ) {
       if ( doTabular ) PrintHist( vectHist[iPlot], outPlotName, doTabular );
       if ( saveRoot ) WriteVectHist( vectHist[iPlot], outPlotName );
     }
+
+    if ( !eventID.empty() ) {
+      string outName = plotPath + "_compareEvents";
+      vector<string> linesTitle(nBins, "" );
+      vector<string> colsTitle(eventID.size()*rootFilesName.size()+1, "" );
+      for ( unsigned iLine=0; iLine<nBins; ++iLine ) {
+	stringstream ss;
+	for ( unsigned iID = 0; iID<eventID.size(); ++iID ) {
+	  ss << IDValues[iLine][iID] << " ";
+	  if ( !iID ) colsTitle[0]+= eventID[iID] + " ";
+	}
+	linesTitle[iLine] = ss.str();
+      }
+
+      vector<unsigned> levelsSizes;
+      levelsSizes.push_back(rootFilesName.size());
+      levelsSizes.push_back(eventID.size());
+      for ( unsigned iCol=1; iCol<colsTitle.size(); ++iCol ) {
+	//varValues[foundIndex][iHist*rootFilesName.size()+iPlot] = mapBranch.GetVal( varName[iPlot][iHist] );	
+	vector<unsigned> coords;
+	GetCoordFromLinear( levelsSizes, iCol-1, coords );
+	colsTitle[iCol] = vectHist[coords[0]][coords[1]]->GetTitle();
+      }
+
+      PrintArray( outName, varValues, linesTitle, colsTitle );
+    }
   }
   catch( const exception e ) {
     cout << e.what() << endl;
@@ -166,3 +228,30 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare ) {
 
 
 //====================================================================
+void PrintOutputCompareEvents( const multi_array<double,2> &varValues, const multi_array<long long,2> &IDValues, const vector<string> &eventID, const vector<vector<TH1*>> &vectHist, const string &outName ) {
+  if ( vectHist.empty() ) return;
+
+  unsigned nBins = varValues.size();
+  vector<string> linesTitle(nBins, "" );
+  vector<string> colsTitle(eventID.size()*vectHist[0].size()+1, "" );
+  for ( unsigned iLine=0; iLine<nBins; ++iLine ) {
+    stringstream ss;
+    for ( unsigned iID = 0; iID<eventID.size(); ++iID ) {
+      ss << IDValues[iLine][iID] << " ";
+      if ( !iID ) colsTitle[0]+= eventID[iID] + " ";
+    }
+    linesTitle[iLine] = ss.str();
+  }
+  
+  vector<unsigned> levelsSizes;
+  levelsSizes.push_back(vectHist[0].size());
+  levelsSizes.push_back(eventID.size());
+  for ( unsigned iCol=1; iCol<colsTitle.size(); ++iCol ) {
+    //varValues[foundIndex][iHist*rootFilesName.size()+iPlot] = mapBranch.GetVal( varName[iPlot][iHist] );	
+    vector<unsigned> coords;
+    GetCoordFromLinear( levelsSizes, iCol-1, coords );
+    colsTitle[iCol] = vectHist[coords[0]][coords[1]]->GetTitle();
+  }
+  
+  PrintArray( outName, varValues, linesTitle, colsTitle );
+}

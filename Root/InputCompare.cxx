@@ -154,10 +154,12 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   m_outName = StripString( fileName );
   
   if ( m_mapOptions["plotDirectory"] != "" && m_mapOptions["plotDirectory"].back() != '/' ) m_mapOptions["plotDirectory"] += "/";
-  m_rootFilesName = vector<vector<string>>( rootFilesName.size() );
-  for ( unsigned int iHist = 0; iHist < rootFilesName.size(); ++iHist ) ParseVector( rootFilesName[iHist], m_rootFilesName[iHist], 0 );
 
-  m_objName = vector<vector<string>>( rootFilesName.size() );
+  unsigned nPlots = rootFilesName.size();
+  m_rootFilesName = vector<vector<string>>( nPlots );
+  for ( unsigned int iHist = 0; iHist < nPlots; ++iHist ) ParseVector( rootFilesName[iHist], m_rootFilesName[iHist], 0 );
+
+  m_objName = vector<vector<string>>( nPlots );
   for ( unsigned int iHist = 0; iHist < objName.size(); ++iHist ) ParseVector( objName[iHist], m_objName.back(), 0 );
 
 
@@ -166,9 +168,9 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
     ParseVector( varName[iName], m_varName[iName], 0 );
     if ( m_varName[iName] != m_varName[0] ) throw runtime_error( "InputConpare::LoadFiles : varName structure not identical for all files." );
   }
-  while ( m_varName.size() < m_rootFilesName.size() ) m_varName.push_back( m_varName.back() );
+  while ( m_varName.size() < nPlots ) m_varName.push_back( m_varName.back() );
 
-  m_varWeight = vector<vector<string>>( m_rootFilesName.size() );
+  m_varWeight = vector<vector<string>>( nPlots );
   for ( unsigned int iPlot = 0; iPlot < varWeight.size(); iPlot++ ) ParseVector( varWeight[iPlot], m_varWeight[iPlot], 0 );
   
   for ( auto vErr : varErrX ) { m_varErrX.push_back( vector<string>() ); ParseVector( vErr, m_varErrX.back(), 0 ); }
@@ -176,6 +178,7 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
 
 
   if ( eventID != "" ) ParseVector( eventID, m_eventID, 0 );
+
   if ( varMax != "" ) {
     ParseVector( varMax, m_varMax, 0 );
     while ( m_varMax.size() < m_varName.front().size() ) m_varMax.push_back( m_varMax.back() );
@@ -186,10 +189,9 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
     while ( m_varMin.size() < m_varName.front().size() ) m_varMin.push_back( m_varMin.back() );
   }
 
-  for ( unsigned int iPlot = 0; iPlot < xBinning.size(); iPlot++ ) {
-    m_xBinning.push_back( vector<double>() );
-    ParseVector( xBinning[iPlot], m_xBinning.back(), 0 );
-  }
+  m_xBinning = vector<vector<double>>( xBinning.size(), vector<double>() );
+  for ( unsigned int iPlot = 0; iPlot < xBinning.size(); ++iPlot ) ParseVector( xBinning[iPlot], m_xBinning[iPlot], 0 );
+  while ( xBinning.size() < m_rootFilesName.size() ) xBinning.push_back( xBinning.back() );
 
   for ( auto vLatex = latex.begin(); vLatex!= latex.end(); vLatex++ ) m_latex.push_back( *vLatex );
   for ( auto vLatexOpt = latexOpt.begin(); vLatexOpt!= latexOpt.end(); vLatexOpt++ ) m_latexOpt.push_back( *vLatexOpt );

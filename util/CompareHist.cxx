@@ -282,13 +282,13 @@ int main( int argc, char* argv[] ) {
 	  break;
 	}
 
-	case 4 : {
+	// case 4 : {
 
-	  if ( !iPlot && !iAdd ) outFile = new TFile( string( plotPath + input.GetOutName()+ ".root").c_str(), "RECREATE"  );
-	  outFile->cd();
-	  inFile.Get( inputObjName[iPlot][0].c_str() )->Write( input.GetLegend()[iPlot].c_str(), TObject::kOverwrite );
-	  break;
-	}
+	//   if ( !iPlot && !iAdd ) outFile = new TFile( string( plotPath + input.GetOutName()+ ".root").c_str(), "RECREATE"  );
+	//   outFile->cd();
+	//   inFile.Get( inputObjName[iPlot][0].c_str() )->Write( input.GetLegend()[iPlot].c_str(), TObject::kOverwrite );
+	//   break;
+	// }
 
 	case 5 : {
 	  for ( unsigned int iPass = 0; iPass < 2; iPass++ ) {

@@ -686,34 +686,10 @@ int main( int argc, char* argv[] ) {
     }
 
     if ( vectHist.size() && atoi(input.GetOption("doTabular").c_str()) ) {
-      fstream stream;
-      stream.open( string( plotPath + input.GetOutName() + ( input.GetVarName().size() && input.GetVarName().front().size() ? "_" + input.GetVarName().front().front() : "") + ".csv"), fstream::out | fstream::trunc );
-      for ( int iBin = 0; iBin <= vectHist.front().front()->GetNbinsX(); iBin++ ) {
-	for ( unsigned int iPlot = 0; iPlot <= vectHist.front().size(); iPlot++ ) {
-	  if ( !iBin ) {
-	    if ( iPlot ) {
-	      string name = string( input.GetLegend().size() ? input.GetLegend()[iPlot-1] : vectHist.front()[iPlot-1]->GetName() ) ;
-	      stream << name;
-	      if ( atoi(input.GetOption("doTabular").c_str()) ==2 ) stream << "," << name + " err";
-	    }
-	    else {
-	      TString colName = vectHist.front().front()->GetXaxis()->GetTitle();
-	      colName=colName.ReplaceAll("_", "" ).ReplaceAll("#", "" ) ;
-	      stream << colName; 
-	    }
-	  }
-	  else {
-	    if ( iPlot ) { 
-	      stream << vectHist.front()[iPlot-1]->GetBinContent( iBin );
-	      if ( atoi(input.GetOption("doTabular").c_str()) ==2 ) stream << "," << vectHist.front()[iPlot-1]->GetBinError( iBin );
-		}	 
-	    else stream << ( strcmp( vectHist.front().front()->GetXaxis()->GetBinLabel(iBin), "" ) ? TString(vectHist.front().front()->GetXaxis()->GetBinLabel(iBin)) :  TString::Format( "] %2.2f : %2.2f]", vectHist.front().front()->GetXaxis()->GetBinLowEdge( iBin ), vectHist.front().front()->GetXaxis()->GetBinUpEdge( iBin ) ) );
-	  } 
-	  if ( iPlot != vectHist.front().size() ) stream << ",";
-	}
-	stream << endl;
+      for ( auto itVectHist=vectHist.begin(); itVectHist!=vectHist.end(); ++itVectHist ) {
+	string outName = plotPath + input.GetOutName() + ( input.GetVarName().size() && input.GetVarName().front().size() ? "_" + input.GetVarName().front().front() : "");
+	PrintHist( outName, *itVectHist, atoi(input.GetOption("doTabular").c_str()) );
       }
-      stream.close();
     }
 
     if ( atoi(input.GetOption("inputType").c_str()) == 2 ) { //print csvFile

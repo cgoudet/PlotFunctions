@@ -1,6 +1,8 @@
 #ifndef SIDEFUNCTIONS_TPP
 #define SIDEFUNCTIONS_TPP
 #include "PlotFunctions/SideFunctions.h"
+#include "PlotFunctions/Foncteurs.h"
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -87,14 +89,16 @@ Tested.
     if ( !vect.size() ) return;
     if ( !nPlotPerWidth ) nPlotPerWidth = vect.size();
 
-    for ( unsigned int iPlot = 0; iPlot < vect.size(); iPlot++ ) {
+    for ( unsigned int iPlot = 0; iPlot < vect.size(); ++iPlot ) {
       //    vect[iPlot]+=".pdf";
       latexStream << "\\begin{minipage}{" << 1./nPlotPerWidth -0.01 << "\\linewidth} " << std::endl;
       if ( vect[iPlot] != "" ) latexStream << "\\includegraphics[width=\\linewidth]{" << vect[iPlot] << "}\\\\" << std::endl;
-      TString dum = vect[iPlot].substr( vect[iPlot].find_last_of( "/" )+1 );
-      dum = std::string(dum).substr( 0, std::string(dum).find_last_of( "." ) );
-      dum.ReplaceAll( "_", "\\_" );
-      if ( putNameUnder )   latexStream << dum  << std::endl;
+      if ( putNameUnder ) {
+	std::string dum = vect[iPlot].substr( vect[iPlot].find_last_of( "/" )+1 );
+	dum = dum.substr( 0, dum.find_last_of( "." ) );
+	dum = ChrisLib::ReplaceString( "_", "\\_" )(dum);
+	latexStream << dum  << std::endl;
+      }
       latexStream << "\\end{minipage}" << std::endl;
       if ( iPlot % nPlotPerWidth != nPlotPerWidth-1 ) latexStream << "\\hfill" << std::endl;
 

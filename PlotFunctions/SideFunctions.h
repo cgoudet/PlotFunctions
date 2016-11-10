@@ -193,6 +193,13 @@ namespace ChrisLib {
      Tested.
    */
   std::string RemoveWords( std::string name, const std::list<std::string> &toRemove );
+
+  /**\brief Print the content of histograms into a csv file
+     \param outName Name of the output file without extension
+     \param vectHist 
+     \param mode If 2 also print the histograms uncertainties
+   */
+  void PrintHist( std::string outName, std::vector<TH1*> &vectHist, int mode );
 }
 
 #endif

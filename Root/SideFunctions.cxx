@@ -913,3 +913,40 @@ string ChrisLib::RemoveWords( string name,const list<string> &toRemove ) {
   return name;
 }
 
+//==========================================================
+void ChrisLib::PrintHist( string outName, vector<TH1*> &vectHist, int mode ) {
+  RemoveNullPointers( vectHist );
+  if ( vectHist.empty() ) throw invalid_argument( "PrintHist : Empty input vector of histograms" );
+
+  fstream stream;
+  outName += ".csv";
+  stream.open( outName, fstream::out | fstream::trunc );
+      
+  for ( int iBin = 0; iBin <= vectHist[0]->GetNbinsX(); ++iBin ) {
+    for ( unsigned int iPlot = 0; iPlot <= vectHist.size(); ++iPlot ) {
+      if ( !iBin ) {
+	if ( iPlot ) {
+	  string lineName = vectHist[iPlot-1]->GetTitle();
+	  stream << lineName;
+	  if ( mode == 2 ) stream << "," << lineName + " err";
+	}
+	else {
+	  TString colName = vectHist[0]->GetXaxis()->GetTitle();
+	  colName=colName.ReplaceAll("_", "" ).ReplaceAll("#", "" ) ;
+	  stream << colName; 
+	}
+      }
+      else {
+	if ( iPlot ) { 
+	  stream << vectHist[iPlot-1]->GetBinContent( iBin );
+	  if ( mode == 2 ) stream << "," << vectHist[iPlot-1]->GetBinError( iBin );
+	}
+	else stream << ( strcmp( vectHist.front()->GetXaxis()->GetBinLabel(iBin), "" ) ? TString(vectHist[0]->GetXaxis()->GetBinLabel(iBin)) :  TString::Format( "] %2.2f : %2.2f]", vectHist[0]->GetXaxis()->GetBinLowEdge( iBin ), vectHist[0]->GetXaxis()->GetBinUpEdge( iBin ) ) );
+      }
+      if ( iPlot != vectHist.size() ) stream << ",";
+    }
+    stream << endl;
+  }
+  stream.close();
+  cout << "Wrote " << outName  << endl;
+}

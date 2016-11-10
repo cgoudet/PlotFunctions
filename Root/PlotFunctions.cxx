@@ -93,9 +93,7 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare ) {
   const vector<string> selectionCut = inputCompare.GetSelectionCut();
   const vector< string > &eventID = inputCompare.GetEventID();
 
-
   vector<vector<TH1*>> vectHist( varName[0].size(), vector<TH1*>(rootFilesName.size(), 0) );
-
 
   unsigned int nBins = atoi(inputCompare.GetOption("nComparedEvents").c_str());
   if ( !nBins ) nBins = 100;
@@ -196,29 +194,9 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare ) {
 
     if ( !eventID.empty() ) {
       string outName = plotPath + "_compareEvents";
-      vector<string> linesTitle(nBins, "" );
-      vector<string> colsTitle(eventID.size()*rootFilesName.size()+1, "" );
-      for ( unsigned iLine=0; iLine<nBins; ++iLine ) {
-	stringstream ss;
-	for ( unsigned iID = 0; iID<eventID.size(); ++iID ) {
-	  ss << IDValues[iLine][iID] << " ";
-	  if ( !iID ) colsTitle[0]+= eventID[iID] + " ";
-	}
-	linesTitle[iLine] = ss.str();
-      }
-
-      vector<unsigned> levelsSizes;
-      levelsSizes.push_back(rootFilesName.size());
-      levelsSizes.push_back(eventID.size());
-      for ( unsigned iCol=1; iCol<colsTitle.size(); ++iCol ) {
-	//varValues[foundIndex][iHist*rootFilesName.size()+iPlot] = mapBranch.GetVal( varName[iPlot][iHist] );	
-	vector<unsigned> coords;
-	GetCoordFromLinear( levelsSizes, iCol-1, coords );
-	colsTitle[iCol] = vectHist[coords[0]][coords[1]]->GetTitle();
-      }
-
-      PrintArray( outName, varValues, linesTitle, colsTitle );
+      PrintOutputCompareEvents( varValues, IDValues, eventID, vectHist, outName );
     }
+
   }
   catch( const exception e ) {
     cout << e.what() << endl;

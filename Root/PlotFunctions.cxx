@@ -30,47 +30,42 @@ using std::for_each;
 using std::stringstream;
 using boost::extents;
 using boost::multi_array;
-//=====================================================
-void ChrisLib::PlotHist( const InputCompare &inputCompare ) {
-  vector<TH1*> drawVect;;
 
+//=====================================================
+void ChrisLib::PlotHist( const InputCompare &inputCompare, vector<vector<TH1*>> &vectHist ) {
+  vector<TH1*> drawVect;;
+  
   const vector<vector<string>> inputObjName = inputCompare.GetObjName();
   const vector<vector<string>> rootFilesName = inputCompare.GetRootFilesName();
-  try {   
-    for ( unsigned int iPlot = 0; iPlot < rootFilesName.size(); ++iPlot ) {
-      drawVect.push_back(0);
-      for ( unsigned int iAdd = 0; iAdd < rootFilesName[iPlot].size(); ++iAdd ) {
-	
-	string inFileName = rootFilesName[iPlot][iAdd];
-	TFile inFile( inFileName.c_str() );	
-	
-	string inHistName = inputObjName[iPlot][iAdd];
-	TH1D* currHist = static_cast<TH1D*>(inFile.Get( inHistName.c_str() ) );
-	if ( !currHist ) throw runtime_error( "PlotHist : Unknown histogram " + inputObjName[iPlot][iAdd] + " in " + inFile.GetName() );
-	
-	if ( !drawVect.back() ) {
-	  drawVect.back() = currHist;
-	  currHist->SetName( TString::Format( "%s_%d", inHistName.c_str(), iPlot ) );
-	  currHist->SetDirectory( 0 );  
-	}
-	else drawVect.back()->Add( currHist );
-	
+  
+  for ( unsigned int iPlot = 0; iPlot < rootFilesName.size(); ++iPlot ) {
+    drawVect.push_back(0);
+    for ( unsigned int iAdd = 0; iAdd < rootFilesName[iPlot].size(); ++iAdd ) {
+      
+      string inFileName = rootFilesName[iPlot][iAdd];
+      TFile inFile( inFileName.c_str() );	
+      
+      string inHistName = inputObjName[iPlot][iAdd];
+      TH1D* currHist = static_cast<TH1D*>(inFile.Get( inHistName.c_str() ) );
+      if ( !currHist ) throw runtime_error( "PlotHist : Unknown histogram " + inputObjName[iPlot][iAdd] + " in " + inFile.GetName() );
+      
+      if ( !drawVect.back() ) {
+	drawVect.back() = currHist;
+	currHist->SetName( TString::Format( "%s_%d", inHistName.c_str(), iPlot ) );
+	currHist->SetDirectory( 0 );  
       }
+      else drawVect.back()->Add( currHist );
+      
     }
-
-    vector<vector<TH1*>> vectHist = { drawVect };
-    DrawVect( vectHist, inputCompare );
-  }//end try
-  catch( const exception e ) {
-    cout << e.what() << endl;
   }
-  DeleteContainer( drawVect );  
-
+  
+  vectHist = { drawVect };
+  
 }//end PlotHist
 
 
 //=====================================================
-void ChrisLib::PlotTree( const InputCompare &inputCompare ) {
+void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TH1*>> &vectHist ) {
 
   const vector<vector<string>> inputObjName = inputCompare.GetObjName();
   const vector<vector<string>> rootFilesName = inputCompare.GetRootFilesName();
@@ -86,7 +81,7 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare ) {
   const vector<string> selectionCut = inputCompare.GetSelectionCut();
   const vector< string > &eventID = inputCompare.GetEventID();
 
-  vector<vector<TH1*>> vectHist( varName[0].size(), vector<TH1*>(rootFilesName.size(), 0) );
+  vectHist = vector<vector<TH1*>>( varName[0].size(), vector<TH1*>(rootFilesName.size(), 0) );
 
   unsigned int nBins = atoi(inputCompare.GetOption("nComparedEvents").c_str());
   if ( !nBins ) nBins = 100;
@@ -101,91 +96,83 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare ) {
     IDValues.resize( extents[nBins][nCols] );
   }
 
-  try {   
-    for ( unsigned int iPlot = 0; iPlot < rootFilesName.size(); ++iPlot ) {
-      for ( unsigned int iAdd = 0; iAdd < rootFilesName[iPlot].size(); ++iAdd ) {
+  for ( unsigned int iPlot = 0; iPlot < rootFilesName.size(); ++iPlot ) {
+    for ( unsigned int iAdd = 0; iAdd < rootFilesName[iPlot].size(); ++iAdd ) {
 
-  	string inFileName = rootFilesName[iPlot][iAdd];
-  	TFile inFile( inFileName.c_str() );
+      string inFileName = rootFilesName[iPlot][iAdd];
+      TFile inFile( inFileName.c_str() );
 
-  	string inTreeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( &inFile, "TTree" );
-  	TTree *inTree = static_cast<TTree*>(inFile.Get( inTreeName.c_str() ) );
-  	if ( !inTree ) throw invalid_argument( "PlotTree : " + inTreeName + " dnot found in " + string(inFile.GetName()) );
-  	inTree->SetDirectory(0);
+      string inTreeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( &inFile, "TTree" );
+      TTree *inTree = static_cast<TTree*>(inFile.Get( inTreeName.c_str() ) );
+      if ( !inTree ) throw invalid_argument( "PlotTree : " + inTreeName + " dnot found in " + string(inFile.GetName()) );
+      inTree->SetDirectory(0);
 
-  	if ( selectionCut.size()>iPlot && selectionCut[iPlot]!="" ) CopyTreeSelection( inTree, selectionCut[iPlot] );
+      if ( selectionCut.size()>iPlot && selectionCut[iPlot]!="" ) CopyTreeSelection( inTree, selectionCut[iPlot] );
 	
-  	int nEntries = inTree->GetEntries();
-	if ( !eventID.empty() && !iPlot ) nEntries = nBins;
+      int nEntries = inTree->GetEntries();
+      if ( !eventID.empty() && !iPlot ) nEntries = nBins;
 
-  	//create a vector to store all branches names to be linked
-  	list<string> linkedVariables;
-	copy( varName[iPlot].begin(), varName[iPlot].end(), back_inserter(linkedVariables) );
-	copy( varWeight[iPlot].begin(), varWeight[iPlot].end(), back_inserter(linkedVariables) );
-	MapBranches mapBranch;
-  	mapBranch.LinkTreeBranches( inTree, 0, linkedVariables );
+      //create a vector to store all branches names to be linked
+      list<string> linkedVariables;
+      copy( varName[iPlot].begin(), varName[iPlot].end(), back_inserter(linkedVariables) );
+      copy( varWeight[iPlot].begin(), varWeight[iPlot].end(), back_inserter(linkedVariables) );
+      MapBranches mapBranch;
+      mapBranch.LinkTreeBranches( inTree, 0, linkedVariables );
 	
-	for ( int iEvent = 0; iEvent < nEntries; ++iEvent ) {
+      for ( int iEvent = 0; iEvent < nEntries; ++iEvent ) {
 
-	  inTree->GetEntry( iEvent );
+	inTree->GetEntry( iEvent );
 
-	  double totWeight=1;
-	  for_each( varWeight[iPlot].begin(), varWeight[iPlot].end(), [&totWeight, &mapBranch]( const string &s ) { totWeight*=mapBranch.GetVal(s);} );
+	double totWeight=1;
+	for_each( varWeight[iPlot].begin(), varWeight[iPlot].end(), [&totWeight, &mapBranch]( const string &s ) { totWeight*=mapBranch.GetVal(s);} );
 
-	  int foundIndex=-1;
-	  if ( !eventID.empty() && !iPlot ) {
-	    for ( unsigned i=0; i<eventID.size(); ++i ) IDValues[iEvent][i] = mapBranch.GetVal( eventID[i] );
-	    foundIndex=iEvent;
-	  }
-	  else if ( !eventID.empty() )  {
-	    for ( unsigned int iSavedEvent = 0; iSavedEvent < nBins; ++iSavedEvent ) {
-	      bool foundEvent =true;
-	      for ( unsigned int iID = 0; iID < eventID.size(); ++iID ) {
-		if ( IDValues[iSavedEvent][iID] == mapBranch.GetVal( eventID[iPlot] ) ) continue;
-		foundEvent = false;
-		break;
-	      }
-	      if ( !foundEvent ) continue;
-	      foundIndex = iSavedEvent;
+	int foundIndex=-1;
+	if ( !eventID.empty() && !iPlot ) {
+	  for ( unsigned i=0; i<eventID.size(); ++i ) IDValues[iEvent][i] = mapBranch.GetVal( eventID[i] );
+	  foundIndex=iEvent;
+	}
+	else if ( !eventID.empty() )  {
+	  for ( unsigned int iSavedEvent = 0; iSavedEvent < nBins; ++iSavedEvent ) {
+	    bool foundEvent =true;
+	    for ( unsigned int iID = 0; iID < eventID.size(); ++iID ) {
+	      if ( IDValues[iSavedEvent][iID] == mapBranch.GetVal( eventID[iPlot] ) ) continue;
+	      foundEvent = false;
 	      break;
 	    }
+	    if ( !foundEvent ) continue;
+	    foundIndex = iSavedEvent;
+	    break;
 	  }
-	  
-	  for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
-
-	    if ( !eventID.empty() && ( !iPlot || foundIndex != -1 ) ) varValues[foundIndex][iHist*rootFilesName.size()+iPlot] = mapBranch.GetVal( varName[iPlot][iHist] );
-	      
-	    if ( !vectHist[iHist][iPlot] ) {
-	      string dumName = string( TString::Format( "%s_%s_%d", inputObjName[iPlot][iAdd].c_str(), varName[iPlot][iHist].c_str(), iPlot ) );
-	      if ( xBinning[iHist].empty() ) vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), nBins, varMin[iHist], varMax[iHist] );
-	      else vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), (int) xBinning[iHist].size()-1, &xBinning[iHist][0] );
-	      vectHist[iHist][iPlot]->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
-	      vectHist[iHist][iPlot]->GetYaxis()->SetTitle( "# Events" );
-	      vectHist[iHist][iPlot]->SetDirectory( 0 );
-	      vectHist[iHist][iPlot]->Sumw2();
-	    }
-	    
-	    if ( totWeight ) vectHist[iHist][iPlot]->Fill( mapBranch.GetVal(varName[iPlot][iHist] ) , totWeight );
-	  }// End iHist
 	}
-	
-	delete inTree; 
-	inFile.Close( "R" ); 
+	  
+	for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
+
+	  if ( !eventID.empty() && ( !iPlot || foundIndex != -1 ) ) varValues[foundIndex][iHist*rootFilesName.size()+iPlot] = mapBranch.GetVal( varName[iPlot][iHist] );
+	      
+	  if ( !vectHist[iHist][iPlot] ) {
+	    string dumName = string( TString::Format( "%s_%s_%d", inputObjName[iPlot][iAdd].c_str(), varName[iPlot][iHist].c_str(), iPlot ) );
+	    if ( xBinning[iHist].empty() ) vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), nBins, varMin[iHist], varMax[iHist] );
+	    else vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), (int) xBinning[iHist].size()-1, &xBinning[iHist][0] );
+	    vectHist[iHist][iPlot]->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
+	    vectHist[iHist][iPlot]->GetYaxis()->SetTitle( "# Events" );
+	    vectHist[iHist][iPlot]->SetDirectory( 0 );
+	    vectHist[iHist][iPlot]->Sumw2();
+	  }
+	    
+	  if ( totWeight ) vectHist[iHist][iPlot]->Fill( mapBranch.GetVal(varName[iPlot][iHist] ) , totWeight );
+	}// End iHist
       }
-    }//end iPlot
-
-    DrawVect( vectHist, inputCompare );    
-
-    if ( !eventID.empty() ) {
-      string outName = inputCompare.GetOption( "plotDirectory" ) + inputCompare.GetOutName() + "_compareEvents";
-      PrintOutputCompareEvents( varValues, IDValues, eventID, vectHist, outName );
+	
+      delete inTree; 
+      inFile.Close( "R" ); 
     }
+  }//end iPlot
 
+  if ( !eventID.empty() ) {
+    string outName = inputCompare.GetOption( "plotDirectory" ) + inputCompare.GetOutName() + "_compareEvents";
+    PrintOutputCompareEvents( varValues, IDValues, eventID, vectHist, outName );
   }
-  catch( const exception e ) {
-    cout << e.what() << endl;
-  }
-  for ( auto it=vectHist.begin(); it!=vectHist.end(); ++it ) DeleteContainer( *it );  
+
 }
 
 
@@ -219,7 +206,7 @@ void ChrisLib::PrintOutputCompareEvents( const multi_array<double,2> &varValues,
 }
 
 //==================================================================
-void PlotTextFile( const InputCompare &inputCompare ) {
+void ChrisLib::PlotTextFile( const InputCompare &inputCompare, vector<vector<TH1*>> &vectHist ) {
 
   const vector<vector<string>> inputObjName = inputCompare.GetObjName();
   const vector<vector<string>> rootFilesName = inputCompare.GetRootFilesName();
@@ -229,63 +216,57 @@ void PlotTextFile( const InputCompare &inputCompare ) {
   const vector< double > varMin = inputCompare.GetVarMin();
   const vector< double > varMax = inputCompare.GetVarMax();
   const vector< vector<string> > varWeight = inputCompare.GetVarWeight();
+  int nBins = atoi( inputCompare.GetOption( "nComparedEvents" ).c_str() );
+  if ( !nBins ) nBins=100;
 
-  vector<vector<TH1*> > vectHist( rootFilesName.size(), vector<TH1*>(varName[0].size(), 0 ) );;
+  vectHist = vector<vector<TH1*>>( rootFilesName.size(), vector<TH1*>(varName[0].size(), 0 ) );;
   vector< unsigned > varIndex( varName[0].size(), 0 );
 
-  try {   
-    for ( unsigned int iPlot = 0; iPlot < rootFilesName.size(); ++iPlot ) {
-      for ( unsigned int iAdd = 0; iAdd < rootFilesName[iPlot].size(); ++iAdd ) {
-	
-	fstream inputStream;
-	inputStream.open( rootFilesName[iPlot][iAdd].c_str(), fstream::in );
-	string dumString;
-	getline( inputStream, dumString );
-	vector< string > titleVect;
-	ParseVector(  dumString , titleVect );
-	vector< double > varVal( titleVect.size(), 0 );
+  for ( unsigned int iPlot = 0; iPlot < rootFilesName.size(); ++iPlot ) {
+    for ( unsigned int iAdd = 0; iAdd < rootFilesName[iPlot].size(); ++iAdd ) {
+      
+      fstream inputStream;
+      inputStream.open( rootFilesName[iPlot][iAdd].c_str(), fstream::in );
+      string dumString;
+      getline( inputStream, dumString );
+      vector< string > titleVect;
+      ParseVector(  dumString , titleVect );
+      vector< double > varVal( titleVect.size(), 0 );
 
-	for ( unsigned int iVar = 0; iVar < varName[iPlot].size(); ++iVar ) {
-	  varIndex[iVar] = SearchVectorBin( varName[iPlot][iVar], titleVect );
-	  if ( varIndex[iVar] == titleVect.size() ) throw invalid_argument( "PlotTestFile : varName not found in header : " + varName[iPlot][iVar] );
+      for ( unsigned int iVar = 0; iVar < varName[iPlot].size(); ++iVar ) {
+	varIndex[iVar] = SearchVectorBin( varName[iPlot][iVar], titleVect );
+	if ( varIndex[iVar] == titleVect.size() ) throw invalid_argument( "PlotTestFile : varName not found in header : " + varName[iPlot][iVar] );
 
-	  vector<unsigned> weightIndices( varWeight[iPlot].size() );
-	  for ( unsigned int iWeight = 0; iWeight < varWeight[iPlot].size(); iWeight++ ) weightIndices[iWeight] = SearchVectorBin( varWeight[iPlot][iWeight], titleVect );
+	vector<unsigned> weightIndices( varWeight[iPlot].size() );
+	for ( unsigned int iWeight = 0; iWeight < varWeight[iPlot].size(); iWeight++ ) weightIndices[iWeight] = SearchVectorBin( varWeight[iPlot][iWeight], titleVect );
 
-	  while ( true ) {
-	    for ( unsigned int iTxtVar = 0; iTxtVar < titleVect.size(); iTxtVar++ ) inputStream >> varVal[iTxtVar];
-	    if ( inputStream.eof() ) break;
+	while ( true ) {
+	  for ( unsigned int iTxtVar = 0; iTxtVar < titleVect.size(); iTxtVar++ ) inputStream >> varVal[iTxtVar];
+	  if ( inputStream.eof() ) break;
 
-	    double weight = 1;
-	    for_each( weightIndices.begin(), weightIndices.end(), [&weight, &varVal, &weightIndices]( const unsigned &i ) { weight*=varVal[weightIndices[i]];} );
+	  double weight = 1;
+	  for_each( weightIndices.begin(), weightIndices.end(), [&weight, &varVal, &weightIndices]( const unsigned &i ) { weight*=varVal[weightIndices[i]];} );
 
-	    for ( unsigned int iVar = 0; iVar < varName[iPlot].size(); ++iVar ) {
-	      if ( vectHist.size() == iVar ) vectHist.push_back( vector<TH1*>() );
-	      if ( vectHist[iVar].size() == iPlot ) {
-	  	string dumString = inputCompare.GetOutName() + string( TString::Format( "_%s_%d", varName[iPlot][iVar].c_str(), iPlot ));
-	  	vectHist[iVar].push_back(0);
-	  	vectHist[iVar].back() = new TH1D( dumString.c_str(), dumString.c_str(), 100, varMin[iVar], varMax[iVar] );
-	  	vectHist[iVar].back()->SetDirectory(0);
-	  	vectHist[iVar].back()->GetXaxis()->SetTitle( varName[iPlot][iVar].c_str() );
-	  	vectHist[iVar].back()->GetYaxis()->SetTitle( "#events" );
-	  	vectHist[iVar].back()->Sumw2();
-	      }
+	  for ( unsigned int iVar = 0; iVar < varName[iPlot].size(); ++iVar ) {
+	    if ( vectHist.size() == iVar ) vectHist.push_back( vector<TH1*>() );
+	    if ( vectHist[iVar].size() == iPlot ) {
+	      string dumString = inputCompare.GetOutName() + string( TString::Format( "_%s_%d", varName[iPlot][iVar].c_str(), iPlot ));
+	      vectHist[iVar].push_back(0);
+	      vectHist[iVar].back() = new TH1D( dumString.c_str(), dumString.c_str(), nBins, varMin[iVar], varMax[iVar] );
+	      vectHist[iVar].back()->SetDirectory(0);
+	      vectHist[iVar].back()->GetXaxis()->SetTitle( varName[iPlot][iVar].c_str() );
+	      vectHist[iVar].back()->GetYaxis()->SetTitle( "#events" );
+	      vectHist[iVar].back()->Sumw2();
+	    }
 	      
-	      vectHist[iVar][iPlot]->Fill( varVal[varIndex[iVar]], weight );
-	    }//end for iVar
-	  }//end while
-	}
+	    vectHist[iVar][iPlot]->Fill( varVal[varIndex[iVar]], weight );
+	  }//end for iVar
+	}//end while
       }
-    }//end iPlot
-
-    DrawVect( vectHist, inputCompare );
-  }
-  catch( const exception e ) {
-    cout << e.what() << endl;
-  }
-  for ( auto it=vectHist.begin(); it!=vectHist.end(); ++it ) DeleteContainer( *it );  
-  
+    }
+  }//end iPlot
 }
+
 //==============================================================
 void ChrisLib::DrawVect( vector<vector<TH1*>> &vectHist, const InputCompare &inputCompare ) {
 

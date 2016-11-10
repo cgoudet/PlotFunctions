@@ -4,11 +4,13 @@
 #include "PlotFunctions/InputCompare.h"
 #include "boost/multi_array.hpp"
 
+#include "TH1.h"
+
 namespace ChrisLib {
 
-  void PlotHist( const ChrisLib::InputCompare &inputCompare );
-  void PlotTree( const InputCompare &inputCompare );
-
+  void PlotHist( const InputCompare &inputCompare, std::vector<std::vector<TH1*>> &vectHist );
+  void PlotTree( const InputCompare &inputCompare, std::vector<std::vector<TH1*>> &vectHist );
+  void PlotTextFile( const InputCompare &inputCompare, std::vector<std::vector<TH1*>> &vectHist );
 
   //=======================
   void PrintOutputCompareEvents( const boost::multi_array<double,2> &varValues, 

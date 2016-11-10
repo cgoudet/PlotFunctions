@@ -7,6 +7,7 @@
 #include "TFile.h"
 #include "TH1.h"
 #include "TH1D.h"
+#include "TROOT.h"
 
 #include <iostream>
 #include <stdexcept>
@@ -33,13 +34,13 @@ using boost::multi_array;
 
 //=====================================================
 void ChrisLib::PlotHist( const InputCompare &inputCompare, vector<vector<TH1*>> &vectHist ) {
-  vector<TH1*> drawVect;;
   
   const vector<vector<string>> inputObjName = inputCompare.GetObjName();
   const vector<vector<string>> rootFilesName = inputCompare.GetRootFilesName();
+
+  vector<TH1*> drawVect(rootFilesName.size(), 0 );
   
   for ( unsigned int iPlot = 0; iPlot < rootFilesName.size(); ++iPlot ) {
-    drawVect.push_back(0);
     for ( unsigned int iAdd = 0; iAdd < rootFilesName[iPlot].size(); ++iAdd ) {
       
       string inFileName = rootFilesName[iPlot][iAdd];
@@ -69,7 +70,6 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TH1*>> 
 
   const vector<vector<string>> inputObjName = inputCompare.GetObjName();
   const vector<vector<string>> rootFilesName = inputCompare.GetRootFilesName();
-  if ( rootFilesName.empty() ) throw invalid_argument( "PlotTree : No input file." );
 
   const vector< vector<string> > varName = inputCompare.GetVarName();
   if ( varName.empty() || varName[0].empty() ) throw invalid_argument( "PlotTree : empty varName." );
@@ -281,5 +281,55 @@ void ChrisLib::DrawVect( vector<vector<TH1*>> &vectHist, const InputCompare &inp
     DrawPlot( vectHist[iPlot], outPlotName, vectorOptions );
     if ( doTabular ) PrintHist( vectHist[iPlot], outPlotName, doTabular );
     if ( saveRoot ) WriteVectHist( vectHist[iPlot], outPlotName );
+  }
+}
+
+//==================================================================
+void ChrisLib::SplitTree( const InputCompare &inputCompare ) {
+
+  const vector<vector<string>> inputObjName = inputCompare.GetObjName();
+  const vector<vector<string>> rootFilesName = inputCompare.GetRootFilesName();
+  const vector<string> selectionCut = inputCompare.GetSelectionCut();
+
+
+  string plotDirectory = inputCompare.GetOption( "plotDirectory" );
+  for ( unsigned int iPlot = 0; iPlot < rootFilesName.size(); ++iPlot ) {
+    TTree *treeRejSel=0, *treePassSel=0;
+    for ( unsigned int iAdd = 0; iAdd < rootFilesName[iPlot].size(); ++iAdd ) {
+      
+      for ( unsigned int iPass = 0; iPass < 2; iPass++ ) {
+	TTree *selTree = iPass ? treeRejSel : treePassSel;
+	    if ( !iAdd && selTree ) SaveTree( selTree, plotDirectory );
+
+	    TFile inFile( rootFilesName[iPlot][iAdd].c_str() );	    
+	    string treeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( &inFile );
+	    TTree *inTree = (TTree*) inFile.Get( treeName.c_str() );
+	    if ( !inTree ) throw invalid_argument( "SplitTree : Unknown Tree." );
+	    inTree->SetDirectory(0);
+	    
+	    gROOT->cd();
+	    string dumString = inFile.GetName();
+	    treeName = StripString( dumString ) + "_" + inputCompare.GetOutName() + ( iPass ? "_RejSel" : "_PassSel" );	  
+	    string selection = selectionCut.size()>iPlot ? selectionCut[iPlot] : "";
+	    if ( selection == "" ) throw invalid_argument( "SplitTree : Selection is empty." );
+	    if ( iPass ) selection = "!(" + selection + ")";
+	    TTree *dumTree = inTree->CopyTree( selection.c_str() );
+	    dumTree->SetDirectory(0);
+
+	    if ( selTree ) {
+	      AddTree( selTree, dumTree  );
+	      delete dumTree; dumTree=0;
+	    }
+	    else {
+	      dumTree->SetName( treeName.c_str() );
+	      dumTree->SetTitle( treeName.c_str() );
+	      iPass ? (treeRejSel = dumTree) : (treePassSel= dumTree) ;
+	    }
+
+	    delete inTree; inTree = 0;
+
+	    if ( iAdd == rootFilesName.back().size()-1 && selTree ) SaveTree( selTree, plotDirectory );
+	  }//end iPass
+    }
   }
 }

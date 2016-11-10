@@ -11,6 +11,7 @@ namespace ChrisLib {
   void PlotHist( const InputCompare &inputCompare, std::vector<std::vector<TH1*>> &vectHist );
   void PlotTree( const InputCompare &inputCompare, std::vector<std::vector<TH1*>> &vectHist );
   void PlotTextFile( const InputCompare &inputCompare, std::vector<std::vector<TH1*>> &vectHist );
+  void SplitTree( const InputCompare &inputCompare );
 
   //=======================
   void PrintOutputCompareEvents( const boost::multi_array<double,2> &varValues, 

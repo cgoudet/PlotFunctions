@@ -31,6 +31,7 @@ using std::endl;
 using std::vector;
 using std::list;
 using std::exception;
+using std::invalid_argument;
 
 using std::fstream;
 namespace po = boost::program_options;
@@ -97,15 +98,22 @@ int main( int argc, char* argv[] ) {
     cout << "iFile : " << iFile << " " << inFiles[iFile] << endl;
     InputCompare input( inFiles[iFile] );
     if ( DEBUG ) cout << "config file loaded" << endl;
+
     int inputType = atoi(input.GetOption("inputType").c_str());
+    const vector<vector<string>> rootFilesName = input.GetRootFilesName();
+
+
     list<int> authorizedInput = { 0, 1, 2 };
     if ( find( authorizedInput.begin(), authorizedInput.end(), inputType ) != authorizedInput.end() ) {
       vector<vector<TH1*>> vectHist;
       try {
+	if ( rootFilesName.empty() ) throw invalid_argument( "PlotTree : No input file." );
 	if ( inputType==0 ) PlotHist( input, vectHist );
 	else if ( inputType==1 ) PlotTree( input, vectHist );
 	else if ( inputType==2 ) PlotTextFile( input, vectHist );
-	
+	else if ( inputType==3 ) SplitTree( input );
+	else throw invalid_argument( "CompareHist : No valid inputType provided." );
+
 	DrawVect( vectHist, input );
       }
       catch( const exception e ) {
@@ -303,45 +311,45 @@ int main( int argc, char* argv[] ) {
 	//   break;
 	// }
 
-	case 5 : {
-	  for ( unsigned int iPass = 0; iPass < 2; iPass++ ) {
-	    TTree *selTree = iPass ? treeRejSel : treePassSel;
-	    if ( !iAdd && selTree ) SaveTree( selTree, plotPath );
+	// case 5 : {
+	//   for ( unsigned int iPass = 0; iPass < 2; iPass++ ) {
+	//     TTree *selTree = iPass ? treeRejSel : treePassSel;
+	//     if ( !iAdd && selTree ) SaveTree( selTree, plotPath );
 	    
-	    string treeName = inputObjName[iPlot].size() ?  ( inputObjName[iPlot].size()>iAdd ?  inputObjName[iPlot][iAdd].c_str()  : inputObjName[iPlot].back() ) : FindDefaultTree( &inFile ).c_str() ;
-	    TTree *inTree = (TTree*) inFile.Get( treeName.c_str() );
-	    if ( !inTree ) {
-	      cout << treeName << " doesn't exist in " << inFile.GetName() << endl;
-	      continue;
-	    }
-	    inTree->SetDirectory(0);
+	//     string treeName = inputObjName[iPlot].size() ?  ( inputObjName[iPlot].size()>iAdd ?  inputObjName[iPlot][iAdd].c_str()  : inputObjName[iPlot].back() ) : FindDefaultTree( &inFile ).c_str() ;
+	//     TTree *inTree = (TTree*) inFile.Get( treeName.c_str() );
+	//     if ( !inTree ) {
+	//       cout << treeName << " doesn't exist in " << inFile.GetName() << endl;
+	//       continue;
+	//     }
+	//     inTree->SetDirectory(0);
 	    
-	    gROOT->cd();
-	    string dumString = inFile.GetName();
-	    treeName = StripString( dumString ) + "_" + input.GetOutName() + ( iPass ? "_RejSel" : "_PassSel" );	  
-	    string selection = input.GetSelectionCut()[iPlot];
-	    if ( iPass ) selection = "!(" + selection + ")";
-	    TTree *dumTree = inTree->CopyTree( selection.c_str() );
-	    dumTree->SetDirectory(0);
+	//     gROOT->cd();
+	//     string dumString = inFile.GetName();
+	//     treeName = StripString( dumString ) + "_" + input.GetOutName() + ( iPass ? "_RejSel" : "_PassSel" );	  
+	//     string selection = input.GetSelectionCut()[iPlot];
+	//     if ( iPass ) selection = "!(" + selection + ")";
+	//     TTree *dumTree = inTree->CopyTree( selection.c_str() );
+	//     dumTree->SetDirectory(0);
 
-	    if ( selTree ) selTree->Print();
-	    if ( selTree ) {
-	      AddTree( selTree, dumTree  );
-	      delete dumTree; dumTree=0;
-	    }
-	    else {
-	      dumTree->SetName( treeName.c_str() );
-	      dumTree->SetTitle( treeName.c_str() );
-	      iPass ? (treeRejSel = dumTree) : (treePassSel= dumTree) ;
-	    }
+	//     if ( selTree ) selTree->Print();
+	//     if ( selTree ) {
+	//       AddTree( selTree, dumTree  );
+	//       delete dumTree; dumTree=0;
+	//     }
+	//     else {
+	//       dumTree->SetName( treeName.c_str() );
+	//       dumTree->SetTitle( treeName.c_str() );
+	//       iPass ? (treeRejSel = dumTree) : (treePassSel= dumTree) ;
+	//     }
 
-	    delete inTree; inTree = 0;
+	//     delete inTree; inTree = 0;
 
-	    if ( iPlot==inputRootFile.size()-1 && iAdd == inputRootFile.back().size()-1 && selTree ) SaveTree( selTree, plotPath );
-	  }//end iPass
+	//     if ( iPlot==inputRootFile.size()-1 && iAdd == inputRootFile.back().size()-1 && selTree ) SaveTree( selTree, plotPath );
+	//   }//end iPass
 	  
-	  break;
-	}
+	//   break;
+	// }
 	  
 	case 6 : {
 	  if ( iAdd ) continue;
@@ -511,7 +519,6 @@ int main( int argc, char* argv[] ) {
 	  if ( !varErrY.size() ) varErrY.push_back( vector<string>( varName[iPlot].size(), "X" ) );
 	  while ( varErrY.size() < varName.size() ) varErrY.push_back( varErrX.back() );
 
-	  cout << "varNameSize : " << varName.size() << endl;
 
 	  TTree *inTree = (TTree*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
 	  if ( !inTree ) { cout << "inTree " << inputObjName[iPlot][iAdd] << " not found in " << inFile.GetName() << endl; exit(0);}
@@ -541,32 +548,16 @@ int main( int argc, char* argv[] ) {
 	    inTree->GetEntry( iEntry );
 
 	    for ( unsigned int iVar = 0; iVar<varName[iPlot].size(); iVar++ ) {
-	      cout << "iVar : " << iVar << endl;
 	      while ( vectGraph.size() <= iVar ) vectGraph.push_back( vector<TGraphErrors*>() );
 	      while ( vectGraph[iVar].size() <= iPlot ) vectGraph[iVar].push_back(0);
-	      cout << vectGraph.size() << endl;
-	      cout << vectGraph[iVar].size() << endl;
-	      cout << vectGraph[iVar][iPlot] << endl;
 	      if ( !vectGraph[iVar][iPlot] ) {
 		vectGraph[iVar][iPlot] = new TGraphErrors( nentries );
 		vectGraph[iVar][iPlot]->SetName( TString::Format( "%s_%s_%s_%s_%d", varName[iPlot][iVar].c_str(), varWeight[iPlot][iVar].c_str(), varErrX[iPlot][iVar].c_str(), varErrY[iPlot][iVar].c_str(), iPlot ) );
 		vectGraph[iVar][iPlot]->GetXaxis()->SetTitle( varName[iPlot][iVar].c_str() );
 		vectGraph[iVar][iPlot]->GetYaxis()->SetTitle( varWeight[iPlot][iVar].c_str() );
 	      }
-	      cout << "created" << endl;
 	      vectGraph[iVar][iPlot]->SetPoint( iEntry, mapVars[varName[iPlot][iVar]], mapVars[varWeight[iPlot][iVar]] );
-	      cout << "error" << endl;
 	      vectGraph[iVar][iPlot]->SetPointError( iEntry, mapVars[varErrX[iPlot][iVar]], mapVars[varErrY[iPlot][iVar]] );
-	      cout.precision(10);
-	      cout << "print" << endl;
-	      cout << varName.size() << " " << iVar << endl;
-	      cout << varName[iVar].size() << " " << iPlot << endl;
-	      cout << varName[iPlot][iVar] << endl;
-	      cout << mapVars[varName[iPlot][iVar]] << endl;
-	      cout << iEntry << " " << mapVars[varName[iPlot][iVar]] << endl;
-	      cout <<  mapVars[varWeight[iPlot][iVar]]  << endl;
-	      cout << mapVars[varErrX[iPlot][iVar]] << endl;
-	      cout << mapVars[varErrY[iPlot][iVar]] << endl;
 	    }//end iVar
 	  }//end foriEntry
 

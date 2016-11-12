@@ -66,22 +66,23 @@ void ChrisLib::PlotHist( const InputCompare &inputCompare, vector<vector<TH1*>> 
 
 
 //=====================================================
-void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TH1*>> &vectHist ) {
+void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TH1*>> &vectHist,vector<vector<TGraphErrors*>> &vectGraph ) { 
 
-  const vector<vector<string>> inputObjName = inputCompare.GetObjName();
-  const vector<vector<string>> rootFilesName = inputCompare.GetRootFilesName();
+  const vector<vector<string>> &inputObjName = inputCompare.GetObjName();
+  const vector<vector<string>> &rootFilesName = inputCompare.GetRootFilesName();
 
-  const vector< vector<string> > varName = inputCompare.GetVarName();
+  const vector< vector<string> > &varName = inputCompare.GetVarName();
   if ( varName.empty() || varName[0].empty() ) throw invalid_argument( "PlotTree : empty varName." );
 
-  const vector< double > varMin  = inputCompare.GetVarMin();
-  const vector< double > varMax  = inputCompare.GetVarMax();
-  const vector< vector<string> > varWeight = inputCompare.GetVarWeight();
-  const vector< vector< double > > xBinning = inputCompare.GetXBinning();
-  const vector<string> selectionCut = inputCompare.GetSelectionCut();
+  const vector< vector<string> > &varWeight = inputCompare.GetVarWeight();
+  const vector< vector<string> > &varErrX = inputCompare.GetVarErrX();
+  const vector< vector<string> > &varErrY = inputCompare.GetVarErrY();
+  const vector< vector< double > > &xBinning = inputCompare.GetXBinning();
+  const vector<string> &selectionCut = inputCompare.GetSelectionCut();
   const vector< string > &eventID = inputCompare.GetEventID();
 
   vectHist = vector<vector<TH1*>>( varName[0].size(), vector<TH1*>(rootFilesName.size(), 0) );
+  vectGraph = vector<vector<TGraphErrors*>>( varName[0].size(), vector<TGraphErrors*>(rootFilesName.size(), 0) );
 
   unsigned int nBins = atoi(inputCompare.GetOption("nComparedEvents").c_str());
   if ( !nBins ) nBins = 100;
@@ -116,6 +117,8 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TH1*>> 
       list<string> linkedVariables;
       copy( varName[iPlot].begin(), varName[iPlot].end(), back_inserter(linkedVariables) );
       copy( varWeight[iPlot].begin(), varWeight[iPlot].end(), back_inserter(linkedVariables) );
+      copy( varErrX[iPlot].begin(), varrErrX[iPlot].end(), back_inserter(linkedVariables) );
+      copy( varErrY[iPlot].begin(), varrErrY[iPlot].end(), back_inserter(linkedVariables) );
       MapBranches mapBranch;
       mapBranch.LinkTreeBranches( inTree, 0, linkedVariables );
 	
@@ -127,39 +130,22 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TH1*>> 
 	for_each( varWeight[iPlot].begin(), varWeight[iPlot].end(), [&totWeight, &mapBranch]( const string &s ) { totWeight*=mapBranch.GetVal(s);} );
 
 	int foundIndex=-1;
-	if ( !eventID.empty() && !iPlot ) {
-	  for ( unsigned i=0; i<eventID.size(); ++i ) IDValues[iEvent][i] = mapBranch.GetVal( eventID[i] );
-	  foundIndex=iEvent;
-	}
-	else if ( !eventID.empty() )  {
-	  for ( unsigned int iSavedEvent = 0; iSavedEvent < nBins; ++iSavedEvent ) {
-	    bool foundEvent =true;
-	    for ( unsigned int iID = 0; iID < eventID.size(); ++iID ) {
-	      if ( IDValues[iSavedEvent][iID] == mapBranch.GetVal( eventID[iPlot] ) ) continue;
-	      foundEvent = false;
-	      break;
-	    }
-	    if ( !foundEvent ) continue;
-	    foundIndex = iSavedEvent;
-	    break;
-	  }
-	}
-	  
+	if ( !eventID.empty ) foundIndex = FillCompareEvent( inputCompare, IDValues, varValues, mapBranch, iPlot, iEvent );
+	int outMode = atoi(inputCompare.GetOption("innputType").c_str())-1;	  
 	for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
 
 	  if ( !eventID.empty() && ( !iPlot || foundIndex != -1 ) ) varValues[foundIndex][iHist*rootFilesName.size()+iPlot] = mapBranch.GetVal( varName[iPlot][iHist] );
-	      
-	  if ( !vectHist[iHist][iPlot] ) {
-	    string dumName = string( TString::Format( "%s_%s_%d", inputObjName[iPlot][iAdd].c_str(), varName[iPlot][iHist].c_str(), iPlot ) );
-	    if ( xBinning[iHist].empty() ) vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), nBins, varMin[iHist], varMax[iHist] );
-	    else vectHist[iHist][iPlot] = new TH1D( dumName.c_str(), dumName.c_str(), (int) xBinning[iHist].size()-1, &xBinning[iHist][0] );
-	    vectHist[iHist][iPlot]->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
-	    vectHist[iHist][iPlot]->GetYaxis()->SetTitle( "# Events" );
-	    vectHist[iHist][iPlot]->SetDirectory( 0 );
-	    vectHist[iHist][iPlot]->Sumw2();
+
+	  if ( outMode == 2 && !vectGraph[iHist][iPlot] ) vectGraph[iHist][iPlot] = static_cast<TGraphErrors*>( InitHist( inputCompare, outMode, iPlot, iHist ) );
+	  else if ( !vectHist[iHist][iPlot] ) vectHist[iHist][iPlot] = static_cast<TH1*>(InitHist( inputCompare, outMode, iPlot, iHist ));
+
+	  if ( outMode < 2 && totWeight ) vectHist[iHist][iPlot]->Fill( mapBranch.GetVal(varName[iPlot][iHist] ) , totWeight );
+	  else if ( outMode == 2 ) {
+	    vectGraph[iHist][iPlot]->SetPoint( iEntry, mapBranch->GetVal(varName[iPlot][iVar]), totWeight );
+	    double errX = varErrX.size()>iVar ?  mapBranch.GetVal(varErrX[iPlot][iVar]) : 0;
+	    double errY = varErrY.size()>iVar ?  mapBranch.GetVal(varErrY[iPlot][iVar]) : 0;
+	    vectGraph[iHist][iPlot]->SetPointError( iEntry, errX, errY );
 	  }
-	    
-	  if ( totWeight ) vectHist[iHist][iPlot]->Fill( mapBranch.GetVal(varName[iPlot][iHist] ) , totWeight );
 	}// End iHist
       }
 	
@@ -332,4 +318,64 @@ void ChrisLib::SplitTree( const InputCompare &inputCompare ) {
 	  }//end iPass
     }
   }
+}
+//============================================================
+TObject* InitHist( const InputCompare &inputCompare, int outMode, int iPlot, int iHist ) {
+
+  const vector< vector< double > > &xBinning = inputCompare.GetXBinning();
+  const vector< vector<string> > &varName = inputCompare.GetVarName();
+  const vector< double > &varMin  = inputCompare.GetVarMin();
+  const vector< double > &varMax  = inputCompare.GetVarMax();
+  const vector< vector<string> > &varWeight = inputCompare.GetVarWeight();
+  unsigned int nBins = atoi(inputCompare.GetOption("nComparedEvents").c_str());
+  if ( !nBins ) nBins = 100;
+
+  TH1* outHist=0;
+  
+  stringstream name;
+  name << inputObjName[iPlot][iAdd].c_str() << "_" <<  varName[iPlot][iHist] << "_" << iPlot;
+  if ( outMode == 0 ) {
+    if ( xBinning[iHist].empty() ) outHist = new TH1D( name.str(), name.str(), nBins, varMin[iHist], varMax[iHist] );
+    else outHist = new TH1D( dumName.c_str(), dumName.c_str(), (int) xBinning[iHist].size()-1, &xBinning[iHist][0] );
+  }
+  else if ( outMode == 1 ) {
+    if ( !xBinning.size() ) outHist = new TProfile( name.str(), name.str(), nBins, varMin[iHist], varMax[iHist] );
+    else outHist = new TProfile( name.str(), name.str(), (int) xBinning[iPlot].size()-1, &xBinning[iPlot][0] );
+  }
+  else if (outMode == 2 ) {
+    vectGraph[iVar][iPlot] = new TGraphErrors(1);
+    vectGraph[iVar][iPlot]->SetName( TString::Format( "%s_%s_%s_%s_%d", varName[iPlot][iVar].c_str(), varWeight[iPlot][iVar].c_str(), varErrX[iPlot][iVar].c_str(), varErrY[iPlot][iVar].c_str(), iPlot ) );
+  }
+  
+  outHist->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
+  outHist->GetYaxis()->SetTitle( outMode==0 ? "# Events" : varWeight[iPlot][iVar].c_str() );
+  outHist->SetDirectory( 0 );
+  outHist->Sumw2();
+
+}
+//=======================================================
+int FillCompareEvent( const InputCompare &inputCompare, multi_array<long long,2> &IDValues, multi_array<double,2> &varValues, const MapBranches &mapBranch, const int iPlot, const int iEvent ) {
+
+  const vector< string > &eventID = inputCompare.GetEventID();
+  
+  int foundIndex=-1;
+  if ( !iPlot ) {
+    for ( unsigned i=0; i<eventID.size(); ++i ) IDValues[iEvent][i] = mapBranch.GetVal( eventID[i] );
+    foundIndex=iEvent;
+  }
+  else {
+    int nBins = IDValues.size();
+    for ( unsigned int iSavedEvent = 0; iSavedEvent < nBins; ++iSavedEvent ) {
+      bool foundEvent =true;
+      for ( unsigned int iID = 0; iID < eventID.size(); ++iID ) {
+	if ( IDValues[iSavedEvent][iID] == mapBranch.GetVal( eventID[iPlot] ) ) continue;
+	foundEvent = false;
+	break;
+      }
+      if ( !foundEvent ) continue;
+      foundIndex = iSavedEvent;
+      break;
+    }
+  }
+  return foundIndex;  
 }

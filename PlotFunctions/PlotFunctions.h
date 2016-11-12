@@ -2,14 +2,17 @@
 #define PLOTFUNCTIONS_H
 
 #include "PlotFunctions/InputCompare.h"
+#include "PlotFunctions/MapBranches.h"
 #include "boost/multi_array.hpp"
 
 #include "TH1.h"
+#include "TObject.h"
+#include "TGraphErrors.h"
 
 namespace ChrisLib {
 
   void PlotHist( const InputCompare &inputCompare, std::vector<std::vector<TH1*>> &vectHist );
-  void PlotTree( const InputCompare &inputCompare, std::vector<std::vector<TH1*>> &vectHist );
+  void PlotTree( const InputCompare &inputCompare, std::vector<std::vector<TH1*>> &vectHist, std::vector<std::vector<TGraphErrors*>> &vectGraph );
   void PlotTextFile( const InputCompare &inputCompare, std::vector<std::vector<TH1*>> &vectHist );
   void SplitTree( const InputCompare &inputCompare );
 

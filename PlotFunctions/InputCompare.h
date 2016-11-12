@@ -27,6 +27,8 @@ namespace ChrisLib {
     const std::vector< std::vector<std::string> > &GetVarName() const { return m_varName; }
     const std::vector< std::vector<std::string> > &GetVarWeight() const { return m_varWeight; }
     const std::vector<std::vector< double >> &GetXBinning() const { return m_xBinning; }
+    const std::vector< std::vector<std::string> > &GetVarErrX() const { return m_varErrX; }
+    const std::vector< std::vector<std::string> > &GetVarErrY() const { return m_varErrY; }
 
     std::string GetOption( std::string option ) const { return m_mapOptions.at(option); }    
     std::string GetOutName() const { return m_outName; }

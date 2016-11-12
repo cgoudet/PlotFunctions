@@ -172,10 +172,11 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
 
   m_varWeight = vector<vector<string>>( nPlots );
   for ( unsigned int iPlot = 0; iPlot < varWeight.size(); iPlot++ ) ParseVector( varWeight[iPlot], m_varWeight[iPlot], 0 );
-  
-  for ( auto vErr : varErrX ) { m_varErrX.push_back( vector<string>() ); ParseVector( vErr, m_varErrX.back(), 0 ); }
-  for ( auto vErr : varErrX ) { m_varErrY.push_back( vector<string>() ); ParseVector( vErr, m_varErrY.back(), 0 ); }
 
+  m_varErrX = vector<vector<string>>( nPlots );
+  for ( unsigned int iPlot = 0; iPlot < varErrX.size(); iPlot++ ) ParseVector( varErrX[iPlot], m_varErrX[iPlot], 0 );
+  m_varErrY = vector<vector<string>>( nPlots );
+  for ( unsigned int iPlot = 0; iPlot < varErrY.size(); iPlot++ ) ParseVector( varErrY[iPlot], m_varErrY[iPlot], 0 );
 
   if ( eventID != "" ) ParseVector( eventID, m_eventID, 0 );
 

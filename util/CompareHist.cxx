@@ -106,12 +106,13 @@ int main( int argc, char* argv[] ) {
     list<int> authorizedInput = { 0, 1, 2 };
     if ( find( authorizedInput.begin(), authorizedInput.end(), inputType ) != authorizedInput.end() ) {
       vector<vector<TH1*>> vectHist;
+      vector<vector<TGraphErrors*>> vectGraph;
       try {
 	if ( rootFilesName.empty() ) throw invalid_argument( "PlotTree : No input file." );
 	if ( inputType==0 ) PlotHist( input, vectHist );
-	else if ( inputType==1 ) PlotTree( input, vectHist );
-	else if ( inputType==2 ) PlotTextFile( input, vectHist );
-	else if ( inputType==3 ) SplitTree( input );
+	else if ( inputType<3 ) PlotTree( input, vectHist );
+	else if ( inputType==4 ) PlotTextFile( input, vectHist );
+	else if ( inputType==5 ) SplitTree( input );
 	else throw invalid_argument( "CompareHist : No valid inputType provided." );
 
 	DrawVect( vectHist, input );

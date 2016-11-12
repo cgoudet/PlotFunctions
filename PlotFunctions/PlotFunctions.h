@@ -24,6 +24,8 @@ namespace ChrisLib {
 				 const std::string &outName );
 
   void DrawVect( std::vector<std::vector<TH1*>> &vectHist, const InputCompare &inputCompare );
+  int FillCompareEvent( const InputCompare &inputCompare, boost::multi_array<long long,2> &IDValues, const MapBranches &mapBranch, const int iPlot, const int iEvent );
+  TObject* InitHist( const InputCompare &inputCompare, int outMode, int iPlot, int iHist );
 }
 
 #endif

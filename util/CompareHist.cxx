@@ -110,7 +110,7 @@ int main( int argc, char* argv[] ) {
       try {
 	if ( rootFilesName.empty() ) throw invalid_argument( "PlotTree : No input file." );
 	if ( inputType==0 ) PlotHist( input, vectHist );
-	else if ( inputType<3 ) PlotTree( input, vectHist );
+	else if ( inputType<3 ) PlotTree( input, vectHist, vectGraph );
 	else if ( inputType==4 ) PlotTextFile( input, vectHist );
 	else if ( inputType==5 ) SplitTree( input );
 	else throw invalid_argument( "CompareHist : No valid inputType provided." );

@@ -32,6 +32,7 @@ namespace ChrisLib {
   void TestInputs( const InputCompare &inputCompare, unsigned outMode );
   void DrawVect( std::vector<std::vector<TH1*>> &vectHist, const InputCompare &inputCompare );
   void DrawVect( std::vector<std::vector<TGraphErrors*>> &vectGraph, const InputCompare &inputCompare );
+  void SetTGraphsTitle( const InputCompare &inputCompare, const unsigned iPlot, std::vector<std::vector<TGraphErrors*>> &vectGraph );
 
   //==================================
   

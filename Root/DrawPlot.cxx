@@ -143,66 +143,11 @@ int ChrisLib::DrawPlot( vector< TH1* > &inHist,
   if ( DEBUG ) cout << "DrawPlot" << endl;
 
   map<string, int >  mapOptionsInt;
-  // mapOptionsInt["doRatio"]=0;
-  // mapOptionsInt["shiftColor"]=0;
-  // mapOptionsInt["doChi2"]=0;
-  // mapOptionsInt["centerZoom"]=0;
-  // mapOptionsInt["drawStyle"]=0;
-  // mapOptionsInt["logy"]=0;
-  // mapOptionsInt["stack"]=0;
   map<string, double > mapOptionsDouble;
-  // mapOptionsDouble["extendUp"]=0;
-  // mapOptionsDouble["normalize"]=0;
-  // mapOptionsDouble["line"]=-99;
-  // mapOptionsDouble["clean"]=-99;
-
   vector<string> inLegend, inLatex; 
   vector< vector< double > > latexPos;
   vector< double > legendCoord, rangeUserX, rangeUserY;
   map<string, string> mapOptionsString;
-  // mapOptionsString["xTitle"]="";
-  // mapOptionsString["yTitle"]="";
-  // mapOptionsString["extension"]="pdf";
-  // for ( auto iOption : inOptions ) {
-
-  //   string option = iOption.substr( 0, iOption.find_first_of('=' ) );
-  //   string value = iOption.substr( iOption.find_first_of("=")+1);
-  //   if ( mapOptionsInt.find(option) != mapOptionsInt.end() ) mapOptionsInt[option] = atoi( value.c_str() );
-  //   else if ( mapOptionsString.find(option) != mapOptionsString.end() ) mapOptionsString[option] = value;
-  //   else if ( mapOptionsDouble.find(option) != mapOptionsDouble.end() ) {
-  //     mapOptionsDouble[option] =  (double) std::atof( value.c_str() );
-  //   }
-  //   else if ( option == "legend" ) inLegend.push_back( value );
-  //   else if ( option == "latex" ) inLatex.push_back( value );
-  //   else if ( option == "latexOpt" ) {
-  //     latexPos.push_back( vector<double>() );
-  //     ParseVector( value, latexPos.back() );
-  //   }
-  //   else if ( option == "legendPos" ) ParseVector( value, legendCoord );
-  //   else if ( option == "rangeUserX" ) ParseVector( value, rangeUserX );
-  //   else if ( option == "rangeUserY" ) ParseVector( value, rangeUserY );
-  //   else {
-  //     cout << "DrawPlotOption : " << option << " not known" << endl;
-  //   }
-  // }
-
-  // if ( inLegend.size() && inLegend.size()!=inHist.size() ) {
-  //   cout << "Legend do not match input" << endl;
-  //   return  1;
-  // }
-		 
-  // if ( inLatex.size() != latexPos.size() ) {
-  //   cout << "Number of latex names and positions do not match" << endl;
-  //   cout << inLatex.size() << " " << latexPos.size() << endl;
-  //   return 2;
-  // }
-
-  // if ( inHist.size() == 1 ) mapOptionsInt["drawStyle"] = 0;
-  // if ( inHist.size() < 2 ) mapOptionsInt["doRatio"] = 0;
-
-  // //  if ( mapOptionsString["extension"] == "" ) mapOptionsString["extension"] = "pdf";
-  // list<string> allowedExtension = { "pdf", "root", "png" };
-  // if ( find(allowedExtension.begin(), allowedExtension.end(), mapOptionsString["extension"] ) == allowedExtension.end() ) throw runtime_error( "DrawPlot : Wrong output file extension provided" );
   ReadOptions( inHist.size(), inOptions, mapOptionsDouble, mapOptionsInt, mapOptionsString,
 	       inLegend, inLatex, latexPos, legendCoord, rangeUserX, rangeUserY );
 
@@ -575,6 +520,7 @@ int ChrisLib::DrawPlot( RooRealVar *frameVar,
 	      vector<string> inOptions
 	      ) {
   //  cout << "DrawPlot frame" << endl;
+
   vector<string> inLegend, inLatex; 
   vector< vector< double > > latexPos;
   vector< double > legendCoord, rangeUserX, rangeUserY;
@@ -726,56 +672,13 @@ int ChrisLib::DrawPlot( vector< TGraphErrors* > inGraph,
   if ( DEBUG ) cout << "DrawPlot" << endl;
 
   map<string, int >  mapOptionsInt;
-  mapOptionsInt["shiftColor"]=0;
-  mapOptionsInt["drawStyle"]=0;
-  mapOptionsInt["line"]=-99;
-  mapOptionsInt["logy"]=0;
-  mapOptionsInt["offset"]=0;
-  mapOptionsInt["orderX"]=0;
   map<string, double > mapOptionsDouble;
-  mapOptionsDouble["extendUp"]=0;
   vector<string> inLegend, inLatex; 
   vector< vector< double > > latexPos;
   vector< double > legendCoord, rangeUserX, rangeUserY;
   map<string, string> mapOptionsString;
-  mapOptionsString["xTitle"]="";
-  mapOptionsString["yTitle"]="";
-  for ( auto iOption : inOptions ) {
-
-    string option = iOption.substr( 0, iOption.find_first_of('=' ) );
-    string value = iOption.substr( iOption.find_first_of("=")+1);
-    if ( mapOptionsInt.find(option) != mapOptionsInt.end() ) mapOptionsInt[option] = atoi( value.c_str() );
-    else if ( mapOptionsString.find(option) != mapOptionsString.end() ) mapOptionsString[option] = value;
-    else if ( mapOptionsDouble.find(option) != mapOptionsDouble.end() ) {
-      mapOptionsDouble[option] =  (double) std::atof( value.c_str() );
-    }
-    else if ( option == "legend" ) inLegend.push_back( value );
-    else if ( option == "latex" ) inLatex.push_back( value );
-    else if ( option == "latexOpt" ) {
-      latexPos.push_back( vector<double>() );
-      ParseVector( value, latexPos.back() );
-    }
-    else if ( option == "legendPos" ) ParseVector( value, legendCoord );
-    else if ( option == "rangeUserX" ) ParseVector( value, rangeUserX );
-    else if ( option == "rangeUserY" ) ParseVector( value, rangeUserY );
-    else {
-      cout << "Option : " << option << " not known" << endl;
-    }
-  }
-
-  if ( inLegend.size() && inLegend.size()!=inGraph.size() ) {
-    cout << "Legend do not match input" << endl;
-    return  1;
-  }
-		 
-  if ( inLatex.size() != latexPos.size() ) {
-    cout << "Number of latex names and positions do not match" << endl;
-    cout << inLatex.size() << " " << latexPos.size() << endl;
-    return 2;
-  }
-
-  if ( inGraph.size() == 1 ) mapOptionsInt["drawStyle"] = 0;
-  if ( inGraph.size() < 2 ) mapOptionsInt["doRatio"] = 0;
+  ReadOptions( inGraph.size(), inOptions, mapOptionsDouble, mapOptionsInt, mapOptionsString,
+	       inLegend, inLatex, latexPos, legendCoord, rangeUserX, rangeUserY );
   SetAtlasStyle();
 
   if ( DEBUG ) cout << "Options read" << endl;
@@ -975,14 +878,14 @@ void ChrisLib::ReadOptions( unsigned nHist,
   
   if ( DEBUG ) cout << "ChrisLib::ReaOptions" << endl;
 
-  list<string> allowedInt = { "doRatio", "shiftColor", "doChi2", "centerZoom", "drawStyle", "logy", "stack" };
+  list<string> allowedInt = { "doRatio", "shiftColor", "doChi2", "centerZoom", "drawStyle", "logy", "stack", "offset", "orderX" };
   for ( auto it=allowedInt.begin(); it!=allowedInt.end(); ++it ) mapInt[*it]=0;
 
   mapDouble["extendUp"]=0;
   mapDouble["normalize"]=0;
   mapDouble["line"]=-99;
   mapDouble["clean"]=-99;
-  
+
   mapString["xTitle"]="";
   mapString["yTitle"]="";
   mapString["extension"]="pdf";

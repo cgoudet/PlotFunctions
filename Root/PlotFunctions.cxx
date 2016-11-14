@@ -90,7 +90,7 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TH1*>> 
   vectHist = vector<vector<TH1*>>( varName[0].size(), vector<TH1*>(rootFilesName.size(), 0) );
   vectGraph = vector<vector<TGraphErrors*>>( varName[0].size(), vector<TGraphErrors*>(rootFilesName.size(), 0) );
   unsigned nEvents = atoi(inputCompare.GetOption("nEvents").c_str());
-  unsigned countEvent=1;
+
 
   vector< double > varVal( varName[0].size(), 0 );
   vector< long long > eventIDVal( eventID.size(), 0 );
@@ -105,6 +105,8 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TH1*>> 
   }
 
   for ( unsigned int iPlot = 0; iPlot < rootFilesName.size(); ++iPlot ) {
+    unsigned countEvent=1;
+
     for ( unsigned int iAdd = 0; iAdd < rootFilesName[iPlot].size(); ++iAdd ) {
 
       string inFileName = rootFilesName[iPlot][iAdd];

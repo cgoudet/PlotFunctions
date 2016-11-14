@@ -922,4 +922,4 @@ void ChrisLib::ReadOptions( unsigned nHist,
   if ( find(allowedExtension.begin(), allowedExtension.end(), mapString["extension"] ) == allowedExtension.end() ) throw runtime_error( "DrawPlot : Wrong output file extension provided" );
 
   if ( DEBUG ) cout << "ChrisLib::ReaOptions end" << endl;
-  }
+}

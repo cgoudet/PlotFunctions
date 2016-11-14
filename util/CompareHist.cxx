@@ -103,7 +103,7 @@ int main( int argc, char* argv[] ) {
     const vector<vector<string>> rootFilesName = input.GetRootFilesName();
 
 
-    list<int> authorizedInput = { 0, 1, 2 };
+    list<int> authorizedInput = { 0, 1 };
     if ( find( authorizedInput.begin(), authorizedInput.end(), inputType ) != authorizedInput.end() ) {
       vector<vector<TH1*>> vectHist;
       vector<vector<TGraphErrors*>> vectGraph;
@@ -111,10 +111,6 @@ int main( int argc, char* argv[] ) {
 	if ( rootFilesName.empty() ) throw invalid_argument( "PlotTree : No input file." );
 	if ( inputType==0 ) PlotHist( input, vectHist );
 	else if ( inputType<3 ) PlotTree( input, vectHist, vectGraph );
-	else if ( inputType==4 ) PlotTextFile( input, vectHist );
-	else if ( inputType==5 ) SplitTree( input );
-	else throw invalid_argument( "CompareHist : No valid inputType provided." );
-
 	DrawVect( vectHist, input );
       }
       catch( const exception e ) {
@@ -151,206 +147,206 @@ int main( int argc, char* argv[] ) {
 
 	switch( inputType ) {
 
-	// case 2 : { //event/event comparison
+	case 2 : { //event/event comparison
 
-	//   TTree *inTree = (TTree*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
-	//   if ( !inTree ) {
-	//     cout << inputObjName[iPlot][iAdd] << " not found in " << inFile.GetName() << endl;
-	//     exit(0);
-	//   }
-	//   if ( input.GetSelectionCut().size() ){
-	//     TTree *dumTree = inTree;
-	//     gROOT->cd();
-	//     inTree = dumTree->CopyTree( input.GetSelectionCut()[iPlot].c_str() );
-	//     inTree->SetDirectory(0);
-	//     delete dumTree;
-	//   }
+	  TTree *inTree = (TTree*) inFile.Get( inputObjName[iPlot][iAdd].c_str() );
+	  if ( !inTree ) {
+	    cout << inputObjName[iPlot][iAdd] << " not found in " << inFile.GetName() << endl;
+	    exit(0);
+	  }
+	  if ( input.GetSelectionCut().size() ){
+	    TTree *dumTree = inTree;
+	    gROOT->cd();
+	    inTree = dumTree->CopyTree( input.GetSelectionCut()[iPlot].c_str() );
+	    inTree->SetDirectory(0);
+	    delete dumTree;
+	  }
 
-	//   vector< string > &eventID = input.GetEventID();
-	//   vector< long long int > eventIDVal( eventID.size(), 0 );
-	//   for ( unsigned int i = 0; i<eventID.size(); i++ ) inTree->SetBranchAddress( eventID[i].c_str(), &eventIDVal[i] );
+	  vector< string > &eventID = input.GetEventID();
+	  vector< long long int > eventIDVal( eventID.size(), 0 );
+	  for ( unsigned int i = 0; i<eventID.size(); i++ ) inTree->SetBranchAddress( eventID[i].c_str(), &eventIDVal[i] );
 
-	//   vector< vector<string> > &eventVar = input.GetVarName();
-	//   if ( !eventVar.size() ) {
-	//     cout << "no variable name given" << endl;
-	//     exit(0);
-	//   }
-	//   if ( eventVar.size() <= iPlot ) eventVar.push_back( eventVar.back() );
-	//   vector< double > eventVarVal(eventVar[iPlot].size(), 0 );
-	//   for ( unsigned int i = 0; i<eventVar[iPlot].size(); i++ ) inTree->SetBranchAddress( eventVar[iPlot][i].c_str(), &eventVarVal[i] );
-	//   //resize the 2D vector
-	//   if ( !iPlot && !iAdd ) {
-	//     eventVarVect.resize( extents[eventVar[iPlot].size()*inputRootFile.size()][0] );
-	//     eventIDVect.resize( extents[eventID.size()][0] );
-	//   }
+	  vector< vector<string> > &eventVar = input.GetVarName();
+	  if ( !eventVar.size() ) {
+	    cout << "no variable name given" << endl;
+	    exit(0);
+	  }
+	  if ( eventVar.size() <= iPlot ) eventVar.push_back( eventVar.back() );
+	  vector< double > eventVarVal(eventVar[iPlot].size(), 0 );
+	  for ( unsigned int i = 0; i<eventVar[iPlot].size(); i++ ) inTree->SetBranchAddress( eventVar[iPlot][i].c_str(), &eventVarVal[i] );
+	  //resize the 2D vector
+	  if ( !iPlot && !iAdd ) {
+	    eventVarVect.resize( extents[eventVar[iPlot].size()*inputRootFile.size()][0] );
+	    eventIDVect.resize( extents[eventID.size()][0] );
+	  }
 
-	//   unsigned int nComparedEvents = atoi(input.GetOption("nComparedEvents").c_str());
-	//   unsigned int nEntries = (unsigned int) inTree->GetEntries();
-	//   vector< double > varMin  = input.GetVarMin();
-	//   vector< double > varMax  = input.GetVarMax();
-	//   vector< double > varVal( eventVar.size(), 0 );
+	  unsigned int nEvents = atoi(input.GetOption("nEvents").c_str());
+	  unsigned int nEntries = (unsigned int) inTree->GetEntries();
+	  vector< double > varMin  = input.GetVarMin();
+	  vector< double > varMax  = input.GetVarMax();
+	  vector< double > varVal( eventVar.size(), 0 );
 
-	//   //Create the histograms for all plotted variables
-	//   for ( unsigned int iVar = 0; iVar < eventVar[iPlot].size(); iVar++ ) {
-	//     if ( !iAdd && !iPlot ) vectHist.push_back( vector<TH1*>() );
-	//     if ( !iAdd ) {
-	//       string dumString = input.GetOutName() + string( TString::Format( "_%s_%d", eventVar[iPlot][iVar].c_str(), iPlot ));
-	//       vectHist[iVar].push_back(0);
-	//       vectHist[iVar].back() = new TH1D( dumString.c_str(), dumString.c_str(), 100, varMin[iVar], varMax[iVar] );
-	//       vectHist[iVar].back()->SetDirectory(0);
-	//       vectHist[iVar].back()->GetXaxis()->SetTitle( eventVar[iPlot][iVar].c_str() );
-	//       vectHist[iVar].back()->GetYaxis()->SetTitle( "#events" );
-	//       vectHist[iVar].back()->Sumw2();
-	//     }
-	//   }
+	  //Create the histograms for all plotted variables
+	  for ( unsigned int iVar = 0; iVar < eventVar[iPlot].size(); iVar++ ) {
+	    if ( !iAdd && !iPlot ) vectHist.push_back( vector<TH1*>() );
+	    if ( !iAdd ) {
+	      string dumString = input.GetOutName() + string( TString::Format( "_%s_%d", eventVar[iPlot][iVar].c_str(), iPlot ));
+	      vectHist[iVar].push_back(0);
+	      vectHist[iVar].back() = new TH1D( dumString.c_str(), dumString.c_str(), 100, varMin[iVar], varMax[iVar] );
+	      vectHist[iVar].back()->SetDirectory(0);
+	      vectHist[iVar].back()->GetXaxis()->SetTitle( eventVar[iPlot][iVar].c_str() );
+	      vectHist[iVar].back()->GetYaxis()->SetTitle( "#events" );
+	      vectHist[iVar].back()->Sumw2();
+	    }
+	  }
 
-	//   //Run over all events
-	//   for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {	  
-	//     if ( !iPlot && nComparedEvents && eventVarVect[0].size() >= nComparedEvents ) break;
-	//     inTree->GetEntry( iEvent );
-	//     unsigned int index = iEvent;
-	//     if ( !iPlot ) { //I save the informations of the event I want to compare
-	//       //Fill the event ID informations
-	//       eventIDVect.resize( extents[eventIDVect.size()][iEvent+1] );		
-	//       for ( unsigned int i = 0; i<eventID.size(); i++ )  eventIDVect[i][iEvent] = eventIDVal[i];		  
-	//       eventVarVect.resize( extents[eventVarVect.size()][iEvent+1] );
-	//     }
-	//     else { //look for the right index to place values
-	//       index = iEvent+1;
+	  //Run over all events
+	  for ( unsigned int iEvent = 0; iEvent < nEntries; iEvent++ ) {	  
+	    if ( !iPlot && nEvents && eventVarVect[0].size() >= nEvents ) break;
+	    inTree->GetEntry( iEvent );
+	    unsigned int index = iEvent;
+	    if ( !iPlot ) { //I save the informations of the event I want to compare
+	      //Fill the event ID informations
+	      eventIDVect.resize( extents[eventIDVect.size()][iEvent+1] );		
+	      for ( unsigned int i = 0; i<eventID.size(); i++ )  eventIDVect[i][iEvent] = eventIDVal[i];		  
+	      eventVarVect.resize( extents[eventVarVect.size()][iEvent+1] );
+	    }
+	    else { //look for the right index to place values
+	      index = iEvent+1;
 
-	//       for ( unsigned int iSavedEvent = 0; iSavedEvent < eventVarVect[0].size(); iSavedEvent++ ) {
-	// 	bool foundEvent =true;
-	// 	for ( unsigned int iID = 0; iID < eventIDVect.size(); iID++ ) {
-	// 	  if ( eventIDVect[iID][iSavedEvent] == eventIDVal[iID] ) continue;
-	// 	  foundEvent = false;
-	// 	  break;
-	// 	}
+	      for ( unsigned int iSavedEvent = 0; iSavedEvent < eventVarVect[0].size(); iSavedEvent++ ) {
+		bool foundEvent =true;
+		for ( unsigned int iID = 0; iID < eventIDVect.size(); iID++ ) {
+		  if ( eventIDVect[iID][iSavedEvent] == eventIDVal[iID] ) continue;
+		  foundEvent = false;
+		  break;
+		}
 
-	// 	if ( !foundEvent ) continue;
-	// 	index = iSavedEvent;
-	// 	break;
-	//       }// end iSavedEvent
+		if ( !foundEvent ) continue;
+		index = iSavedEvent;
+		break;
+	      }// end iSavedEvent
 		
-	//     }//end else
+	    }//end else
 
-	//     // get to the next event if not found in selected events
-	//     if ( index == iEvent+1 ) continue;
-	//     for ( unsigned int i = 0; i<eventVar[iPlot].size(); i++ ) {
-	//       eventVarVect[i*inputRootFile.size()+iPlot][index] = eventVarVal[i];  
-	//       vectHist[i][iPlot]->Fill( eventVarVal[i] );
+	    // get to the next event if not found in selected events
+	    if ( index == iEvent+1 ) continue;
+	    for ( unsigned int i = 0; i<eventVar[iPlot].size(); i++ ) {
+	      eventVarVect[i*inputRootFile.size()+iPlot][index] = eventVarVal[i];  
+	      vectHist[i][iPlot]->Fill( eventVarVal[i] );
 
-	//       //		if ( !i ) cout << iPlot << " " << iAdd << " " << i << " " << eventVarVal[i] << endl;
-	//     }// end i
+	      //		if ( !i ) cout << iPlot << " " << iAdd << " " << i << " " << eventVarVal[i] << endl;
+	    }// end i
 
-	//   }// end iEvent
+	  }// end iEvent
 
-	//   break;
-	// }//end case compare event
+	  break;
+	}//end case compare event
 
-	// case 3 : {
-	//   fstream inputStream;
-	//   inputStream.open( inputRootFile[iPlot][iAdd].c_str(), fstream::in );
-	//   string dumString;
-	//   getline( inputStream, dumString );
-	//   vector< string > titleVect;
-	//   ParseVector(  dumString , titleVect );
+	case 3 : {
+	  fstream inputStream;
+	  inputStream.open( inputRootFile[iPlot][iAdd].c_str(), fstream::in );
+	  string dumString;
+	  getline( inputStream, dumString );
+	  vector< string > titleVect;
+	  ParseVector(  dumString , titleVect );
 
-	//   vector< vector<string> > varName = input.GetVarName();
-	//   vector< double > varVal( titleVect.size(), 0 );
-	//   vector< unsigned int > varIndex( varName[iPlot].size(), 0 );
-	//   for ( unsigned int iVar = 0; iVar < varName[iPlot].size(); iVar++ ) {
-	//     varIndex[iVar] = SearchVectorBin( varName[iPlot][iVar], titleVect );
-	//     if ( varIndex[iVar] == titleVect.size() ) {
-	//       cout << varName[iPlot][iVar] << " was not found in header" << endl;
-	//       exit(0);
-	//     }
-	//   }
-	//   vector< double > varMin  = input.GetVarMin();
-	//   vector< double > varMax  = input.GetVarMax();
-	//   vector< vector<string> > varWeight = input.GetVarWeight();
-	//   vector<unsigned int> weightIndices;
-	//   if ( varWeight.size() ) {
-	//     for ( unsigned int iWeight = 0; iWeight < varWeight.front().size(); iWeight++ ){
-	//       if ( varWeight[iPlot][iWeight] == "X" ) continue;	     
-	//       weightIndices.push_back( SearchVectorBin( varWeight[iPlot][iWeight], titleVect ) );
-	//     }
-	//   }
-	//   while ( true ) {
-	//     for ( unsigned int iTxtVar = 0; iTxtVar < titleVect.size(); iTxtVar++ ) {
-	//       inputStream >> varVal[iTxtVar];
-	//     }
-	//     if ( inputStream.eof() ) break;
-	//     //	    double weight = ( varWeight[iPlot] != "X" ) ? varVal[weightIndex] : 1;
-	//     double weight = 1;
-	//     for ( unsigned int iWeight = 0; iWeight < weightIndices.size(); iWeight++ ){
-	//       weight *= varVal[weightIndices[iWeight]];
-	//     }
-	//     for ( unsigned int iVar = 0; iVar < varName[iPlot].size(); iVar++ ) {
-	//       if ( vectHist.size() == iVar ) vectHist.push_back( vector<TH1*>() );
-	//       if ( vectHist[iVar].size() == iPlot ) {
-	// 	string dumString = input.GetOutName() + string( TString::Format( "_%s_%d", varName[iPlot][iVar].c_str(), iPlot ));
-	// 	vectHist[iVar].push_back(0);
-	// 	vectHist[iVar].back() = new TH1D( dumString.c_str(), dumString.c_str(), 100, varMin[iVar], varMax[iVar] );
-	// 	vectHist[iVar].back()->SetDirectory(0);
-	// 	vectHist[iVar].back()->GetXaxis()->SetTitle( varName[iPlot][iVar].c_str() );
-	// 	vectHist[iVar].back()->GetYaxis()->SetTitle( "#events" );
-	// 	vectHist[iVar].back()->Sumw2();
-	//       }
+	  vector< vector<string> > varName = input.GetVarName();
+	  vector< double > varVal( titleVect.size(), 0 );
+	  vector< unsigned int > varIndex( varName[iPlot].size(), 0 );
+	  for ( unsigned int iVar = 0; iVar < varName[iPlot].size(); iVar++ ) {
+	    varIndex[iVar] = SearchVectorBin( varName[iPlot][iVar], titleVect );
+	    if ( varIndex[iVar] == titleVect.size() ) {
+	      cout << varName[iPlot][iVar] << " was not found in header" << endl;
+	      exit(0);
+	    }
+	  }
+	  vector< double > varMin  = input.GetVarMin();
+	  vector< double > varMax  = input.GetVarMax();
+	  vector< vector<string> > varWeight = input.GetVarWeight();
+	  vector<unsigned int> weightIndices;
+	  if ( varWeight.size() ) {
+	    for ( unsigned int iWeight = 0; iWeight < varWeight.front().size(); iWeight++ ){
+	      if ( varWeight[iPlot][iWeight] == "X" ) continue;	     
+	      weightIndices.push_back( SearchVectorBin( varWeight[iPlot][iWeight], titleVect ) );
+	    }
+	  }
+	  while ( true ) {
+	    for ( unsigned int iTxtVar = 0; iTxtVar < titleVect.size(); iTxtVar++ ) {
+	      inputStream >> varVal[iTxtVar];
+	    }
+	    if ( inputStream.eof() ) break;
+	    //	    double weight = ( varWeight[iPlot] != "X" ) ? varVal[weightIndex] : 1;
+	    double weight = 1;
+	    for ( unsigned int iWeight = 0; iWeight < weightIndices.size(); iWeight++ ){
+	      weight *= varVal[weightIndices[iWeight]];
+	    }
+	    for ( unsigned int iVar = 0; iVar < varName[iPlot].size(); iVar++ ) {
+	      if ( vectHist.size() == iVar ) vectHist.push_back( vector<TH1*>() );
+	      if ( vectHist[iVar].size() == iPlot ) {
+		string dumString = input.GetOutName() + string( TString::Format( "_%s_%d", varName[iPlot][iVar].c_str(), iPlot ));
+		vectHist[iVar].push_back(0);
+		vectHist[iVar].back() = new TH1D( dumString.c_str(), dumString.c_str(), 100, varMin[iVar], varMax[iVar] );
+		vectHist[iVar].back()->SetDirectory(0);
+		vectHist[iVar].back()->GetXaxis()->SetTitle( varName[iPlot][iVar].c_str() );
+		vectHist[iVar].back()->GetYaxis()->SetTitle( "#events" );
+		vectHist[iVar].back()->Sumw2();
+	      }
 
-	//       vectHist[iVar][iPlot]->Fill( varVal[varIndex[iVar]], weight );
-	//     }//end for iVar
-	//   }//end while
-	//   cout << "endwhile" << endl;
-	//   break;
-	// }
+	      vectHist[iVar][iPlot]->Fill( varVal[varIndex[iVar]], weight );
+	    }//end for iVar
+	  }//end while
+	  cout << "endwhile" << endl;
+	  break;
+	}
 
-	// case 4 : {
+	case 4 : {
 
-	//   if ( !iPlot && !iAdd ) outFile = new TFile( string( plotPath + input.GetOutName()+ ".root").c_str(), "RECREATE"  );
-	//   outFile->cd();
-	//   inFile.Get( inputObjName[iPlot][0].c_str() )->Write( input.GetLegend()[iPlot].c_str(), TObject::kOverwrite );
-	//   break;
-	// }
+	  if ( !iPlot && !iAdd ) outFile = new TFile( string( plotPath + input.GetOutName()+ ".root").c_str(), "RECREATE"  );
+	  outFile->cd();
+	  inFile.Get( inputObjName[iPlot][0].c_str() )->Write( input.GetLegend()[iPlot].c_str(), TObject::kOverwrite );
+	  break;
+	}
 
-	// case 5 : {
-	//   for ( unsigned int iPass = 0; iPass < 2; iPass++ ) {
-	//     TTree *selTree = iPass ? treeRejSel : treePassSel;
-	//     if ( !iAdd && selTree ) SaveTree( selTree, plotPath );
+	case 5 : {
+	  for ( unsigned int iPass = 0; iPass < 2; iPass++ ) {
+	    TTree *selTree = iPass ? treeRejSel : treePassSel;
+	    if ( !iAdd && selTree ) SaveTree( selTree, plotPath );
 	    
-	//     string treeName = inputObjName[iPlot].size() ?  ( inputObjName[iPlot].size()>iAdd ?  inputObjName[iPlot][iAdd].c_str()  : inputObjName[iPlot].back() ) : FindDefaultTree( &inFile ).c_str() ;
-	//     TTree *inTree = (TTree*) inFile.Get( treeName.c_str() );
-	//     if ( !inTree ) {
-	//       cout << treeName << " doesn't exist in " << inFile.GetName() << endl;
-	//       continue;
-	//     }
-	//     inTree->SetDirectory(0);
+	    string treeName = inputObjName[iPlot].size() ?  ( inputObjName[iPlot].size()>iAdd ?  inputObjName[iPlot][iAdd].c_str()  : inputObjName[iPlot].back() ) : FindDefaultTree( &inFile ).c_str() ;
+	    TTree *inTree = (TTree*) inFile.Get( treeName.c_str() );
+	    if ( !inTree ) {
+	      cout << treeName << " doesn't exist in " << inFile.GetName() << endl;
+	      continue;
+	    }
+	    inTree->SetDirectory(0);
 	    
-	//     gROOT->cd();
-	//     string dumString = inFile.GetName();
-	//     treeName = StripString( dumString ) + "_" + input.GetOutName() + ( iPass ? "_RejSel" : "_PassSel" );	  
-	//     string selection = input.GetSelectionCut()[iPlot];
-	//     if ( iPass ) selection = "!(" + selection + ")";
-	//     TTree *dumTree = inTree->CopyTree( selection.c_str() );
-	//     dumTree->SetDirectory(0);
+	    gROOT->cd();
+	    string dumString = inFile.GetName();
+	    treeName = StripString( dumString ) + "_" + input.GetOutName() + ( iPass ? "_RejSel" : "_PassSel" );	  
+	    string selection = input.GetSelectionCut()[iPlot];
+	    if ( iPass ) selection = "!(" + selection + ")";
+	    TTree *dumTree = inTree->CopyTree( selection.c_str() );
+	    dumTree->SetDirectory(0);
 
-	//     if ( selTree ) selTree->Print();
-	//     if ( selTree ) {
-	//       AddTree( selTree, dumTree  );
-	//       delete dumTree; dumTree=0;
-	//     }
-	//     else {
-	//       dumTree->SetName( treeName.c_str() );
-	//       dumTree->SetTitle( treeName.c_str() );
-	//       iPass ? (treeRejSel = dumTree) : (treePassSel= dumTree) ;
-	//     }
+	    if ( selTree ) selTree->Print();
+	    if ( selTree ) {
+	      AddTree( selTree, dumTree  );
+	      delete dumTree; dumTree=0;
+	    }
+	    else {
+	      dumTree->SetName( treeName.c_str() );
+	      dumTree->SetTitle( treeName.c_str() );
+	      iPass ? (treeRejSel = dumTree) : (treePassSel= dumTree) ;
+	    }
 
-	//     delete inTree; inTree = 0;
+	    delete inTree; inTree = 0;
 
-	//     if ( iPlot==inputRootFile.size()-1 && iAdd == inputRootFile.back().size()-1 && selTree ) SaveTree( selTree, plotPath );
-	//   }//end iPass
+	    if ( iPlot==inputRootFile.size()-1 && iAdd == inputRootFile.back().size()-1 && selTree ) SaveTree( selTree, plotPath );
+	  }//end iPass
 	  
-	//   break;
-	// }
+	  break;
+	}
 	  
 	case 6 : {
 	  if ( iAdd ) continue;

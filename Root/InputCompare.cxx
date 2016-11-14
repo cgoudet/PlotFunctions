@@ -11,6 +11,7 @@ namespace po = boost::program_options;
 #include <list>
 
 using std::runtime_error;
+using std::invalid_argument;
 using std::ifstream;
 using std::vector;
 using std::string;
@@ -124,7 +125,8 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
     ( "drawStyle", po::value< string >( &m_mapOptions["drawStyle"] ), "" )
     ( "selectionCut", po::value< vector< string > >( & m_selectionCut ), "TFormula to select tree events" )
     ( "eventID", po::value< string >( &eventID ), "" )
-    ( "nComparedEvents", po::value< string >( &m_mapOptions["nComparedEvents"] ), "" )
+    ( "nEvents", po::value< string >( &m_mapOptions["nEvents"] ), "" )
+    ( "nBins", po::value< string >( &m_mapOptions["nBins"] ), "" )
     ( "varWeight", po::value< vector<string> >(&varWeight)->multitoken(), "" )
     ( "shiftColor", po::value< string >( &m_mapOptions["shiftColor"] ), "" )
     ( "line", po::value<string>( &m_mapOptions["line"] ), "" )
@@ -162,7 +164,6 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   m_objName = vector<vector<string>>( nPlots );
   for ( unsigned int iHist = 0; iHist < objName.size(); ++iHist ) ParseVector( objName[iHist], m_objName.back(), 0 );
 
-
   m_varName = vector<vector<string>>( varName.size() );
   for ( unsigned int iName = 0; iName < varName.size(); ++iName ) {
     ParseVector( varName[iName], m_varName[iName], 0 );
@@ -189,11 +190,13 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
     ParseVector( varMin, m_varMin, 0 );
     while ( m_varMin.size() < m_varName.front().size() ) m_varMin.push_back( m_varMin.back() );
   }
+  if ( m_varMin.size() != m_varMax.size() ) throw invalid_argument( "InputCompare::LoadFiles : VarMin and VarMax Variables must be either both empty or both filled" );
 
   m_xBinning = vector<vector<double>>( xBinning.size(), vector<double>() );
   for ( unsigned int iPlot = 0; iPlot < xBinning.size(); ++iPlot ) ParseVector( xBinning[iPlot], m_xBinning[iPlot], 0 );
-  while ( xBinning.size() < m_rootFilesName.size() ) xBinning.push_back( xBinning.back() );
+  while ( xBinning.size() && xBinning.size() < m_rootFilesName.size() ) xBinning.push_back( xBinning.back() );
 
+  cout << "latex " << endl;
   for ( auto vLatex = latex.begin(); vLatex!= latex.end(); vLatex++ ) m_latex.push_back( *vLatex );
   for ( auto vLatexOpt = latexOpt.begin(); vLatexOpt!= latexOpt.end(); vLatexOpt++ ) m_latexOpt.push_back( *vLatexOpt );
   if ( m_latex.size() != m_latexOpt.size() ) {
@@ -205,7 +208,7 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
 //==========================================
 vector<string> ChrisLib::InputCompare::CreateVectorOptions() const {
 
-  list<string> nonDrawOptions = { "", "inputType", "diagonalize", "doTabular", "plotDirectory", "saveRoot" };
+  list<string> nonDrawOptions = { "", "inputType", "diagonalize", "doTabular", "plotDirectory", "saveRoot", "nEvents", "nBins" };
 
   vector<string> outVect;
   for ( map<string, string>::const_iterator it = m_mapOptions.begin(); it != m_mapOptions.end(); it++) {

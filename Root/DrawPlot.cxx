@@ -181,7 +181,7 @@ int ChrisLib::DrawPlot( vector< TH1* > &inHist,
     else if ( option == "rangeUserX" ) ParseVector( value, rangeUserX );
     else if ( option == "rangeUserY" ) ParseVector( value, rangeUserY );
     else {
-      cout << "Option : " << option << " not known" << endl;
+      cout << "DrawPlotOption : " << option << " not known" << endl;
     }
   }
 

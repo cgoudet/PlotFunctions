@@ -213,7 +213,8 @@ vector<string> ChrisLib::InputCompare::CreateVectorOptions() const {
 
   vector<string> outVect;
   for ( map<string, string>::const_iterator it = m_mapOptions.begin(); it != m_mapOptions.end(); it++) {
-    if ( find ( nonDrawOptions.begin(), nonDrawOptions.end(), it->second ) != nonDrawOptions.end() ) continue;
+    if ( it->second == "" ) continue;
+    if ( find ( nonDrawOptions.begin(), nonDrawOptions.end(), it->first ) != nonDrawOptions.end() ) continue;
     outVect.push_back( it->first +"=" + it->second );
   }
 

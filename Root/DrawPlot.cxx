@@ -680,7 +680,7 @@ int ChrisLib::DrawPlot( vector< TGraphErrors* > inGraph,
   ReadOptions( inGraph.size(), inOptions, mapOptionsDouble, mapOptionsInt, mapOptionsString,
 	       inLegend, inLatex, latexPos, legendCoord, rangeUserX, rangeUserY );
   SetAtlasStyle();
-
+  cout << "line : " << mapOptionsDouble["line"] << endl; 
   if ( DEBUG ) cout << "Options read" << endl;
 
   // //================ PAD DEFINITION
@@ -810,7 +810,7 @@ int ChrisLib::DrawPlot( vector< TGraphErrors* > inGraph,
 
     inGraph[iGraph]->Draw( drawOpt.c_str() );
 
-    if( !iGraph && mapOptionsInt["line"] != -99 ) {
+    if( !iGraph && mapOptionsDouble["line"] != -99 ) {
       double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : (mapOptionsInt["centerZoom"] ? minX : inGraph[refGraph]->GetXaxis()->GetXmin() );
       double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : ( mapOptionsInt["centerZoom"] ? maxX :inGraph[refGraph]->GetXaxis()->GetXmax() );
       line->DrawLine( rangeMin , mapOptionsInt["line"], rangeMax, mapOptionsInt["line"]);

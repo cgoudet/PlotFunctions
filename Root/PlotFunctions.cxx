@@ -80,24 +80,18 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TH1*>> 
   if ( varName.empty() || varName[0].empty() ) throw invalid_argument( "PlotTree : empty varName." );
 
   int outMode = atoi(inputCompare.GetOption("inputType").c_str())-1;
-  cout << "outMode : " << outMode << endl;
-
   TestInputs( inputCompare, outMode );
 
   const vector< vector<string> > &varErrX = inputCompare.GetVarErrX();
   const vector< vector<string> > &varErrY = inputCompare.GetVarErrY();
   const vector< vector<string> > &varWeight = inputCompare.GetVarWeight();
-
   const vector<string> &selectionCut = inputCompare.GetSelectionCut();
-  const vector< string > &eventID = inputCompare.GetEventID();
+
 
   if ( outMode < 2 ) vectHist = vector<vector<TH1*>>( varName[0].size(), vector<TH1*>(rootFilesName.size(), 0) );
   else if ( outMode == 2 ) vectGraph = vector<vector<TGraphErrors*>>( varName[0].size(), vector<TGraphErrors*>(rootFilesName.size(), 0) );
   unsigned nEvents = atoi(inputCompare.GetOption("nEvents").c_str());
 
-
-  vector< double > varVal( varName[0].size(), 0 );
-  vector< long long > eventIDVal( eventID.size(), 0 );
   int nCols = rootFilesName.size()*varName[0].size();
   multi_array<double,2> varValues;
   multi_array<long long, 2> IDValues;
@@ -173,6 +167,7 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TH1*>> 
 }//end iPlot
 
   if ( outMode==1 ) {
+    const vector< string > &eventID = inputCompare.GetEventID();
     string outName = inputCompare.GetOption( "plotDirectory" ) + inputCompare.GetOutName() + "_compareEvents";
     PrintOutputCompareEvents( varValues, IDValues, eventID, vectHist, outName );
   }

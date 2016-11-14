@@ -4,7 +4,6 @@ rootFileName = /sps/atlas/c/cgoudet/Calibration/DataxAOD/MC_13TeV_Zee_50ns_Lkh1_
 rootFileName = /sps/atlas/c/cgoudet/Calibration/DataxAOD/MC_13TeV_Zee_50ns_Lkh1_0_PairEvents_RejSel.root
 
 varName=m12
-#varWeight=weight
 
 varMin=80
 varMax=100

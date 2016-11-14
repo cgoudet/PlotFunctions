@@ -114,12 +114,10 @@ string ChrisLib::PrintWorkspaceCorrelationModel(string inFileName, string outFil
     if ( string(v->GetName()).find_first_of("ATLAS_") == 0 ) NPName.push_back( v->GetName() );
   }
   sort( NPName.begin(), NPName.end() );
-  //  PrintVector(NPName);
 
   vector<unsigned int> configurationsDepth;
   GetLevelsSize( inConfigurationsName, configurationsDepth );
 
-  PrintVector( configurationsDepth );
   unsigned int nConfig = GetNConfigurations( inConfigurationsName );
   cout << "nConfig : " << nConfig << endl;
 

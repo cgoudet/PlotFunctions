@@ -129,28 +129,22 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TH1*>> 
       MapBranches mapBranch;
       mapBranch.LinkTreeBranches( inTree, 0, linkedVariables );
 	
-      cout << "linkTree OK " << endl;
       for ( int iEvent = 0; iEvent < nEntries; ++iEvent ) {
 	if ( nEvents && countEvent==nEvents ) break;
 	inTree->GetEntry( iEvent );
-	cout << "iEvent" << endl;	
 	double totWeight=1;
 	for_each( varWeight[iPlot].begin(), varWeight[iPlot].end(), [&totWeight, &mapBranch]( const string &s ) { totWeight*=mapBranch.GetVal(s);} );
-	cout << "weigth : " << totWeight << endl;
 	int foundIndex=-1;
 	if ( !eventID.empty() ) foundIndex = FillCompareEvent( inputCompare, IDValues, mapBranch, iPlot, iEvent );
-	cout << "foundEvent : " << foundIndex << endl;
 	int outMode = atoi(inputCompare.GetOption("inputType").c_str())-1;
-	cout << "outMode : " << outMode << endl;
 	for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
 
 	  if ( !eventID.empty() && ( !iPlot || foundIndex != -1 ) ) varValues[foundIndex][iHist*rootFilesName.size()+iPlot] = mapBranch.GetVal( varName[iPlot][iHist] );
-
-	  cout << "before init" << endl;
+	  
 	  if ( outMode == 2 && !vectGraph[iHist][iPlot] ) vectGraph[iHist][iPlot] = static_cast<TGraphErrors*>( InitHist( inputCompare, outMode, iPlot, iHist ) );
-	else if ( !vectHist[iHist][iPlot] ) vectHist[iHist][iPlot] = static_cast<TH1*>(InitHist( inputCompare, outMode, iPlot, iHist ));
-	cout << "after init" << endl;
-	if ( outMode < 2 && totWeight ) vectHist[iHist][iPlot]->Fill( mapBranch.GetVal(varName[iPlot][iHist] ) , totWeight );
+	  else if ( !vectHist[iHist][iPlot] ) vectHist[iHist][iPlot] = static_cast<TH1*>(InitHist( inputCompare, outMode, iPlot, iHist ));
+
+	  if ( outMode < 2 && totWeight ) vectHist[iHist][iPlot]->Fill( mapBranch.GetVal(varName[iPlot][iHist] ) , totWeight );
 	  else if ( outMode == 2 ) {
 	    vectGraph[iHist][iPlot]->SetPoint( iEvent, mapBranch.GetVal(varName[iPlot][iHist]), totWeight );
 	    double errX = varErrX.size()>iHist ?  mapBranch.GetVal(varErrX[iPlot][iHist]) : 0;
@@ -335,7 +329,7 @@ void ChrisLib::SplitTree( const InputCompare &inputCompare ) {
 }
 //============================================================
 TObject* ChrisLib::InitHist( const InputCompare &inputCompare, int outMode, int iPlot, int iHist ) {
-  cout << "initHist" << endl;
+  if ( DEBUG ) cout << "ChrisLib::InitHist" << endl;
   const vector< vector<string> > &varErrX = inputCompare.GetVarErrX();
   const vector< vector<string> > &varErrY = inputCompare.GetVarErrY();
   const vector<vector<string>> &rootFilesName = inputCompare.GetRootFilesName();
@@ -352,18 +346,17 @@ TObject* ChrisLib::InitHist( const InputCompare &inputCompare, int outMode, int 
   stringstream name;
   name << StripString(rootFilesName[iPlot][0]) << "_"  <<  varName[iPlot][iHist] << "_" << iPlot;
   if ( outMode == 0 ) {
-    if ( xBinning[iHist].empty() ) outHist = new TH1D( name.str().c_str(), name.str().c_str(), nBins, varMin[iHist], varMax[iHist] );
+    if ( xBinning.empty() || xBinning[iHist].empty() ) outHist = new TH1D( name.str().c_str(), name.str().c_str(), nBins, varMin[iHist], varMax[iHist] );
     else outHist = new TH1D( name.str().c_str(), name.str().c_str(), (int) xBinning[iHist].size()-1, &xBinning[iHist][0] );
   }
   else if ( outMode == 1 ) {
-    if ( !xBinning.size() ) outHist = new TProfile( name.str().c_str(), name.str().c_str(), nBins, varMin[iHist], varMax[iHist] );
+    if ( xBinning.empty() || xBinning[iHist].empty() ) outHist = new TProfile( name.str().c_str(), name.str().c_str(), nBins, varMin[iHist], varMax[iHist] );
     else outHist = new TProfile( name.str().c_str(), name.str().c_str(), (int) xBinning[iPlot].size()-1, &xBinning[iPlot][0] );
   }
   else if (outMode == 2 ) {
     outGraph = new TGraphErrors(1);
     outGraph->SetName( TString::Format( "%s_%s_%s_%s_%d", varName[iPlot][iHist].c_str(), varWeight[iPlot][iHist].c_str(), varErrX[iPlot][iHist].c_str(), varErrY[iPlot][iHist].c_str(), iPlot ) );
   }
-  cout << "created" << endl;
   if ( outHist ) {
     outHist->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
     outHist->GetYaxis()->SetTitle( outMode==0 ? "# Events" : varWeight[iPlot][iHist].c_str() );
@@ -374,7 +367,7 @@ TObject* ChrisLib::InitHist( const InputCompare &inputCompare, int outMode, int 
     outGraph->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
     outGraph->GetYaxis()->SetTitle( outMode==0 ? "# Events" : varWeight[iPlot][iHist].c_str() );
   }
-  cout << "endInit" << endl;
+  if ( DEBUG ) cout << "ChrisLib::InitHist end" << endl;
   return ( outGraph ? static_cast<TObject*>(outGraph) : static_cast<TObject*>(outHist) );
 }
 //=======================================================

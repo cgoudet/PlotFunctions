@@ -181,14 +181,15 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
 
   if ( eventID != "" ) ParseVector( eventID, m_eventID, 0 );
 
+
   if ( varMax != "" ) {
     ParseVector( varMax, m_varMax, 0 );
-    while ( m_varMax.size() < m_varName.front().size() ) m_varMax.push_back( m_varMax.back() );
+    while ( m_varName.size() && m_varMax.size() < m_varName.front().size() ) m_varMax.push_back( m_varMax.back() );
   }
 
   if ( varMin != "" ) {
     ParseVector( varMin, m_varMin, 0 );
-    while ( m_varMin.size() < m_varName.front().size() ) m_varMin.push_back( m_varMin.back() );
+    while ( m_varName.size() && m_varMin.size() < m_varName.front().size() ) m_varMin.push_back( m_varMin.back() );
   }
   if ( m_varMin.size() != m_varMax.size() ) throw invalid_argument( "InputCompare::LoadFiles : VarMin and VarMax Variables must be either both empty or both filled" );
 

@@ -110,6 +110,7 @@ void ChrisLib::MapBranches::ClearMaps() {
   m_mapLongLong.clear();
   m_mapULongLong.clear();
   m_mapUnsigned.clear();
+  m_mapString.clear();
 }
 
 //============================================
@@ -130,6 +131,10 @@ const void* ChrisLib::MapBranches::GetVal( string name ) const {
   auto itUnsigned = m_mapUnsigned.find( name );
   if ( itUnsigned != m_mapUnsigned.end() ) return &itUnsigned->second;
 
+  auto itString = m_mapString.find( name );
+  if ( itString != m_mapString.end() ) return &itString->second;
+
+
   throw runtime_error( "MapBranches::GetVal : No branch named " + name );
 }
 
@@ -141,7 +146,7 @@ void ChrisLib::MapBranches::Print() const {
   for ( auto it = m_mapULongLong.begin(); it!= m_mapULongLong.end(); ++it  ) cout << it->first << " " << it->second << endl;
   for ( auto it = m_mapLongLong.begin(); it!= m_mapLongLong.end(); ++it  ) cout << it->first << " " << it->second << endl;
   for ( auto it = m_mapUnsigned.begin(); it!= m_mapUnsigned.end(); ++it  ) cout << it->first << " " << it->second << endl;
-					
+  for ( auto it = m_mapString.begin(); it!= m_mapString.end(); ++it  ) cout << it->first << " " << it->second << endl;
 }
 
 //============================================
@@ -152,6 +157,7 @@ void ChrisLib::MapBranches::GetKeys( list<string> &keys ) {
   for ( auto it = m_mapULongLong.begin(); it!= m_mapULongLong.end(); ++it  ) keys.push_back( it->first );
   for ( auto it = m_mapLongLong.begin(); it!= m_mapLongLong.end(); ++it  ) keys.push_back( it->first );
   for ( auto it = m_mapUnsigned.begin(); it!= m_mapUnsigned.end(); ++it  ) keys.push_back( it->first );
+  for ( auto it = m_mapString.begin(); it!= m_mapString.end(); ++it  ) keys.push_back( it->first );
 }
 
 //============================================

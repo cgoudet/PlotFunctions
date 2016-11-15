@@ -42,7 +42,7 @@ namespace ChrisLib {
     std::map< std::string, long long > m_mapLongLong;
     std::map< std::string, unsigned long long > m_mapULongLong;
     std::map< std::string, unsigned int > m_mapUnsigned;
-
+    std::map< std::string, std::string> m_mapString;
   };
 }
 

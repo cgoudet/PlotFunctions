@@ -22,11 +22,12 @@ namespace ChrisLib {
   void SplitTree( const InputCompare &inputCompare );
 
   //=======================
-  enum class OutMode { hist, histEvent, profile, graphError };
+  enum class OutMode { none, hist, histEvent, profile, graphErrors };
 
   //=======================
   OutMode GetOutMode( const InputCompare &inputCompare );
-
+  std::string WriteOutMode ( const OutMode outMode );
+  
   void PrintOutputCompareEvents( const boost::multi_array<double,2> &varValues, 
 				 const boost::multi_array<long long,2> &IDValues, 
 				 const std::vector<std::string> &eventID, 

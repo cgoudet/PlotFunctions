@@ -177,6 +177,15 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   }
   while ( m_varName.size() && m_varName.size() < nPlots ) m_varName.push_back( m_varName.back() );
 
+  if ( DEBUG ) cout << "varYName" << endl;
+  cout << "varYName.size() : " << varYName.size() << endl;
+  m_varYName = vector<vector<string>>( varYName.size() );
+  for ( unsigned int iYName = 0; iYName < varYName.size(); ++iYName ) {
+    ParseVector( varYName[iYName], m_varYName[iYName], 0 );
+    if ( m_varYName[iYName] != m_varYName[0] ) throw runtime_error( "InputConpare::LoadFiles : varYName structure not identical for all files." );
+  }
+  while ( m_varYName.size() && m_varYName.size() < nPlots ) m_varYName.push_back( m_varYName.back() );
+
 
   m_varWeight = vector<vector<string>>( nPlots );
   for ( unsigned int iPlot = 0; iPlot < varWeight.size(); iPlot++ ) ParseVector( varWeight[iPlot], m_varWeight[iPlot], 0 );

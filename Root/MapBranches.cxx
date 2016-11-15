@@ -127,7 +127,7 @@ double ChrisLib::MapBranches::GetVal( string name ) const {
   auto itUnsigned = m_mapUnsigned.find( name );
   if ( itUnsigned != m_mapUnsigned.end() ) return static_cast<double>(itUnsigned->second);
 
-  throw runtime_error( "MapBranches::GetVal : No branche named " + name );
+  throw runtime_error( "MapBranches::GetVal : No branch named " + name );
 }
 
 //=============================================
@@ -157,4 +157,6 @@ void LinkCSVFile( const string &inFileName ) {
 
   double testDouble;
   string testString;
+
+
 }

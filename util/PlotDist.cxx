@@ -45,21 +45,19 @@ int main( int argc, char* argv[] ) {
   for ( unsigned int iFile = 0; iFile < inFiles.size(); iFile++ ) {
     cout << "iFile : " << iFile << " " << inFiles[iFile] << endl;
     InputCompare input( inFiles[iFile] );
-
     int inputType = atoi(input.GetOption("inputType").c_str());
     cout << "inputType : " << inputType << endl;
     const vector<vector<string>> &rootFilesName = input.GetRootFilesName();
 
     vector<vector<TH1*>> vectHist;
     vector<vector<TGraphErrors*>> vectGraph;
-    vector<vector<TObject*>> vectObj;    
+    vector<vector<TObject*>> vectObj;
     try {
       if ( rootFilesName.empty() ) throw invalid_argument( "PlotTree : No input file." );
       if ( inputType==0 ) PlotHist( input, vectHist );
-      //      else if ( inputType<4 ) PlotTree( input, vectHist, vectGraph );
-      else if ( inputType<4 ) PlotTree( input, vectObj );
-      else if ( inputType==4 ) PlotTextFile( input, vectHist );
-      else if ( inputType==5 ) SplitTree( input );
+      else if ( inputType<5 ) PlotTree( input, vectObj );
+      else if ( inputType==5 ) PlotTextFile( input, vectHist );
+      else if ( inputType==6 ) SplitTree( input );
       else throw invalid_argument( "CompareHist : No valid inputType provided." );
 
 

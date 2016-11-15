@@ -25,6 +25,7 @@ namespace ChrisLib {
     const std::vector< double > &GetVarMin() const { return m_varMin; }
     const std::vector< double > &GetVarMax() const { return m_varMax; }
     const std::vector< std::vector<std::string> > &GetVarName() const { return m_varName; }
+    const std::vector< std::vector<std::string> > &GetVarYName() const { return m_varYName; }
     const std::vector< std::vector<std::string> > &GetVarWeight() const { return m_varWeight; }
     const std::vector<std::vector< double >> &GetXBinning() const { return m_xBinning; }
     const std::vector< std::vector<std::string> > &GetVarErrX() const { return m_varErrX; }
@@ -78,8 +79,9 @@ namespace ChrisLib {
     /**\brief List of branches to print in a TTree
      */
     std::vector< std::vector<std::string> > m_varName;
-    std::vector<std::vector<std::string> > m_varErrX;
-    std::vector<std::vector<std::string> > m_varErrY;
+    std::vector< std::vector<std::string> > m_varYName;
+    std::vector< std::vector<std::string> > m_varErrX;
+    std::vector< std::vector<std::string> > m_varErrY;
     /**\brief Vector of latex texts to print
      */
     std::vector< std::string > m_latex;

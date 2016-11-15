@@ -74,6 +74,7 @@ void ChrisLib::PrintOutputCompareEvents( const multi_array<double,2> &varValues,
   unsigned nBins = varValues.size();
   vector<string> linesTitle(nBins, "" );
   vector<string> colsTitle(eventID.size()*vectHist[0].size()+1, "" );
+  cout << "colsTitle : " << eventID.size() << "*" << vectHist[0].size() << "+1=" << colsTitle.size() << endl;
   for ( unsigned iLine=0; iLine<nBins; ++iLine ) {
     stringstream ss;
     for ( unsigned iID = 0; iID<eventID.size(); ++iID ) {
@@ -82,17 +83,27 @@ void ChrisLib::PrintOutputCompareEvents( const multi_array<double,2> &varValues,
     }
     linesTitle[iLine] = ss.str();
   }
-  
+  cout << "line" << endl;  
   vector<unsigned> levelsSizes;
   levelsSizes.push_back(vectHist[0].size());
-  levelsSizes.push_back(eventID.size());
+  levelsSizes.push_back(vectHist.size());
   for ( unsigned iCol=1; iCol<colsTitle.size(); ++iCol ) {
+    if ( iCol < eventID.size()+1 ) colsTitle[iCol] = eventID[iCol-1];
+	 else {
     //varValues[foundIndex][iHist*rootFilesName.size()+iPlot] = mapBranch.GetVal( varName[iPlot][iHist] );	
     vector<unsigned> coords;
-    GetCoordFromLinear( levelsSizes, iCol-1, coords );
+    cout << "iCol : " << iCol << " " << eventID.size() << endl;
+    unsigned renormCol = iCol-eventID.size()-1;
+    cout << "renormCol : " << renormCol << endl;
+    GetCoordFromLinear( levelsSizes, iCol-1-eventID.size(), coords );
+    cout << "FromLinear : " << iCol-1-eventID.size() << " " << coords[0] << " " << coords[1] << endl;
+    cout << "coords : " << coords.size() << " " << vectHist.size() << " " << coords[0]<< endl;
+    cout << vectHist[coords[0]].size() << " " << coords[1] << endl;
+    cout << vectHist[coords[0]][coords[1]] << endl;
     colsTitle[iCol] = static_cast<TNamed*>(vectHist[coords[0]][coords[1]])->GetTitle();
+	 }
   }
-  
+  cout << varValues[0].size() << " " << linesTitle.size() << " " << colsTitle.size() << endl;
   PrintArray( outName, varValues, linesTitle, colsTitle );
 }
 
@@ -244,8 +255,11 @@ void ChrisLib::SplitTree( const InputCompare &inputCompare ) {
   }
 }
 //============================================================
-TObject* ChrisLib::InitHist( const InputCompare &inputCompare, int outMode, unsigned iPlot, unsigned iHist ) {
+TObject* ChrisLib::InitHist( const InputCompare &inputCompare, unsigned iPlot, unsigned iHist ) {
   if ( DEBUG ) cout << "ChrisLib::InitHist" << endl;
+  const int outMode = atoi(inputCompare.GetOption("inputType").c_str())-1;
+  cout << "outMode : " << outMode << endl;
+
   const vector< vector<string> > &varErrX = inputCompare.GetVarErrX();
   const vector< vector<string> > &varErrY = inputCompare.GetVarErrY();
   const vector<vector<string>> &rootFilesName = inputCompare.GetRootFilesName();
@@ -253,44 +267,46 @@ TObject* ChrisLib::InitHist( const InputCompare &inputCompare, int outMode, unsi
   const vector< vector<string> > &varName = inputCompare.GetVarName();
   const vector< double > &varMin  = inputCompare.GetVarMin();
   const vector< double > &varMax  = inputCompare.GetVarMax();
-  const vector< vector<string> > &varWeight = inputCompare.GetVarWeight();
+  const vector< vector<string> > &varYName = inputCompare.GetVarYName();
   unsigned int nBins = atoi(inputCompare.GetOption("nBins").c_str());
   if ( !nBins ) nBins = 100;
 
-  TH1* outHist=0;
-  TGraphErrors *outGraph=0;
+  TObject* object=0;
   stringstream name;
   name << StripString(rootFilesName[iPlot][0]) << "_"  <<  varName[iPlot][iHist] << "_" << iPlot;
-  if ( outMode == 0 ) {
-    if ( xBinning.empty() || xBinning[iHist].empty() ) outHist = new TH1D( name.str().c_str(), name.str().c_str(), nBins, varMin[iHist], varMax[iHist] );
-    else outHist = new TH1D( name.str().c_str(), name.str().c_str(), (int) xBinning[iHist].size()-1, &xBinning[iHist][0] );
+  if ( outMode<2 ) {
+    if ( xBinning.empty() || xBinning[iHist].empty() ) object = new TH1D( name.str().c_str(), name.str().c_str(), nBins, varMin[iHist], varMax[iHist] );
+    else object = new TH1D( name.str().c_str(), name.str().c_str(), (int) xBinning[iHist].size()-1, &xBinning[iHist][0] );
   }
-  else if ( outMode == 1 ) {
-    if ( xBinning.empty() || xBinning[iHist].empty() ) outHist = new TProfile( name.str().c_str(), name.str().c_str(), nBins, varMin[iHist], varMax[iHist] );
-    else outHist = new TProfile( name.str().c_str(), name.str().c_str(), (int) xBinning[iPlot].size()-1, &xBinning[iPlot][0] );
+  else if ( outMode == 2 ) {
+    name << "_" << varYName[iPlot][iHist];
+    if ( xBinning.empty() || xBinning[iHist].empty() ) object = new TProfile( name.str().c_str(), name.str().c_str(), nBins, varMin[iHist], varMax[iHist] );
+    else object = new TProfile( name.str().c_str(), name.str().c_str(), (int) xBinning[iPlot].size()-1, &xBinning[iPlot][0] );
   }
-  else if (outMode == 2 ) {
+  else if (outMode == 3 ) object = new TGraphErrors();
+
+  if ( DEBUG ) cout << "Object created" << endl;
+  if ( string(object->ClassName()) == "TGraphErrors" ) {
+    TGraphErrors *outGraph=static_cast<TGraphErrors*>(object);
+    outGraph->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
+    outGraph->GetYaxis()->SetTitle( varYName[iPlot][iHist].c_str() );
     name.flush();
-    outGraph = new TGraphErrors();
-    name << varName[iPlot][iHist] << "_" << ( varWeight[iPlot].size() > iHist ? varWeight[iPlot][iHist] : varWeight[0][iHist] );
+    name << varName[iPlot][iHist] << "_" << varYName[iPlot][iHist];
     if ( varErrX.size()>iPlot && varErrX[iPlot].size()>iHist ) name << "_" << varErrX[iPlot][iHist];
     if ( varErrY.size()>iPlot && varErrY[iPlot].size()>iHist ) name << "_" << varErrY[iPlot][iHist];
     name << "_" << iPlot;
     outGraph->SetName( name.str().c_str() );
   }
-  if ( outHist ) {
+  else {
+    TH1* outHist=static_cast<TH1D*>(object);
     outHist->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
-    outHist->GetYaxis()->SetTitle( outMode==0 ? "# Events" : varWeight[iPlot][iHist].c_str() );
+    outHist->GetYaxis()->SetTitle( outMode<2 ? "#Events" : varYName[iPlot][iHist].c_str() );
     outHist->SetDirectory( 0 );
     outHist->Sumw2();
   }
-  else {
-    outGraph->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
-    string titleY = ( varWeight[iPlot].size() > iHist ? varWeight[iPlot][iHist] : varWeight[0][iHist] );
-    outGraph->GetYaxis()->SetTitle( titleY.c_str() );
-  }
+
   if ( DEBUG ) cout << "ChrisLib::InitHist end" << endl;
-  return ( outGraph ? static_cast<TObject*>(outGraph) : static_cast<TObject*>(outHist) );
+  return object;
 }
 
 //=======================================================
@@ -308,7 +324,7 @@ int ChrisLib::FillCompareEvent( const InputCompare &inputCompare, multi_array<lo
     for ( unsigned int iSavedEvent = 0; iSavedEvent < nBins; ++iSavedEvent ) {
       bool foundEvent=true;
       for ( unsigned int iID = 0; iID < eventID.size(); ++iID ) {
-	if ( IDValues[iSavedEvent][iID] == mapBranch.GetVal( eventID[iPlot] ) ) continue;
+	if ( IDValues[iSavedEvent][iID] == mapBranch.GetVal( eventID[iID] ) ) continue;
 	foundEvent = false;
 	break;
       }
@@ -321,15 +337,19 @@ int ChrisLib::FillCompareEvent( const InputCompare &inputCompare, multi_array<lo
 }
 
 //=======================================================
-void ChrisLib::TestInputs( const InputCompare &inputCompare, unsigned outMode ) {
-
+void ChrisLib::TestInputs( const InputCompare &inputCompare ) {
+  const int outMode = atoi(inputCompare.GetOption("inputType").c_str())-1;
+  const vector< string > &eventID = inputCompare.GetEventID();
   const vector< vector<string> > &varName = inputCompare.GetVarName();
+  const vector< vector<string> > &varYName = inputCompare.GetVarYName();
   const vector< vector< double > > &xBinning = inputCompare.GetXBinning();
   const vector< double > &varMin  = inputCompare.GetVarMin();
   const vector< double > &varMax  = inputCompare.GetVarMax();
   const vector< vector<string> > &varWeight = inputCompare.GetVarWeight();
-  if ( outMode == 0 && xBinning.empty() && varMin.empty() && varMax.empty() ) throw invalid_argument( "TestInput : No information for binning provided" );
-  else if ( outMode==2 && varWeight[0].size()!=varName[0].size() ) throw invalid_argument( "TestInput : Tgraphs varWeight do not match varName." );
+  if ( outMode<2 && xBinning.empty() && varMin.empty() && varMax.empty() ) throw invalid_argument( "TestInput : No information for binning provided" );
+  else if ( outMode==1 && eventID.empty() ) throw invalid_argument( "TestInput : empty eventID." );
+  else if ( outMode==2 && varYName.empty() ) throw invalid_argument( "TestInput : TProfiles require varWeight." );
+  else if ( outMode==3 && varYName[0].size()!=varName[0].size() ) throw invalid_argument( "TestInput : Tgraphs varWeight do not match varName." );
 
 }
 //=========================================================
@@ -366,18 +386,22 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
   const vector< vector<string> > &varWeight = inputCompare.GetVarWeight();
 
   double totWeight=1;
-  if ( outMode < 2 ) for_each( varWeight[iPlot].begin(), varWeight[iPlot].end(), [&totWeight, &mapBranch]( const string &s ) { totWeight*=mapBranch.GetVal(s);} );
-  
+  if ( outMode<3 ) for_each( varWeight[iPlot].begin(), varWeight[iPlot].end(), [&totWeight, &mapBranch]( const string &s ) { totWeight*=mapBranch.GetVal(s);} );
+
   int foundIndex=-1;
   if ( outMode==1 ) foundIndex = FillCompareEvent( inputCompare, IDValues, mapBranch, iPlot, iEntry );
-  
+
+
   for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
     if ( outMode==1 && ( !iPlot || foundIndex != -1 ) ) varValues[foundIndex][iHist*varName.size()+iPlot] = mapBranch.GetVal( varName[iPlot][iHist] );
     
-    if ( !vectObject[iHist][iPlot] ) vectObject[iHist][iPlot]=InitHist( inputCompare, outMode, iPlot, iHist );
-  
-    if ( outMode < 2 && totWeight ) static_cast<TH1D*>(vectObject[iHist][iPlot])->Fill( mapBranch.GetVal(varName[iPlot][iHist] ) , totWeight );
-    else if ( outMode == 2 ) {
+    if ( !vectObject[iHist][iPlot] ) vectObject[iHist][iPlot]=InitHist( inputCompare, iPlot, iHist );
+
+
+    if ( ( ( outMode==0||outMode==2) && totWeight )
+	 || ( outMode==1 && foundIndex!=-1 ) 
+	 ) static_cast<TH1D*>(vectObject[iHist][iPlot])->Fill( mapBranch.GetVal(varName[iPlot][iHist] ) , totWeight );
+    else if ( outMode == 3 ) {
       TGraphErrors *graph = static_cast<TGraphErrors*>(vectObject[iHist][iPlot]);
       string xTitle = graph->GetXaxis()->GetTitle();
       string yTitle = graph->GetYaxis()->GetTitle();
@@ -403,8 +427,9 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
   if ( varName.empty() || varName[0].empty() ) throw invalid_argument( "PlotTree : empty varName." );
 
   int outMode = atoi(inputCompare.GetOption("inputType").c_str())-1;
-  TestInputs( inputCompare, outMode );
+  TestInputs( inputCompare );
 
+  const vector< string > &eventID = inputCompare.GetEventID();
   const vector< vector<string> > &varErrX = inputCompare.GetVarErrX();
   const vector< vector<string> > &varErrY = inputCompare.GetVarErrY();
   const vector< vector<string> > &varWeight = inputCompare.GetVarWeight();
@@ -428,7 +453,7 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
     unsigned countEvent=1;
 
     for ( unsigned int iAdd = 0; iAdd < rootFilesName[iPlot].size(); ++iAdd ) {
-
+      cout << "iPlot : " << iPlot << " " << iAdd << endl;
       string inFileName = rootFilesName[iPlot][iAdd];
       TFile inFile( inFileName.c_str() );
 
@@ -449,11 +474,11 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
       copy( varWeight[0].begin(), varWeight[0].end(), back_inserter(linkedVariables) );
       copy( varErrX[iPlot].begin(), varErrX[iPlot].end(), back_inserter(linkedVariables) );
       copy( varErrY[iPlot].begin(), varErrY[iPlot].end(), back_inserter(linkedVariables) );
+      copy( eventID.begin(), eventID.end(), back_inserter(linkedVariables) );
       linkedVariables.sort();
       linkedVariables.erase( unique(linkedVariables.begin(), linkedVariables.end() ), linkedVariables.end() );
       MapBranches mapBranch;
       mapBranch.LinkTreeBranches( inTree, 0, linkedVariables );
-	
       for ( int iEvent = 0; iEvent < nEntries; ++iEvent ) {
 	if ( nEvents && countEvent==nEvents ) break;
 	inTree->GetEntry( iEvent );
@@ -463,14 +488,24 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
       
       delete inTree; 
       inFile.Close( "R" ); 
-    }
+    }//end iAdd
     
-}//end iPlot
+  }//end iPlot
 
   if ( outMode==1 ) {
-    const vector< string > &eventID = inputCompare.GetEventID();
     string outName = inputCompare.GetOption( "plotDirectory" ) + inputCompare.GetOutName() + "_compareEvents";
     PrintOutputCompareEvents( varValues, IDValues, eventID, vectHist, outName );
   }
   if ( DEBUG ) cout << "ChrisLib::PlotTree end" << endl;
+}
+
+
+//=======================================================
+OutMode ChrisLib::GetOutMode( const InputCompare &inputCompare ) {
+
+  int inputType = atoi(inputCompare.GetOption("inputType").c_str())-1;
+
+  if ( inputType==0 ) return OutMode::hist;
+  else if ( inputType < 5 ) return static_cast<OutMode>(inputType-1);
+  else throw runtime_error( "GetOutMode : OutMode not planned for inputType above 5" );
 }

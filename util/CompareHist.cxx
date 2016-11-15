@@ -103,23 +103,23 @@ int main( int argc, char* argv[] ) {
     const vector<vector<string>> rootFilesName = input.GetRootFilesName();
 
 
-    list<int> authorizedInput = { 0, 1 };
-    if ( find( authorizedInput.begin(), authorizedInput.end(), inputType ) != authorizedInput.end() ) {
-      vector<vector<TH1*>> vectHist;
-      vector<vector<TGraphErrors*>> vectGraph;
-      try {
-	if ( rootFilesName.empty() ) throw invalid_argument( "PlotTree : No input file." );
-	if ( inputType==0 ) PlotHist( input, vectHist );
-	else if ( inputType<3 ) PlotTree( input, vectHist, vectGraph );
-	DrawVect( vectHist, input );
-      }
-      catch( const exception e ) {
-	cout << e.what() << endl;
-      }
-      for ( auto it=vectHist.begin(); it!=vectHist.end(); ++it ) DeleteContainer( *it );  
+    // list<int> authorizedInput = { 0, 1 };
+    // if ( find( authorizedInput.begin(), authorizedInput.end(), inputType ) != authorizedInput.end() ) {
+    //   vector<vector<TH1*>> vectHist;
+    //   vector<vector<TGraphErrors*>> vectGraph;
+    //   try {
+    // 	if ( rootFilesName.empty() ) throw invalid_argument( "PlotTree : No input file." );
+    // 	if ( inputType==0 ) PlotHist( input, vectHist );
+    // 	else if ( inputType<3 ) PlotTree( input, vectHist, vectGraph );
+    // 	DrawVect( vectHist, input );
+    //   }
+    //   catch( const exception e ) {
+    // 	cout << e.what() << endl;
+    //   }
+    //   for ( auto it=vectHist.begin(); it!=vectHist.end(); ++it ) DeleteContainer( *it );  
       
-      continue;
-    }
+    //   continue;
+    // }
 
 
     plotPath = input.GetOption("plotDirectory");

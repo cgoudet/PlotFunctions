@@ -153,6 +153,7 @@ void ChrisLib::MapBranches::GetKeys( list<string> &keys ) {
 
 //============================================
 void LinkCSVFile( const string &inFileName ) {
+  vector<string> m_csvColsIndex;
 
   double testDouble;
   string testString;

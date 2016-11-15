@@ -22,6 +22,11 @@ namespace ChrisLib {
   void SplitTree( const InputCompare &inputCompare );
 
   //=======================
+  enum class OutMode { hist, histEvent, profile, graphError };
+
+  //=======================
+  OutMode GetOutMode( const InputCompare &inputCompare );
+
   void PrintOutputCompareEvents( const boost::multi_array<double,2> &varValues, 
 				 const boost::multi_array<long long,2> &IDValues, 
 				 const std::vector<std::string> &eventID, 
@@ -29,8 +34,8 @@ namespace ChrisLib {
 				 const std::string &outName );
 
   int FillCompareEvent( const InputCompare &inputCompare, boost::multi_array<long long,2> &IDValues, const MapBranches &mapBranch, const int iPlot, const int iEvent );
-  TObject* InitHist( const InputCompare &inputCompare, int outMode, unsigned iPlot, unsigned iHist );
-  void TestInputs( const InputCompare &inputCompare, unsigned outMode );
+  TObject* InitHist( const InputCompare &inputCompare, unsigned iPlot, unsigned iHist );
+  void TestInputs( const InputCompare &inputCompare );
   void DrawVect( std::vector<std::vector<TH1*>> &vectHist, const InputCompare &inputCompare );
   void DrawVect( std::vector<std::vector<TGraphErrors*>> &vectGraph, const InputCompare &inputCompare );
   void SetTGraphsTitle( const InputCompare &inputCompare, const unsigned iPlot, std::vector<std::vector<TGraphErrors*>> &vectGraph );

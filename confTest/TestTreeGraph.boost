@@ -1,4 +1,4 @@
-inputType=3
+inputType=4
 
 rootFileName = /sps/atlas/c/cgoudet/Calibration/DataxAOD/MC_13TeV_Zee_50ns_Lkh1_0_PairEvents_PassSel.root
 rootFileName = /sps/atlas/c/cgoudet/Calibration/DataxAOD/MC_13TeV_Zee_50ns_Lkh1_0_PairEvents_RejSel.root

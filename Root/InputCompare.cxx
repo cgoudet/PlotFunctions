@@ -102,7 +102,7 @@ ChrisLib::InputCompare::InputCompare( string fileName ) : InputCompare()
 
 void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   string inLatexPos, varMin, varMax, eventID;
-  vector< string > rootFilesName, objName, varName, varWeight, latex, latexOpt, xBinning, varErrX, varErrY;
+  vector< string > rootFilesName, objName, varName, varWeight, latex, latexOpt, xBinning, varErrX, varErrY, varYName;
   po::options_description configOptions("configOptions");
   configOptions.add_options()
     ( "rootFileName", po::value< vector< string > >( &rootFilesName )->multitoken(), "" )
@@ -117,6 +117,7 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
     ( "doChi2", po::value<string>( &m_mapOptions["doChi2"] ), "" )
     ( "centerZoom", po::value<string>( &m_mapOptions["centerZoom"] ), "" )
     ( "varName", po::value< vector<string> >( &varName )->multitoken(), "" )
+    ( "varYName", po::value< vector<string> >( &varYName )->multitoken(), "" )
     ( "varErrX", po::value< vector<string> >( &varErrX )->multitoken(), "" )
     ( "varErrY", po::value< vector<string> >( &varErrY )->multitoken(), "" )
     ( "varMin", po::value< string >( &varMin ), "" )

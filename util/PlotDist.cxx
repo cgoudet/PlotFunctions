@@ -63,13 +63,13 @@ int main( int argc, char* argv[] ) {
       else throw invalid_argument( "CompareHist : No valid inputType provided." );
 
 
-      list<int> histType = { 0, 1 };
+      list<int> histType = { 0, 1, 2, 3 };
       for ( unsigned int iCan=0; iCan<vectObj.size(); ++iCan ) {
 	for ( unsigned iObj=0; iObj<vectObj[iCan].size(); ++iObj ) {
-	  cout << iCan << " " << iObj << endl;
 	  if ( find( histType.begin(), histType.end(), inputType ) != histType.end() ) {
+	    cout << "hist" << endl;
 	    while ( vectHist.size()<=iCan ) vectHist.push_back( vector<TH1*>() );
-	    while ( vectHist[iCan].size()<iObj ) vectHist[iCan].push_back( 0);
+	    while ( vectHist[iCan].size()<=iObj ) vectHist[iCan].push_back( 0);
 	    vectHist[iCan][iObj] = static_cast<TH1*>( vectObj[iCan][iObj] );
 	  }
 	  else {

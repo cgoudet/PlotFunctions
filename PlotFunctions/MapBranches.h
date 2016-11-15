@@ -30,7 +30,7 @@ namespace ChrisLib {
     void SetVal( std::string label, unsigned long long val ) { m_mapLongLong[label] = val; }
     void SetVal( std::string label, unsigned int val ) { m_mapUnsigned[label] = val; }
 
-    double GetVal( std::string name ) const;
+    const void* GetVal( std::string name ) const;
     void GetKeys( std::list<std::string> &keys );
     void ClearMaps();
 

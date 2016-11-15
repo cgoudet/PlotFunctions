@@ -12,6 +12,8 @@
 #include <string>
 #include <map>
 #include <stdexcept>
+#include <istream>
+#include <sstream>
 
 using std::string;
 using std::map;
@@ -21,7 +23,8 @@ using std::list;
 using std::runtime_error;
 using std::invalid_argument;
 using std::range_error;
-
+using std::istream;
+using std::stringstream;
 using namespace ChrisLib;
 
 ChrisLib::MapBranches::MapBranches() { 
@@ -110,22 +113,22 @@ void ChrisLib::MapBranches::ClearMaps() {
 }
 
 //============================================
-double ChrisLib::MapBranches::GetVal( string name ) const {
+const void* ChrisLib::MapBranches::GetVal( string name ) const {
 
   auto itInt = m_mapInt.find( name );
-  if ( itInt != m_mapInt.end() ) return static_cast<double>(itInt->second);
+  if ( itInt != m_mapInt.end() ) return &itInt->second;
 
   auto itDouble = m_mapDouble.find( name );
-  if ( itDouble != m_mapDouble.end() ) return itDouble->second;
+  if ( itDouble != m_mapDouble.end() ) return &itDouble->second;
 
   auto itULongLong = m_mapULongLong.find( name );
-  if ( itULongLong != m_mapULongLong.end() ) return static_cast<double>(itULongLong->second);
+  if ( itULongLong != m_mapULongLong.end() ) return &itULongLong->second;
 
   auto itLongLong = m_mapLongLong.find( name );
-  if ( itLongLong != m_mapLongLong.end() ) return static_cast<double>(itLongLong->second);
+  if ( itLongLong != m_mapLongLong.end() ) return &itLongLong->second;
 
   auto itUnsigned = m_mapUnsigned.find( name );
-  if ( itUnsigned != m_mapUnsigned.end() ) return static_cast<double>(itUnsigned->second);
+  if ( itUnsigned != m_mapUnsigned.end() ) return &itUnsigned->second;
 
   throw runtime_error( "MapBranches::GetVal : No branch named " + name );
 }
@@ -152,11 +155,11 @@ void ChrisLib::MapBranches::GetKeys( list<string> &keys ) {
 }
 
 //============================================
-void LinkCSVFile( const string &inFileName ) {
+void LinkCSVFile( istream &stream ) {
   vector<string> m_csvColsIndex;
 
-  double testDouble;
-  string testString;
-
-
+  //Check the first two lines to setup the class and put back the reader at the firs data line
+  stream.seekg( 0, stream.beg );
+  stringstream firstLine;
+  
 }

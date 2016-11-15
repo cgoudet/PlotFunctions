@@ -196,6 +196,7 @@ void ChrisLib::DrawVect( vector<vector<TGraphErrors*>> &vectGraph, const InputCo
   const int saveRoot = atoi(inputCompare.GetOption( "saveRoot" ).c_str());
   const vector< vector<string> > varName = inputCompare.GetVarName();
   const vector<string> vectorOptions = inputCompare.CreateVectorOptions();
+  cout << doTabular << " " << saveRoot << endl;
   for ( unsigned iPlot=0; iPlot<vectGraph.size(); ++iPlot ) {
     string outPlotName = plotPath;
     if ( !varName.empty() ) outPlotName += "_" + varName[0][iPlot];
@@ -319,7 +320,7 @@ int ChrisLib::FillCompareEvent( const InputCompare &inputCompare, multi_array<lo
   
   int foundIndex=-1;
   if ( !iPlot ) {
-    for ( unsigned i=0; i<eventID.size(); ++i ) IDValues[iEvent][i] = mapBranch.GetVal( eventID[i] );
+    for ( unsigned i=0; i<eventID.size(); ++i ) IDValues[iEvent][i] = *static_cast<const long long*>(mapBranch.GetVal( eventID[i] ));
     foundIndex=iEvent;
   }
   else {
@@ -327,7 +328,7 @@ int ChrisLib::FillCompareEvent( const InputCompare &inputCompare, multi_array<lo
     for ( unsigned int iSavedEvent = 0; iSavedEvent < nBins; ++iSavedEvent ) {
       bool foundEvent=true;
       for ( unsigned int iID = 0; iID < eventID.size(); ++iID ) {
-	if ( IDValues[iSavedEvent][iID] == mapBranch.GetVal( eventID[iID] ) ) continue;
+	if ( IDValues[iSavedEvent][iID] == *static_cast<const long long*>(mapBranch.GetVal(eventID[iID]) ) ) continue;
 	foundEvent = false;
 	break;
       }
@@ -400,14 +401,14 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
   const vector< vector<string> > &varWeight = inputCompare.GetVarWeight();
 
   double totWeight=1;
-  if ( outMode!=OutMode::graphErrors ) for_each( varWeight[iPlot].begin(), varWeight[iPlot].end(), [&totWeight, &mapBranch]( const string &s ) { totWeight*=mapBranch.GetVal(s);} );
+  if ( outMode!=OutMode::graphErrors ) for_each( varWeight[iPlot].begin(), varWeight[iPlot].end(), [&totWeight, &mapBranch]( const string &s ) { totWeight*=*static_cast<const double*>(mapBranch.GetVal(s));} );
 
   int foundIndex=-1;
   if ( outMode==OutMode::histEvent ) foundIndex = FillCompareEvent( inputCompare, IDValues, mapBranch, iPlot, iEntry );
 
 
   for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
-    if ( outMode==OutMode::histEvent && ( !iPlot || foundIndex != -1 ) ) varValues[foundIndex][iHist*varName.size()+iPlot] = mapBranch.GetVal( varName[iPlot][iHist] );
+    if ( outMode==OutMode::histEvent && ( !iPlot || foundIndex != -1 ) ) varValues[foundIndex][iHist*varName.size()+iPlot] = *static_cast<const double*>(mapBranch.GetVal( varName[iPlot][iHist] ));
     
     if ( !vectObject[iHist][iPlot] ) vectObject[iHist][iPlot]=InitHist( inputCompare, iPlot, iHist );
     if ( outMode == OutMode::graphErrors ) {
@@ -416,17 +417,17 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
     string yTitle = graph->GetYaxis()->GetTitle();
     int nPoints = graph->GetN();
     graph->Set( nPoints+1);
-    graph->SetPoint( nPoints, mapBranch.GetVal(varName[iPlot][iHist]), mapBranch.GetVal( varYName[iPlot][iHist] ) );
-    double errX = varErrX.size()>iPlot && varErrY[iPlot].size()>iHist ?  mapBranch.GetVal(varErrX[iPlot][iHist]) : 0;
-    double errY = varErrY.size()>iPlot && varErrY[iPlot].size()>iHist ?  mapBranch.GetVal(varErrY[iPlot][iHist]) : 0;
+    graph->SetPoint( nPoints, *static_cast<const double*>(mapBranch.GetVal(varName[iPlot][iHist])), *static_cast<const double*>(mapBranch.GetVal( varYName[iPlot][iHist] )) );
+    double errX = varErrX.size()>iPlot && varErrY[iPlot].size()>iHist ?  *static_cast<const double*>(mapBranch.GetVal(varErrX[iPlot][iHist])) : 0;
+    double errY = varErrY.size()>iPlot && varErrY[iPlot].size()>iHist ?  *static_cast<const double*>(mapBranch.GetVal(varErrY[iPlot][iHist])) : 0;
     graph->SetPointError( nPoints, errX, errY );
     graph->GetXaxis()->SetTitle(xTitle.c_str() );
     graph->GetYaxis()->SetTitle(yTitle.c_str());
     }
-    else if ( outMode==OutMode::profile && totWeight ) static_cast<TProfile*>(vectObject[iHist][iPlot])->Fill( mapBranch.GetVal(varName[iPlot][iHist] ), mapBranch.GetVal(varYName[iPlot][iHist] ) , totWeight );
+    else if ( outMode==OutMode::profile && totWeight ) static_cast<TProfile*>(vectObject[iHist][iPlot])->Fill( *static_cast<const double*>(mapBranch.GetVal(varName[iPlot][iHist] )), *static_cast<const double*>(mapBranch.GetVal(varYName[iPlot][iHist]) ) , totWeight );
     else if ( ( outMode==OutMode::hist && totWeight )
 	      || ( outMode==OutMode::histEvent && foundIndex!=-1 ) 
-	      ) static_cast<TH1D*>(vectObject[iHist][iPlot])->Fill( mapBranch.GetVal(varName[iPlot][iHist] ) , totWeight );
+	      ) static_cast<TH1D*>(vectObject[iHist][iPlot])->Fill( *static_cast<const double*>(mapBranch.GetVal(varName[iPlot][iHist] )) , totWeight );
 
   }// End iHist
 }

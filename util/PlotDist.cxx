@@ -62,21 +62,20 @@ int main( int argc, char* argv[] ) {
       else throw invalid_argument( "CompareHist : No valid inputType provided." );
 
 
-      list<int> histType = { 0, 1, 2, 3 };
+      OutMode outMode = GetOutMode( input );
       for ( unsigned int iCan=0; iCan<vectObj.size(); ++iCan ) {
 	for ( unsigned iObj=0; iObj<vectObj[iCan].size(); ++iObj ) {
-	  if ( find( histType.begin(), histType.end(), inputType ) != histType.end() ) {
-	    cout << "hist" << endl;
-	    while ( vectHist.size()<=iCan ) vectHist.push_back( vector<TH1*>() );
-	    while ( vectHist[iCan].size()<=iObj ) vectHist[iCan].push_back( 0);
-	    vectHist[iCan][iObj] = static_cast<TH1*>( vectObj[iCan][iObj] );
-	  }
-	  else {
-	    cout << "graph" << endl;
+	  if ( outMode == OutMode::graphErrors )  {
 	    while ( vectGraph.size()<=iCan ) vectGraph.push_back( vector<TGraphErrors*>() );
 	    while ( vectGraph[iCan].size()<=iObj ) vectGraph[iCan].push_back( 0);
 	    cout << vectObj[iCan][iObj] << endl;
 	    if ( vectObj[iCan][iObj] ) vectGraph[iCan][iObj] = static_cast<TGraphErrors*>( vectObj[iCan][iObj] );
+	  }
+	  else {
+	    cout << "hist" << endl;
+	    while ( vectHist.size()<=iCan ) vectHist.push_back( vector<TH1*>() );
+	    while ( vectHist[iCan].size()<=iObj ) vectHist[iCan].push_back( 0);
+	    vectHist[iCan][iObj] = static_cast<TH1*>( vectObj[iCan][iObj] );
 	  }
 	}}
       if ( !vectHist.empty() ) DrawVect( vectHist, input );

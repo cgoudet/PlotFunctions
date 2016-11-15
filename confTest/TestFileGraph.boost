@@ -1,0 +1,12 @@
+inputType=8
+rootFileName=/sps/atlas/c/cgoudet/Hgam/FrameWork/PlotFunctions/confTest/mapResult.csv
+rootFileName=/sps/atlas/c/cgoudet/Hgam/FrameWork/PlotFunctions/confTest/mapResult.csv
+
+varName=mean_down
+varName=mean_up
+
+varYName = sigma_down
+varYName = sigma_up
+
+rangeUserX=124 126
+rangeUserY= 0 2

@@ -245,6 +245,7 @@ void ChrisLib::MapBranches::ReadCSVEntry( istream &stream, const char delim ) {
     // }
     if ( m_CSVTypes[iCol]==CSVType::Double ) {
       firstLine >> dValue;
+      if ( firstLine.eof() ) return;
       if ( firstLine.fail() ) throw runtime_error( "MapBranches::ReadCSVEntry : Can not read double in column " + m_CSVColsIndex[iCol]);
       m_mapDouble.at(m_CSVColsIndex[iCol]) = dValue;
       cout << m_CSVColsIndex[iCol] << " " << dValue << endl;
@@ -252,8 +253,10 @@ void ChrisLib::MapBranches::ReadCSVEntry( istream &stream, const char delim ) {
     }
     else if ( m_CSVTypes[iCol]==CSVType::String ) {
       firstLine.getline(line, 500, delim );
+      if ( firstLine.eof() ) return;
       if ( firstLine.fail() ) throw runtime_error( "MapBranches::ReadCSVEntry : Can not read string in column " + m_CSVColsIndex[iCol]);
       m_mapString.at(m_CSVColsIndex[iCol]) = line;      
+      cout << m_CSVColsIndex[iCol] << " " << line << endl;
     }
   }
 

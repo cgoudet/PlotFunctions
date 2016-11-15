@@ -25,6 +25,7 @@ using std::invalid_argument;
 using std::range_error;
 using std::istream;
 using std::stringstream;
+using std::to_string;
 using namespace ChrisLib;
 
 ChrisLib::MapBranches::MapBranches() { 
@@ -161,11 +162,60 @@ void ChrisLib::MapBranches::GetKeys( list<string> &keys ) {
 }
 
 //============================================
-void LinkCSVFile( istream &stream ) {
-  vector<string> m_csvColsIndex;
-
+void ChrisLib::MapBranches::LinkCSVFile( istream &stream, char delim ) {
   //Check the first two lines to setup the class and put back the reader at the firs data line
   stream.seekg( 0, stream.beg );
-  stringstream firstLine;
+
+  unsigned int nCols = 0;
+
+  bool isFirstLineTitle=true;
+  int iValue=0;
+  double dValue=0;
+  string sValue;  
+  unsigned nStringL2=0;
+  for ( unsigned iLine=0; iLine<2; ++iLine ) {
+
+    char line[500];
+    stream.getline( line, 500 );
+    stringstream firstLine(line);
+
+    if ( !iLine ) {
+      sValue = line;
+      nCols = std::count( sValue.begin(), sValue.end(), delim )+1;
+      m_CSVColsIndex = vector<string>(nCols);
+      m_CSVTypes = vector<CSVType>(nCols, CSVType::String );
+    }
+
+    for ( unsigned iCol=0; iCol<nCols; ++iCol ) {
+      if ( firstLine >> iValue ) {
+	if ( !iLine ) isFirstLineTitle=false;
+	m_CSVTypes[iCol] = CSVType::Int;
+	continue;
+      }
+      else if ( firstLine >> dValue ) {
+	if (!iLine) isFirstLineTitle=false;
+	m_CSVTypes[iCol] = CSVType::Double;
+	continue;
+      }
+
+      if ( !firstLine.good() ) firstLine.clear();
+
+      firstLine.getline(line, 500, delim );
+      if ( !iLine ) m_CSVColsIndex[iCol] = line;
+      else ++nStringL2;
+    }
+  }
+
+  if ( nStringL2 == nCols ) isFirstLineTitle=false;
+
+
+  for ( unsigned iCol=0; iCol<nCols; ++iCol ) {
+    if ( !isFirstLineTitle ) m_CSVColsIndex[iCol] = to_string(iCol);
+    if ( m_CSVTypes[iCol] == CSVType::Int ) m_mapInt[m_CSVColsIndex[iCol]]=0;
+    else if ( m_CSVTypes[iCol] == CSVType::Double ) m_mapDouble[m_CSVColsIndex[iCol]]=0;
+    else if ( m_CSVTypes[iCol] == CSVType::String ) m_mapString[m_CSVColsIndex[iCol]]="";
+  }
   
+  stream.seekg( 0, stream.beg );
 }
+

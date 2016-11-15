@@ -36,6 +36,8 @@ using boost::multi_array;
 using std::remove;
 using std::unique;
 using std::bitset;
+using std::ifstream;
+using std::ostream_iterator;
 
 #define DEBUG 1
 //=====================================================
@@ -111,62 +113,46 @@ void ChrisLib::PrintOutputCompareEvents( const multi_array<double,2> &varValues,
 }
 
 //==================================================================
-void ChrisLib::PlotTextFile( const InputCompare &inputCompare, vector<vector<TH1*>> &vectHist ) {
+void ChrisLib::PlotTextFile( const InputCompare &inputCompare, vector<vector<TObject*>> &vectHist ) {
+  TestInputs( inputCompare );
+
   const vector<vector<string>> inputObjName = inputCompare.GetObjName();
   const vector<vector<string>> rootFilesName = inputCompare.GetRootFilesName();
-  if ( rootFilesName.empty() ) throw invalid_argument( "PlotTextFile : No input file." );
   const vector< vector<string> > varName = inputCompare.GetVarName();
-  if ( varName.empty() || varName[0].empty() ) throw invalid_argument( "PlotTextFile : empty varName." );
+  const vector< vector<string> > varYName = inputCompare.GetVarYName();
   const vector< double > varMin = inputCompare.GetVarMin();
   const vector< double > varMax = inputCompare.GetVarMax();
   const vector< vector<string> > varWeight = inputCompare.GetVarWeight();
-  int nBins = atoi( inputCompare.GetOption( "nComparedEvents" ).c_str() );
-  if ( !nBins ) nBins=100;
 
-  vectHist = vector<vector<TH1*>>( rootFilesName.size(), vector<TH1*>(varName[0].size(), 0 ) );;
-  vector< unsigned > varIndex( varName[0].size(), 0 );
+  vectHist = vector<vector<TObject*>>( varName[0].size(), vector<TObject*>(rootFilesName.size(), 0) );
+  unsigned nEvents = atoi(inputCompare.GetOption("nEvents").c_str());
+
+  int nCols = rootFilesName.size()*varName[0].size();
+  multi_array<double,2> varValues;
+  multi_array<long long, 2> IDValues;
+
+  const OutMode outMode = GetOutMode( inputCompare );
+  if ( outMode==OutMode::histEvent ) {
+    varValues.resize( extents[nEvents][nCols] );
+    IDValues.resize( extents[nEvents][nCols] );
+  }
 
   for ( unsigned int iPlot = 0; iPlot < rootFilesName.size(); ++iPlot ) {
+    unsigned countEvent=1;
     for ( unsigned int iAdd = 0; iAdd < rootFilesName[iPlot].size(); ++iAdd ) {
-      
-      fstream inputStream;
-      inputStream.open( rootFilesName[iPlot][iAdd].c_str(), fstream::in );
-      string dumString;
-      getline( inputStream, dumString );
-      vector< string > titleVect;
-      ParseVector(  dumString , titleVect );
-      vector< double > varVal( titleVect.size(), 0 );
+      cout << "iPlot : " << iPlot << " " << iAdd << endl;
+      string inFileName = rootFilesName[iPlot][iAdd];
+      ifstream inputStream( inFileName );
 
-      for ( unsigned int iVar = 0; iVar < varName[iPlot].size(); ++iVar ) {
-	varIndex[iVar] = SearchVectorBin( varName[iPlot][iVar], titleVect );
-	if ( varIndex[iVar] == titleVect.size() ) throw invalid_argument( "PlotTestFile : varName not found in header : " + varName[iPlot][iVar] );
+      if ( outMode==OutMode::histEvent && iPlot ) nEvents = 0;//Read all second container for comparison at event level
 
-	vector<unsigned> weightIndices( varWeight[iPlot].size() );
-	for ( unsigned int iWeight = 0; iWeight < varWeight[iPlot].size(); iWeight++ ) weightIndices[iWeight] = SearchVectorBin( varWeight[iPlot][iWeight], titleVect );
-
-	while ( true ) {
-	  for ( unsigned int iTxtVar = 0; iTxtVar < titleVect.size(); iTxtVar++ ) inputStream >> varVal[iTxtVar];
-	  if ( inputStream.eof() ) break;
-
-	  double weight = 1;
-	  for_each( weightIndices.begin(), weightIndices.end(), [&weight, &varVal, &weightIndices]( const unsigned &i ) { weight*=varVal[weightIndices[i]];} );
-
-	  for ( unsigned int iVar = 0; iVar < varName[iPlot].size(); ++iVar ) {
-	    if ( vectHist.size() == iVar ) vectHist.push_back( vector<TH1*>() );
-	    if ( vectHist[iVar].size() == iPlot ) {
-	      string dumString = inputCompare.GetOutName() + string( TString::Format( "_%s_%d", varName[iPlot][iVar].c_str(), iPlot ));
-	      vectHist[iVar].push_back(0);
-	      vectHist[iVar].back() = new TH1D( dumString.c_str(), dumString.c_str(), nBins, varMin[iVar], varMax[iVar] );
-	      vectHist[iVar].back()->SetDirectory(0);
-	      vectHist[iVar].back()->GetXaxis()->SetTitle( varName[iPlot][iVar].c_str() );
-	      vectHist[iVar].back()->GetYaxis()->SetTitle( "#events" );
-	      vectHist[iVar].back()->Sumw2();
-	    }
-	      
-	    vectHist[iVar][iPlot]->Fill( varVal[varIndex[iVar]], weight );
-	  }//end for iVar
-	}//end while
-      }
+      MapBranches mapBranch;
+      mapBranch.LinkCSVFile( inputStream );
+      list<string> keys;
+      mapBranch.GetKeys( keys );
+      cout << "keys" << endl;
+      copy( keys.begin(), keys.end(), ostream_iterator<string>(cout,"\n"));
+      exit(0); 
     }
   }//end iPlot
 }
@@ -344,8 +330,8 @@ int ChrisLib::FillCompareEvent( const InputCompare &inputCompare, multi_array<lo
 void ChrisLib::TestInputs( const InputCompare &inputCompare ) {
   if ( DEBUG ) cout << "ChrisLib::TestInputs" << endl;
   const OutMode outMode = GetOutMode( inputCompare );
-  if ( outMode==OutMode::none ) return;
 
+  const vector<vector<string>> &rootFilesName = inputCompare.GetRootFilesName();
   const vector< string > &eventID = inputCompare.GetEventID();
   const vector< vector<string> > &varName = inputCompare.GetVarName();
   const vector< vector<string> > &varYName = inputCompare.GetVarYName();
@@ -353,18 +339,23 @@ void ChrisLib::TestInputs( const InputCompare &inputCompare ) {
   const vector< double > &varMin  = inputCompare.GetVarMin();
   const vector< double > &varMax  = inputCompare.GetVarMax();
 
-  if ( varName.empty() ) throw invalid_argument( "TestInput : Require varName." );
+  if ( rootFilesName.empty() || rootFilesName[0].empty() ) throw invalid_argument( "TestInput : No input file." );
 
-  bitset<5> errors;
+
+  if ( outMode==OutMode::none ) return;
+  bitset<6> errors;
   if ( outMode==OutMode::hist || outMode==OutMode::histEvent ) errors.set(0);
-  if ( outMode==OutMode::histEvent ) errors.set(1);
+  if ( outMode==OutMode::histEvent ) { errors.set(1); errors.set(5); }
   if ( outMode==OutMode::profile ) { errors.set(0); errors.set(2); errors.set(3);}
   if ( outMode==OutMode::graphErrors ) { errors.set(2); errors.set(3); }
+  if ( outMode!=OutMode::none ) errors.set(4);
 
   if ( errors.test(0) && xBinning.empty() && varMin.empty() && varMax.empty() ) throw invalid_argument( "TestInput : No information for binning provided" );
+  if ( errors.test(4) && (varName.empty() || varName[0].empty()) ) throw invalid_argument( "TestInput : Require varName." );
   if ( errors.test(1) && eventID.empty() ) throw invalid_argument( "TestInput : Require eventID." );
-  if ( errors.test(2) && varYName.empty() ) throw invalid_argument( "TestInput : Require varYName." );
+  if ( errors.test(2) && (varYName.empty()||varYName[0].empty()) ) throw invalid_argument( "TestInput : Require varYName." );
   if ( errors.test(3) && varYName[0].size() != varName[0].size() ) throw invalid_argument( "TestInput : varName and varYName must have same size." );
+  if ( errors.test(5) && !atoi(inputCompare.GetOption("nEvents").c_str()) ) throw invalid_argument( "TestInput : Require non null nEvents." );
 
   if ( DEBUG ) cout << "ChrisLib::TestInputs end" << endl;
 }
@@ -434,13 +425,11 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
 //==================================================
 void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject*>> &vectHist ) {
   if ( DEBUG ) cout << "ChrisLib::PlotTree" << endl;
+  TestInputs( inputCompare );
+
   const vector<vector<string>> &inputObjName = inputCompare.GetObjName();
   const vector<vector<string>> &rootFilesName = inputCompare.GetRootFilesName();
-
   const vector< vector<string> > &varName = inputCompare.GetVarName();
-  if ( varName.empty() || varName[0].empty() ) throw invalid_argument( "PlotTree : empty varName." );
-
-  TestInputs( inputCompare );
   const vector< vector<string> > &varYName = inputCompare.GetVarYName();
   const vector< string > &eventID = inputCompare.GetEventID();
   const vector< vector<string> > &varErrX = inputCompare.GetVarErrX();
@@ -521,8 +510,10 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
 OutMode ChrisLib::GetOutMode( const InputCompare &inputCompare ) {
 
   int inputType = atoi(inputCompare.GetOption("inputType").c_str());
-  if ( inputType==0 ) return OutMode::hist;
+  if ( inputType==0 ) return OutMode::none;
   else if ( inputType < 5 ) return static_cast<OutMode>(inputType);
+  else if ( inputType < 9 ) return static_cast<OutMode>(inputType-4);
+  else if ( inputType==9 ) return OutMode::none;
   else throw runtime_error( "GetOutMode : OutMode not planned for inputType above 5" );
 }
 

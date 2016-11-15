@@ -13,6 +13,7 @@ using std::list;
 using std::runtime_error;
 using std::invalid_argument;
 
+
 //using std::fstream;
 namespace po = boost::program_options;
 using namespace ChrisLib;
@@ -56,8 +57,8 @@ int main( int argc, char* argv[] ) {
       if ( rootFilesName.empty() ) throw invalid_argument( "PlotTree : No input file." );
       if ( inputType==0 ) PlotHist( input, vectHist );
       else if ( inputType<5 ) PlotTree( input, vectObj );
-      else if ( inputType==5 ) PlotTextFile( input, vectHist );
-      else if ( inputType==6 ) SplitTree( input );
+      else if ( inputType<9 ) PlotTextFile( input, vectObj );
+      else if ( inputType==9 ) SplitTree( input );
       else throw invalid_argument( "CompareHist : No valid inputType provided." );
 
 

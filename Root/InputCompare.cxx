@@ -173,7 +173,7 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   m_varName = vector<vector<string>>( varName.size() );
   for ( unsigned int iName = 0; iName < varName.size(); ++iName ) {
     ParseVector( varName[iName], m_varName[iName], 0 );
-    if ( m_varName[iName] != m_varName[0] ) throw runtime_error( "InputConpare::LoadFiles : varName structure not identical for all files." );
+    if ( m_varName[iName].size() != m_varName[0].size() ) throw runtime_error( "InputConpare::LoadFiles : varName structure not identical for all files." );
   }
   while ( m_varName.size() && m_varName.size() < nPlots ) m_varName.push_back( m_varName.back() );
 
@@ -182,7 +182,7 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   m_varYName = vector<vector<string>>( varYName.size() );
   for ( unsigned int iYName = 0; iYName < varYName.size(); ++iYName ) {
     ParseVector( varYName[iYName], m_varYName[iYName], 0 );
-    if ( m_varYName[iYName] != m_varYName[0] ) throw runtime_error( "InputConpare::LoadFiles : varYName structure not identical for all files." );
+    if ( m_varYName[iYName].size() != m_varYName[0].size() ) throw runtime_error( "InputConpare::LoadFiles : varYName structure not identical for all files." );
   }
   while ( m_varYName.size() && m_varYName.size() < nPlots ) m_varYName.push_back( m_varYName.back() );
 

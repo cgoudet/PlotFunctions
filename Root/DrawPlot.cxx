@@ -894,7 +894,7 @@ void ChrisLib::ReadOptions( unsigned nHist,
     if ( mapInt.find(option) != mapInt.end() ) mapInt[option] = atoi( value.c_str() );
     else if ( mapString.find(option) != mapString.end() ) mapString[option] = value;
     else if ( mapDouble.find(option) != mapDouble.end() ) {
-      mapDouble[option] =  (double) std::atof( value.c_str() );
+      mapDouble[option] = std::stod( value.c_str() );
     }
     else if ( option == "legend" ) inLegend.push_back( value );
     else if ( option == "latex" ) inLatex.push_back( value );

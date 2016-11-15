@@ -12,7 +12,6 @@
 #include <string>
 #include <map>
 #include <stdexcept>
-#include <istream>
 #include <sstream>
 
 using std::string;
@@ -162,12 +161,13 @@ void ChrisLib::MapBranches::GetKeys( list<string> &keys ) {
 }
 
 //============================================
-void ChrisLib::MapBranches::LinkCSVFile( istream &stream, char delim ) {
+void ChrisLib::MapBranches::LinkCSVFile( istream &stream, const char delim ) {
   //Check the first two lines to setup the class and put back the reader at the firs data line
+
   stream.seekg( 0, stream.beg );
 
   unsigned int nCols = 0;
-
+  char line[500];
   bool isFirstLineTitle=true;
   int iValue=0;
   double dValue=0;
@@ -175,7 +175,6 @@ void ChrisLib::MapBranches::LinkCSVFile( istream &stream, char delim ) {
   unsigned nStringL2=0;
   for ( unsigned iLine=0; iLine<2; ++iLine ) {
 
-    char line[500];
     stream.getline( line, 500 );
     stringstream firstLine(line);
 
@@ -187,17 +186,20 @@ void ChrisLib::MapBranches::LinkCSVFile( istream &stream, char delim ) {
     }
 
     for ( unsigned iCol=0; iCol<nCols; ++iCol ) {
-      if ( firstLine >> iValue ) {
-	if ( !iLine ) isFirstLineTitle=false;
-	m_CSVTypes[iCol] = CSVType::Int;
-	continue;
-      }
-      else if ( firstLine >> dValue ) {
+      // if ( firstLine >> iValue ) {
+      // 	if ( !iLine ) isFirstLineTitle=false;
+      // 	m_CSVTypes[iCol] = CSVType::Int;
+      // 	cout << iValue << endl;
+      // 	firstLine.getline(line, 500, delim );
+      // 	continue;
+      // }
+      if ( firstLine >> dValue ) {
 	if (!iLine) isFirstLineTitle=false;
 	m_CSVTypes[iCol] = CSVType::Double;
+	firstLine.getline(line, 500, delim );
 	continue;
       }
-
+      
       if ( !firstLine.good() ) firstLine.clear();
 
       firstLine.getline(line, 500, delim );
@@ -210,6 +212,7 @@ void ChrisLib::MapBranches::LinkCSVFile( istream &stream, char delim ) {
 
 
   for ( unsigned iCol=0; iCol<nCols; ++iCol ) {
+    //    cout << m_CSVColsIndex[iCol] << " " << m_CSVTypes[iCol] << endl;
     if ( !isFirstLineTitle ) m_CSVColsIndex[iCol] = to_string(iCol);
     if ( m_CSVTypes[iCol] == CSVType::Int ) m_mapInt[m_CSVColsIndex[iCol]]=0;
     else if ( m_CSVTypes[iCol] == CSVType::Double ) m_mapDouble[m_CSVColsIndex[iCol]]=0;
@@ -217,5 +220,42 @@ void ChrisLib::MapBranches::LinkCSVFile( istream &stream, char delim ) {
   }
   
   stream.seekg( 0, stream.beg );
+  stream.getline(line, 500 );
+
 }
 
+
+//============================================================
+void ChrisLib::MapBranches::ReadCSVEntry( istream &stream, const char delim ) {
+
+  int iValue=0;
+  double dValue=0;
+
+  char line[500];
+  stream.getline( line, 500 );
+  stringstream firstLine(line);
+  unsigned nCols = m_CSVColsIndex.size();
+  if ( !nCols ) throw runtime_error( "MapBranches::ReadCSVEntry : No column have been linked." );
+
+  for ( unsigned iCol=0; iCol<nCols; ++iCol ) {
+    // if ( m_CSVTypes[iCol]==CSVType::Int ) {
+    //   firstLine >> iValue;
+    //   if ( !firstLine.good() ) throw runtime_error( "MapBranches::ReadCSVEntry : Can not read integer in column " + m_CSVColsIndex[iCol]);
+    //   m_mapInt.at(m_CSVColsIndex[iCol]) = iValue;
+    // }
+    if ( m_CSVTypes[iCol]==CSVType::Double ) {
+      firstLine >> dValue;
+      if ( firstLine.fail() ) throw runtime_error( "MapBranches::ReadCSVEntry : Can not read double in column " + m_CSVColsIndex[iCol]);
+      m_mapDouble.at(m_CSVColsIndex[iCol]) = dValue;
+      cout << m_CSVColsIndex[iCol] << " " << dValue << endl;
+      firstLine.getline(line, 500, delim );
+    }
+    else if ( m_CSVTypes[iCol]==CSVType::String ) {
+      firstLine.getline(line, 500, delim );
+      if ( firstLine.fail() ) throw runtime_error( "MapBranches::ReadCSVEntry : Can not read string in column " + m_CSVColsIndex[iCol]);
+      m_mapString.at(m_CSVColsIndex[iCol]) = line;      
+    }
+  }
+
+}
+//========================================

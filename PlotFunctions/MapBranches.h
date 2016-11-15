@@ -6,7 +6,8 @@
 #include "TTree.h"
 #include <vector>
 #include <list>
-#include <fstream>
+//#include <fstream>
+#include <istream>
 
 namespace ChrisLib {
   
@@ -23,7 +24,9 @@ namespace ChrisLib {
     const std::map< std::string, unsigned int > &GetMapUnsigned() const { return m_mapUnsigned; }
 
     void LinkTreeBranches( TTree *inTree, TTree *outTree = 0, std::list<std::string> branchesToLink = std::list<std::string>() );
-    void LinkCSVFile( std::istream &stream, char delim = ',' );
+    void LinkCSVFile(  std::istream &stream, const char delim = ',' );
+    void ReadCSVEntry( std::istream &stream, const char delim = ',' );
+
     void Print() const;
 
     void SetVal( std::string label, int val ) { m_mapInt[label]=val; }
@@ -35,11 +38,10 @@ namespace ChrisLib {
     void GetKeys( std::list<std::string> &keys );
     void ClearMaps();
 
-
-
+    enum CSVType{ Int, Double, String };
+    
 
   private : 
-    enum CSVType{ Int, Double, String };
 
     std::map< std::string, int > m_mapInt;
     std::map< std::string, double > m_mapDouble;
@@ -50,7 +52,6 @@ namespace ChrisLib {
 
     std::vector<std::string> m_CSVColsIndex;
     std::vector<CSVType> m_CSVTypes;
-
   };
 }
 

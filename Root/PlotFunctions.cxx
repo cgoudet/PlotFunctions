@@ -150,8 +150,13 @@ void ChrisLib::PlotTextFile( const InputCompare &inputCompare, vector<vector<TOb
       mapBranch.LinkCSVFile( inputStream );
       list<string> keys;
       mapBranch.GetKeys( keys );
-      cout << "keys" << endl;
-      copy( keys.begin(), keys.end(), ostream_iterator<string>(cout,"\n"));
+      // cout << "keys" << endl;
+      // copy( keys.begin(), keys.end(), ostream_iterator<string>(cout,"\n"));
+
+      mapBranch.ReadCSVEntry( inputStream );
+      cout << "Systematic_Category : " << *static_cast<const string*>(mapBranch.GetVal("Systematic_Category")) << endl;
+      cout << "mean_down : " << *static_cast<const double*>(mapBranch.GetVal("mean_down" ) ) << endl;
+      cout << "m_yy_down : " << *static_cast<const double*>(mapBranch.GetVal("m_yy_down" ) ) << endl;
       exit(0); 
     }
   }//end iPlot

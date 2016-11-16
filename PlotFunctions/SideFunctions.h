@@ -198,7 +198,7 @@ namespace ChrisLib {
      \param vectHist 
      \param mode If 2 also print the histograms uncertainties
    */
-  void PrintHist( std::vector<TH1*> &vectHist, std::string outName, int mode );
+  void PrintHist( std::vector<TObject*> &vectHist, std::string outName, int mode );
 
   /**\brief Replace input pointer by a copy after applying a selection
    */
@@ -206,7 +206,7 @@ namespace ChrisLib {
 
   /**\brief Write a vector of histogram into a TFile
    */
-  void WriteVectHist( const std::vector<TH1*> &vectHist, const std::string &outName );
+  void WriteVect( const std::vector<TObject*> &vectHist, const std::string &outName );
 }
 
 #endif

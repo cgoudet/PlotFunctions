@@ -913,34 +913,64 @@ string ChrisLib::RemoveWords( string name,const list<string> &toRemove ) {
 }
 
 //==========================================================
-void ChrisLib::PrintHist( vector<TH1*> &vectHist, string outName, int mode ) {
+void ChrisLib::PrintHist( vector<TObject*> &vectHist, string outName, int mode ) {
   RemoveNullPointers( vectHist );
-  if ( vectHist.empty() ) throw invalid_argument( "PrintHist : Empty input vector of histograms" );
-
+  if ( vectHist.empty() ) throw invalid_argument( "PrintHist : Empty input vector." );
+  
   fstream stream;
   outName += ".csv";
   stream.open( outName, fstream::out | fstream::trunc );
-      
-  for ( int iBin = 0; iBin <= vectHist[0]->GetNbinsX(); ++iBin ) {
+  
+  TH1 * hist =0;
+  TGraphErrors *graph=0;
+  int nBins = 1;
+  for ( int iBin = 0; iBin <= nBins; ++iBin ) {
     for ( unsigned int iPlot = 0; iPlot <= vectHist.size(); ++iPlot ) {
+      if ( string(vectHist[iPlot]->ClassName())=="TGraphErrors" ) graph=static_cast<TGraphErrors*>(vectHist[iPlot]);
+      else hist = static_cast<TH1*>(vectHist[iPlot]);
+
       if ( !iBin ) {
+
 	if ( iPlot ) {
+	  int tmpNBin = hist ? hist->GetNbinsX() : graph->GetN();
+	  if ( tmpNBin != nBins ) throw invalid_argument( "PrintHist : All object must have same number of points/bins." );
 	  string lineName = vectHist[iPlot-1]->GetTitle();
 	  stream << lineName;
-	  if ( mode == 2 ) stream << "," << lineName + " err";
+	  if ( mode >= 2 ) stream << "," << lineName + " err";
+	  if ( mode >= 3 ) stream << "," << lineName + " errX";
 	}
 	else {
-	  TString colName = vectHist[0]->GetXaxis()->GetTitle();
+	  nBins = hist ? hist->GetNbinsX() : graph->GetN();
+	  TString colName = hist ? hist->GetXaxis()->GetTitle() : graph->GetXaxis()->GetTitle();
 	  colName=colName.ReplaceAll("_", "" ).ReplaceAll("#", "" ) ;
 	  stream << colName; 
 	}
       }
       else {
 	if ( iPlot ) { 
-	  stream << vectHist[iPlot-1]->GetBinContent( iBin );
-	  if ( mode == 2 ) stream << "," << vectHist[iPlot-1]->GetBinError( iBin );
+	  double valY, errX, errY;
+	  if ( hist ) {
+	    valY = hist->GetBinContent(iBin);
+	    errY = hist->GetBinError(iBin);
+	    errX = hist->GetXaxis()->GetBinWidth(iBin);
+	  }
+	  else if ( graph ) {
+	    graph->GetPoint( iBin-1, errX, valY );
+	    errX = graph->GetErrorX( iBin-1 );
+	    errY = graph->GetErrorY( iBin-1 );
+	  }
+	  stream << valY;
+	  if ( mode >= 2 ) stream << "," << errY;
+	  if ( mode >= 3 ) stream << "," << errX;
 	}
-	else stream << ( strcmp( vectHist.front()->GetXaxis()->GetBinLabel(iBin), "" ) ? TString(vectHist[0]->GetXaxis()->GetBinLabel(iBin)) :  TString::Format( "] %2.2f : %2.2f]", vectHist[0]->GetXaxis()->GetBinLowEdge( iBin ), vectHist[0]->GetXaxis()->GetBinUpEdge( iBin ) ) );
+	else {
+	  if ( hist ) stream << ( strcmp( hist->GetXaxis()->GetBinLabel(iBin), "" ) ? TString(hist->GetXaxis()->GetBinLabel(iBin)) :  TString::Format( "] %2.2f : %2.2f]", hist->GetXaxis()->GetBinLowEdge( iBin ), hist->GetXaxis()->GetBinUpEdge( iBin ) ) );
+	  else if ( graph ) {
+	    double x, y;
+	    graph->GetPoint( 0, x, y );
+	    stream << x << endl;
+	  }
+	}
       }
       if ( iPlot != vectHist.size() ) stream << ",";
     }
@@ -948,7 +978,7 @@ void ChrisLib::PrintHist( vector<TH1*> &vectHist, string outName, int mode ) {
   }
   stream.close();
   cout << "Wrote " << outName  << endl;
-}
+										 }
 //======================================================
 void ChrisLib::CopyTreeSelection( TTree* inTree, const string &selection ) {
   if ( selection == "" ) return;
@@ -963,7 +993,7 @@ void ChrisLib::CopyTreeSelection( TTree* inTree, const string &selection ) {
   delete dumFile; dumFile=0;
 }
 //============================================================
-void ChrisLib::WriteVectHist( const vector<TH1*> &vectHist, const string &outName ) {
+void ChrisLib::WriteVect( const vector<TObject*> &vectHist, const string &outName ) {
   TFile outFile( (outName+".root").c_str(), "recreate" );
   for ( auto it = vectHist.begin(); it != vectHist.end(); ++it ) (*it)->Write( "", TObject::kOverwrite );
   outFile.Close();

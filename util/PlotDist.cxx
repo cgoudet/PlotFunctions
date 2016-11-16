@@ -55,31 +55,15 @@ int main( int argc, char* argv[] ) {
     vector<vector<TObject*>> vectObj;
     try {
       if ( rootFilesName.empty() ) throw invalid_argument( "PlotTree : No input file." );
-      if ( inputType==0 ) PlotHist( input, vectHist );
+      if ( inputType==0 ) PlotHist( input, vectObj );
       else if ( inputType<5 ) PlotTree( input, vectObj );
       else if ( inputType<9 ) PlotTextFile( input, vectObj );
       else if ( inputType==9 ) SplitTree( input );
+      else if ( inputType==10 ) PlotMatrix( input, vectObj );
       else throw invalid_argument( "CompareHist : No valid inputType provided." );
 
+      if ( !vectObj.empty() ) DrawVect( vectObj, input );
 
-      OutMode outMode = GetOutMode( input );
-      for ( unsigned int iCan=0; iCan<vectObj.size(); ++iCan ) {
-	for ( unsigned iObj=0; iObj<vectObj[iCan].size(); ++iObj ) {
-	  if ( outMode == OutMode::graphErrors )  {
-	    while ( vectGraph.size()<=iCan ) vectGraph.push_back( vector<TGraphErrors*>() );
-	    while ( vectGraph[iCan].size()<=iObj ) vectGraph[iCan].push_back( 0);
-	    cout << vectObj[iCan][iObj] << endl;
-	    if ( vectObj[iCan][iObj] ) vectGraph[iCan][iObj] = static_cast<TGraphErrors*>( vectObj[iCan][iObj] );
-	  }
-	  else {
-	    cout << "hist" << endl;
-	    while ( vectHist.size()<=iCan ) vectHist.push_back( vector<TH1*>() );
-	    while ( vectHist[iCan].size()<=iObj ) vectHist[iCan].push_back( 0);
-	    vectHist[iCan][iObj] = static_cast<TH1*>( vectObj[iCan][iObj] );
-	  }
-	}}
-      if ( !vectHist.empty() ) DrawVect( vectHist, input );
-      if ( !vectGraph.empty() ) DrawVect( vectGraph, input );
     }
     catch( const invalid_argument &e ) {
       cout << e.what() << endl;
@@ -87,8 +71,7 @@ int main( int argc, char* argv[] ) {
     catch( const runtime_error &e ) {
       cout << e.what() << endl;
     }
-    for ( auto it=vectHist.begin(); it!=vectHist.end(); ++it ) DeleteContainer( *it );
-    for ( auto it=vectGraph.begin(); it!=vectGraph.end(); ++it ) DeleteContainer( *it );  
+    for ( auto it=vectObj.begin(); it!=vectObj.end(); ++it ) DeleteContainer( *it );
       
   }
 

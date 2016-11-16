@@ -15,12 +15,13 @@
 
 namespace ChrisLib {
 
-  void PlotHist( const InputCompare &inputCompare, std::vector<std::vector<TH1*>> &vectHist );
+  void PlotHist( const InputCompare &inputCompare, std::vector<std::vector<TObject*>> &vectHist );
   void PlotTree( const InputCompare &inputCompare, std::vector<std::vector<TH1*>> &vectHist, std::vector<std::vector<TGraphErrors*>> &vectGraph );
   void PlotTree( const InputCompare &inputCompare, std::vector<std::vector<TObject*>> &vectHist );
   void PlotTextFile( const InputCompare &inputCompare, std::vector<std::vector<TObject*>> &vectHist );
   void SplitTree( const InputCompare &inputCompare );
-
+  void PlotMatrix( const InputCompare &inputCompare, std::vector<std::vector<TObject*>> &vectObj );
+  
   //=======================
   enum class OutMode { none, hist, histEvent, profile, graphErrors };
 
@@ -37,8 +38,7 @@ namespace ChrisLib {
   int FillCompareEvent( const InputCompare &inputCompare, boost::multi_array<long long,2> &IDValues, const MapBranches &mapBranch, const int iPlot, const int iEvent );
   TObject* InitHist( const InputCompare &inputCompare, unsigned iPlot, unsigned iHist );
   void TestInputs( const InputCompare &inputCompare );
-  void DrawVect( std::vector<std::vector<TH1*>> &vectHist, const InputCompare &inputCompare );
-  void DrawVect( std::vector<std::vector<TGraphErrors*>> &vectGraph, const InputCompare &inputCompare );
+  void DrawVect( std::vector<std::vector<TObject*>> &vectGraph, const InputCompare &inputCompare );
   void SetTGraphsTitle( const InputCompare &inputCompare, const unsigned iPlot, std::vector<std::vector<TGraphErrors*>> &vectGraph );
 
   void FillObject( const InputCompare &inputCompare, 

@@ -11,5 +11,5 @@ varMax=1
 nBins=10
 nEvents=100
 
-varWeight=pt_1
+varYName=pt_1
 

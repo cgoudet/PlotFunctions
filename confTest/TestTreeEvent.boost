@@ -5,8 +5,8 @@ rootFileName = /sps/atlas/c/cgoudet/Calibration/DataxAOD/MC_13TeV_Zee_50ns_Lkh1_
 
 varName=m12
 
-varMin=80
-varMax=100
+varMin=0
+varMax=500
 
 nBins=20
 nEvents=10

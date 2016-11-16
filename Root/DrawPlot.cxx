@@ -34,7 +34,7 @@ using std::list;
 using namespace ChrisLib;
 using namespace RooFit;
 
-#define DEBUG 1
+#define DEBUG 0
 // enum EColor { kWhite =0,   kBlack =1,   kGray=920,
 //               kRed   =632, kGreen =416, kBlue=600, kYellow=400, kMagenta=616, kCyan=432,
 //               kOrange=800, kSpring=820, kTeal=840, kAzure =860, kViolet =880, kPink=900 };

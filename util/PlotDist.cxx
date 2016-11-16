@@ -1,10 +1,9 @@
-/**
-   @file PlotDist.cxx
-   @brief Distribute configuration files to the proper function
-   @author Christophe Goudet
-   @date 11/16/2016
- */
-
+/**                                                                                                                 
+   @file PlotDist.cxx                                                                                               
+   @brief Implementation of the distribution of the configuration files to the proper plotting function.            
+   @author Christophe Goudet                                                                                        
+   @date 11/16/2016                                                                                                 
+*/
 #include "PlotFunctions/SideFunctionsTpp.h"
 #include "PlotFunctions/PlotFunctions.h"
 
@@ -20,11 +19,19 @@ using std::list;
 using std::runtime_error;
 using std::invalid_argument;
 
-
-//using std::fstream;
 namespace po = boost::program_options;
 using namespace ChrisLib;
 
+/**                                                                                                                 
+   \brief Dispatch configuration files to plotting functions.                                                       
+   \author Christophe Goudet                                                                                        
+   \date 11/16/2016                                                                                                 
+                                                                                                                    
+   Read file as a boost configuration file, call the proper histogram-creating function, then call DrawPlot.
+   Configuration files are read into an InputCompare object and are dispatch according to the value of its variable inputCompare.
+   Documentation for the configurations options are available in ChrisLib::InputCompare.
+
+*/
 int main( int argc, char* argv[] ) {
 
   po::options_description desc("LikelihoodProfiel Usage");

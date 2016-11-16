@@ -148,6 +148,7 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
     ( "clean", po::value<string>( &m_mapOptions["clean"] ), "" )
     ( "extension", po::value<string>( &m_mapOptions["extension"] ), "" )
     ( "saveRoot", po::value<string>( &m_mapOptions["saveRoot"] ), "" )
+    ( "doLabels", po::value<string>( &m_mapOptions["doLabels"]) , "" )
     ;
 
   po::variables_map vm;
@@ -225,7 +226,7 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
 //==========================================
 vector<string> ChrisLib::InputCompare::CreateVectorOptions() const {
 
-  list<string> nonDrawOptions = { "", "inputType", "diagonalize", "doTabular", "plotDirectory", "saveRoot", "nEvents", "nBins" };
+    list<string> nonDrawOptions = { "", "inputType", "diagonalize", "doTabular", "plotDirectory", "saveRoot", "nEvents", "nBins", "doLabels" };
 
   vector<string> outVect;
   for ( map<string, string>::const_iterator it = m_mapOptions.begin(); it != m_mapOptions.end(); it++) {

@@ -248,7 +248,7 @@ void ChrisLib::MapBranches::ReadCSVEntry( istream &stream, const char delim ) {
       if ( firstLine.eof() ) return;
       if ( firstLine.fail() ) throw runtime_error( "MapBranches::ReadCSVEntry : Can not read double in column " + m_CSVColsIndex[iCol]);
       m_mapDouble.at(m_CSVColsIndex[iCol]) = dValue;
-      cout << m_CSVColsIndex[iCol] << " " << dValue << endl;
+      //      cout << m_CSVColsIndex[iCol] << " " << dValue << endl;
       firstLine.getline(line, 500, delim );
     }
     else if ( m_CSVTypes[iCol]==CSVType::String ) {
@@ -256,9 +256,31 @@ void ChrisLib::MapBranches::ReadCSVEntry( istream &stream, const char delim ) {
       if ( firstLine.eof() ) return;
       if ( firstLine.fail() ) throw runtime_error( "MapBranches::ReadCSVEntry : Can not read string in column " + m_CSVColsIndex[iCol]);
       m_mapString.at(m_CSVColsIndex[iCol]) = line;      
-      cout << m_CSVColsIndex[iCol] << " " << line << endl;
+      //cout << m_CSVColsIndex[iCol] << " " << line << endl;
     }
   }
 
 }
 //========================================
+string ChrisLib::MapBranches::GetLabel( const string &name ) const {
+
+  auto itInt = m_mapInt.find( name );
+  if ( itInt != m_mapInt.end() ) return to_string(itInt->second);
+
+  auto itDouble = m_mapDouble.find( name );
+  if ( itDouble != m_mapDouble.end() ) return to_string(itDouble->second);
+
+  auto itULongLong = m_mapULongLong.find( name );
+  if ( itULongLong != m_mapULongLong.end() ) return to_string(itULongLong->second);
+
+  auto itLongLong = m_mapLongLong.find( name );
+  if ( itLongLong != m_mapLongLong.end() ) return to_string(itLongLong->second);
+
+  auto itUnsigned = m_mapUnsigned.find( name );
+  if ( itUnsigned != m_mapUnsigned.end() ) return to_string(itUnsigned->second);
+
+  auto itString = m_mapString.find( name );
+  if ( itString != m_mapString.end() ) return itString->second;
+
+  throw runtime_error( "MapBranches::GetLabel : No branch named " + name );
+ }

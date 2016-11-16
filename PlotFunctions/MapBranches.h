@@ -36,9 +36,10 @@ namespace ChrisLib {
 
     const void* GetVal( std::string name ) const;
     void GetKeys( std::list<std::string> &keys );
+    std::string GetLabel( const std::string &name ) const;
     void ClearMaps();
 
-    enum CSVType{ Int, Double, String };
+    enum CSVType{ Int, Double, String, LongLong };
     
 
   private : 

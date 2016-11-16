@@ -1,3 +1,10 @@
+/**
+   @file PlotDist.cxx
+   @brief Distribute configuration files to the proper function
+   @author Christophe Goudet
+   @date 11/16/2016
+ */
+
 #include "PlotFunctions/SideFunctionsTpp.h"
 #include "PlotFunctions/PlotFunctions.h"
 

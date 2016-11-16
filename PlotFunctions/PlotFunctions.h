@@ -49,7 +49,8 @@ namespace ChrisLib {
 		   const unsigned iPlot,
 		   const unsigned iEntry
 		   );
-
+  bool IsTH1( OutMode outMode );
+  void IncreaseHist( TH1** hist, const std::string &label );
   //==================================
   
 }

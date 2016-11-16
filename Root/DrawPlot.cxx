@@ -203,7 +203,6 @@ int ChrisLib::DrawPlot( vector< TH1* > &inHist,
   int refHist= -1;
   unsigned int totEventStack=0;
 
-  cout << "cleaning : " << mapOptionsDouble["clean"] << endl;
   if ( mapOptionsDouble["clean"] !=-99 ) CleanHist( inHist, mapOptionsDouble["clean"] );
   if ( DEBUG ) cout << "Cleaned" << endl;
   //  bool isNegativeValue = false;
@@ -353,8 +352,8 @@ int ChrisLib::DrawPlot( vector< TH1* > &inHist,
     }
 
     //Added for PlotNotePub (Antinea)
-    inHist[iHist]->SetLabelSize(0.05);
-    inHist[iHist]->GetXaxis()->SetTitleOffset(1.7);
+    //    inHist[iHist]->SetLabelSize(0.05);
+    //    inHist[iHist]->GetXaxis()->SetTitleOffset(1.7);
     //    inHist[0]->SetMarkerStyle(8);
     //inHist[1]->SetMarkerStyle(25);
 
@@ -759,18 +758,7 @@ int ChrisLib::DrawPlot( vector< TGraphErrors* > inGraph,
     }
     if ( DEBUG ) cout << "extremal Y and Y values defined and set " << endl;
 
-    if ( mapOptionsInt["orderX"] ) { 
-      for ( int bin = 0; bin < inGraph[iGraph]->GetN(); bin++ ) {
-	for ( int bin2 = bin+1; bin2 < inGraph[iGraph]->GetN(); bin2++ ) {
-	  double x1, y1, x2, y2;
-	  inGraph[iGraph]->GetPoint( bin, x1, y1 );
-	  inGraph[iGraph]->GetPoint( bin2, x2, y2 );
-	  if ( x2 > x1 ) continue;
-	  inGraph[iGraph]->SetPoint( bin, x2, y2 );
-	  inGraph[iGraph]->SetPoint( bin2, x1, y1 );
-	}
-      }
-    }
+    if ( mapOptionsInt["orderX"] ) inGraph[iGraph]->Sort();
 
     //========== LOOK FOR X EXTREMAL VALUES AND DEFINE X RANGE
   }//end iGraph

@@ -181,22 +181,6 @@ namespace ChrisLib {
     */
     std::vector<std::string> CreateVectorOptions() const;
 
-    //old (wrong style
-    std::vector< std::vector< std::string > > &GetRootFileName() { return m_rootFilesName; }
-    std::vector< std::vector< std::string > > &GetObjName() { return m_objName; }
-    std::vector< std::string > &GetLegend() { return m_legend; }
-    std::vector< std::vector<std::string> > &GetVarName()  { return m_varName; }
-    std::vector< std::vector<std::string> > &GetVarErrX() { return m_varErrX; }
-    std::vector< std::vector<std::string> > &GetVarErrY() { return m_varErrY; }
-    std::vector< double > &GetVarMin() { return m_varMin; }
-    std::vector< double > &GetVarMax() { return m_varMax; }
-    std::vector<std::vector< double >> &GetXBinning() { return m_xBinning; }
-    std::vector< std::string > &GetLatex() { return m_latex; }
-    std::vector< std::string > &GetSelectionCut() { return m_selectionCut;}
-    std::vector< std::string > &GetEventID() { return m_eventID; }
-    std::vector< std::string > &GetLatexOpt() { return m_latexOpt; }
-       std::vector< std::vector<std::string> > &GetVarWeight() { return m_varWeight; }
-
     void  LoadFile( std::string fileName );
   
   private : 

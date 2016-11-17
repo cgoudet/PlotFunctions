@@ -13,11 +13,11 @@ using std::endl;
 using std::vector;
 
 //===================================
-Arbre::Arbre() {
+ChrisLib::Arbre::Arbre() {
   m_attributes["nodeName"] = "Arbre";
 }
 //===================================
-Arbre::Arbre( string nodeName, list<string> attrConstraints, list<string> childrenConstraints) {
+ChrisLib::Arbre::Arbre( string nodeName, list<string> attrConstraints, list<string> childrenConstraints) {
   m_attributes["nodeName"] = nodeName;
   m_attrConstraints = attrConstraints;
   m_childrenConstraints = childrenConstraints;
@@ -26,7 +26,7 @@ Arbre::Arbre( string nodeName, list<string> attrConstraints, list<string> childr
   m_childrenConstraints.sort();
 }
 //===================================
-int Arbre::AddChild( Arbre &child ) {
+int ChrisLib::Arbre::AddChild( Arbre &child ) {
 
   //Check if the child node name is autorized in this level
   bool isAutorized = false;
@@ -56,7 +56,7 @@ int Arbre::AddChild( Arbre &child ) {
 }
 
 //===================================
-Arbre Arbre::ParseXML( string inFileName ) {
+Arbre ChrisLib::Arbre::ParseXML( string inFileName ) {
   //  cout << "ParseXML( " << inFileName << " ) " << endl;  
 
   TDOMParser xmlparser;
@@ -68,7 +68,7 @@ Arbre Arbre::ParseXML( string inFileName ) {
   return outArbre;
 }
 //===================================
-void Arbre::Dump( string prefix ) {
+void ChrisLib::Arbre::Dump( string prefix ) {
 
   cout << prefix << m_attributes["nodeName"] << endl;
   for ( auto vKey : m_attributes ) {
@@ -79,7 +79,7 @@ void Arbre::Dump( string prefix ) {
 
 }
 //===================================
-void Arbre::SetAttribute( string key, string value ) {
+void ChrisLib::Arbre::SetAttribute( string key, string value ) {
   bool isAutorized = false;
   for ( auto vAttr : m_attrConstraints ) {
     if ( vAttr == key ) {
@@ -97,7 +97,7 @@ void Arbre::SetAttribute( string key, string value ) {
     m_attributes[key] = value;
 }
 //===================================
-Arbre Arbre::CopyNode( TXMLNode * node ) {
+Arbre ChrisLib::Arbre::CopyNode( TXMLNode * node ) {
   
   Arbre outArbre( node->GetNodeName() );
   TList *attr = node->GetAttributes();
@@ -131,7 +131,7 @@ Arbre Arbre::CopyNode( TXMLNode * node ) {
 
 }
 //===================================
-int  Arbre::GetArbresPath( Arbre &arbre, vector<Arbre> &outVect, vector<string> path, vector<map<string, string>> vectOptions ) {
+int  ChrisLib::Arbre::GetArbresPath( Arbre &arbre, vector<Arbre> &outVect, vector<string> path, vector<map<string, string>> vectOptions ) {
   if ( vectOptions.size() && vectOptions.size() != path.size() ) { cout << "options and path do not have same size" << endl; exit(0); }
   // cout << "=====" << endl;
   // cout << "nodeName : " << path.back() << " " << arbre.GetNodeName() << endl;

@@ -12,7 +12,6 @@ namespace ChrisLib {
      \class InputCompare
      \brief Stores the content of boost configuration files.
 
-
      Options are read from configuration files in the boost format. 
      Simple options (i.e. not structured) are stored in string and must be check and converted upon utilization.
      They can all be retrieved using GetOption.

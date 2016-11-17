@@ -13,7 +13,6 @@
 
 #include <cstdio>
 
-#include "PlotFunctions/SideFunctionsTpp.h"
 #include "TGraphErrors.h"
 #include "TString.h"
 
@@ -30,7 +29,8 @@ using std::endl;
 #include "TXMLNode.h"
 #include <list>
 
-
+/** \brief Namespace wrapping all C++ library
+ */
 namespace ChrisLib {
 
   /*\brief Modify histograms to have a common binning as the one with most granularity.

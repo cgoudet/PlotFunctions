@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
   // string path= "/sps/atlas/a/aguerguichon/Calibration/DataxAOD/BackUp/";
   string path= "/sps/atlas/a/aguerguichon/Calibration/DataxAOD/";
-  string savePath= "/afs/in2p3.fr/home/a/aguergui/public/Calibration/PlotFunctions/PubNote/";
+  string savePath= "/sps/atlas/a/aguerguichon/Calibration/Plots/";
   string fileName, pattern, name, yearHist;  
   vector <string> vectYear (2);
   vector <TH1*> vectProf; 
@@ -63,10 +63,10 @@ int main(int argc, char *argv[])
   
   vector <double> mean (2);
 
-  bool isMuPU=0;
+  bool isMuPU=1;
 
-  if (isMuPU) name="/afs/in2p3.fr/home/a/aguergui/public/Calibration/PlotFunctions/PubNote/Mu";
-  else name="/afs/in2p3.fr/home/a/aguergui/public/Calibration/PlotFunctions/PubNote/Time";
+  if (isMuPU) name=savePath+"Mu";
+  else name=savePath+"Time";
   vectYear[0]= "15";
   vectYear[1]= "16";
 
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
 	      if (m12<80 || m12>100) continue;
 	      //if ( fabs( mapDouble.at("eta_calo_1") )>1.37 && fabs( mapDouble.at("eta_calo_2") )>1.37) continue;
 	      //if ( mapDouble.at("eta_calo_1") <1.55 && mapDouble.at("eta_calo_2") <1.55) continue;
-	      if ( mapDouble.at("eta_calo_1") > -1.55 && mapDouble.at("eta_calo_2") > -1.55) continue;
+	      //if ( mapDouble.at("eta_calo_1") > -1.55 && mapDouble.at("eta_calo_2") > -1.55) continue;
 	      mean[year]+=m12;
 	      counter++;
 	      if (isMuPU) prof->Fill(muPU, m12);
@@ -148,6 +148,7 @@ int main(int argc, char *argv[])
 	  vectProf.push_back(prof);
 	} 
       mean[year]=(mean[year]/counter)/meanZDistri;
+      cout<<"year: "<<year<<" mean: "<<mean[year]<<endl;
    }//end year
 
 
@@ -155,10 +156,12 @@ int main(int argc, char *argv[])
     {
       vectOpt.push_back("xTitle= #mu");
       vectOpt.push_back("yTitle= m_{ee} / <m_{ee}(2015)>");
-      vectOpt.push_back("rangeUserY= 0.998 1.005");
+      vectOpt.push_back("rangeUserY= 0.9996 1.0008");
       vectOpt.push_back("rangeUserX= 5 31");
       vectOpt.push_back("line=1");
       vectOpt.push_back("drawStyle=4");
+      vectOpt.push_back("plotDirectory="+savePath);
+      vectOpt.push_back("extension=root");
       DrawPlot(vectProf, name, vectOpt);
     
       //Cosmetics
@@ -224,8 +227,8 @@ int main(int argc, char *argv[])
 		  m12=mapDouble.at("m12");
 		  if (m12<80 || m12>100) continue;
 		  //if ( fabs( mapDouble.at("eta_calo_1") )>1.37 && fabs( mapDouble.at("eta_calo_2") )>1.37) continue;
-		  //if ( mapDouble.at("eta_calo_1") <1.55 && mapDouble.at("eta_calo_2") <1.55) continue;
-		  if ( mapDouble.at("eta_calo_1") > -1.55 && mapDouble.at("eta_calo_2") > -1.55) continue;
+		  if ( mapDouble.at("eta_calo_1") <1.55 && mapDouble.at("eta_calo_2") <1.55) continue;
+		  //if ( mapDouble.at("eta_calo_1") > -1.55 && mapDouble.at("eta_calo_2") > -1.55) continue;
 		  prof->Fill( mapLong.at("timeStamp"), m12);
 		}
 	    }//end iFile
@@ -293,8 +296,6 @@ int main(int argc, char *argv[])
 
 
     }//end time plot
-
-
 
   cout<<"End of plotting"<<endl;
   delete inFile;

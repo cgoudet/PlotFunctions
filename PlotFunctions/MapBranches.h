@@ -29,7 +29,8 @@ namespace ChrisLib {
      
      - Call TTree::GetEntry
      
-     - To read a variable, call ChrisLib::MapBranches::GetVal ( branchName ).
+     - To read a variable, one must know the type of the looked for variable.
+     One getter is implemented for each accepted type, for example ChrisLib::MapBranches::GetDouble ( branchName ).
      This function returns a void pointer so the user must explicitely cast the output to the desired type.
      The complete line would look : \n
      value = *static_cast<const double *>( mapBranch.GetVal( branchName ) )
@@ -57,11 +58,12 @@ namespace ChrisLib {
     MapBranches();
     ~MapBranches();
     
-    const std::map< std::string, int > &GetMapInt() const { return m_mapInt; }
-    std::map< std::string, double > &GetMapDouble()  { return m_mapDouble; }
-    const std::map< std::string, unsigned long long > &GetMapULongLong() const { return m_mapULongLong; }
-    const std::map< std::string, long long > &GetMapLongLong() const { return m_mapLongLong; }
-    const std::map< std::string, unsigned int > &GetMapUnsigned() const { return m_mapUnsigned; }
+    double GetDouble( std::string name ) const { return m_mapDouble.at( name ); }
+    int GetInt( std::string name ) const { return m_mapInt.at( name ); }
+    unsigned long long GetULongLong( std::string name ) const { return m_mapULongLong.at( name ); }
+    unsigned GetUnsigned( std::string name ) const { return m_mapUnsigned.at( name ); }
+    std::string GetString( std::string name ) const { return m_mapString.at( name ); }
+    double GetLongLong( std::string name ) const { return m_mapLongLong.at( name ); }
 
     void LinkTreeBranches( TTree *inTree, TTree *outTree = 0, std::list<std::string> branchesToLink = std::list<std::string>() );
     void LinkCSVFile(  std::istream &stream, const char delim = ',' );
@@ -74,7 +76,7 @@ namespace ChrisLib {
     void SetVal( std::string label, unsigned long long val ) { m_mapLongLong[label] = val; }
     void SetVal( std::string label, unsigned int val ) { m_mapUnsigned[label] = val; }
 
-    const void* GetVal( std::string name ) const;
+    //    const void* GetVal( std::string name ) const;
     void GetKeys( std::list<std::string> &keys );
     std::string GetLabel( const std::string &name ) const;
     void ClearMaps();

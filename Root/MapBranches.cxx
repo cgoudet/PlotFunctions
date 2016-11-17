@@ -114,29 +114,29 @@ void ChrisLib::MapBranches::ClearMaps() {
 }
 
 //============================================
-const void* ChrisLib::MapBranches::GetVal( string name ) const {
+// const void* ChrisLib::MapBranches::GetVal( string name ) const {
 
-  auto itInt = m_mapInt.find( name );
-  if ( itInt != m_mapInt.end() ) return &itInt->second;
+//   auto itInt = m_mapInt.find( name );
+//   if ( itInt != m_mapInt.end() ) return &itInt->second;
 
-  auto itDouble = m_mapDouble.find( name );
-  if ( itDouble != m_mapDouble.end() ) return &itDouble->second;
+//   auto itDouble = m_mapDouble.find( name );
+//   if ( itDouble != m_mapDouble.end() ) return &itDouble->second;
 
-  auto itULongLong = m_mapULongLong.find( name );
-  if ( itULongLong != m_mapULongLong.end() ) return &itULongLong->second;
+//   auto itULongLong = m_mapULongLong.find( name );
+//   if ( itULongLong != m_mapULongLong.end() ) return &itULongLong->second;
 
-  auto itLongLong = m_mapLongLong.find( name );
-  if ( itLongLong != m_mapLongLong.end() ) return &itLongLong->second;
+//   auto itLongLong = m_mapLongLong.find( name );
+//   if ( itLongLong != m_mapLongLong.end() ) return &itLongLong->second;
 
-  auto itUnsigned = m_mapUnsigned.find( name );
-  if ( itUnsigned != m_mapUnsigned.end() ) return &itUnsigned->second;
+//   auto itUnsigned = m_mapUnsigned.find( name );
+//   if ( itUnsigned != m_mapUnsigned.end() ) return &itUnsigned->second;
 
-  auto itString = m_mapString.find( name );
-  if ( itString != m_mapString.end() ) return &itString->second;
+//   auto itString = m_mapString.find( name );
+//   if ( itString != m_mapString.end() ) return &itString->second;
 
 
-  throw runtime_error( "MapBranches::GetVal : No branch named " + name );
-}
+//   throw runtime_error( "MapBranches::GetVal : No branch named " + name );
+// }
 
 //=============================================
 void ChrisLib::MapBranches::Print() const {

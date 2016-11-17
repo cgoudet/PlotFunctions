@@ -1,6 +1,6 @@
 /**
    @file PlotDist.cxx
-   @brief Distribute configuration files to the proper function
+   @brief Implementation of the distribution of the configuration files to the proper plotting function.
    @author Christophe Goudet
    @date 11/16/2016
  */
@@ -25,17 +25,22 @@ using std::invalid_argument;
 namespace po = boost::program_options;
 using namespace ChrisLib;
 
+/**
+   \brief Dispatch configuration files to plotting functions.
+   \author Christophe Goudet
+   \date 11/16/2016
+
+  Read file as a boost configuration file, call the proper histogram-creating function, then call DrawPlot.
+ */
 int main( int argc, char* argv[] ) {
 
   po::options_description desc("LikelihoodProfiel Usage");
 
   vector<string> inFiles;
-  string outFileName;
   //define all options in the program
   desc.add_options()
     ( "help", "Display this help message")
     ( "inFiles", po::value<vector <string> >(&inFiles), "" )
-    ( "outFileName", po::value<string>( &outFileName )->default_value(""), "" )
     ;
   
   //Define options gathered by position                                                          

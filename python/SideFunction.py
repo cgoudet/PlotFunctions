@@ -206,14 +206,18 @@ def drawMinipage( plots, title='', content='' ) :
     return output
 
 #============================================
-# def listFiles( directory ):
-#     output = sub.check_output( ['ls '+ directory ],  shell=1, stderr=sub.STDOUT ) 
-#     if '\n' in output : content = output.split() 
-#     else : content = [ output ]
-#     return content
-
-#=================================
 def addSlash( string ) :
     return string + ( '/' if string[-1] != '/' else '' )
 
 #===================================
+def BatchHeader( path, package, macro ) :
+    while path[-1] == '/' : path= path[:-1]
+    return ( 'server=`pwd`\n' 
+             + 'cd ${server} \n'
+             + 'ulimit -S -s 100000 \n'
+             + 'LD_LIBRARY_PATH=' + path + '/RootCoreBin/lib:' + path +'/RootCoreBin/bin:$LD_LIBRARY_PATH \n'
+             + 'cd '+path+'/RootCoreBin/ \n'
+             + 'source local_setup.sh \n'
+             + 'cd ${server} \n'
+             + 'cp -v '+path+'/RootCoreBin/obj/x86_64-slc6-gcc49-opt/'+package+'/bin/'+macro+' . \n'
+             )

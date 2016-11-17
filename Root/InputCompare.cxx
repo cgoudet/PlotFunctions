@@ -39,67 +39,10 @@ ChrisLib::InputCompare::InputCompare( string fileName ) : InputCompare()
     cout << "rootfilesname : " << m_rootFilesName.size() << endl;
 }
 
-/**
-   \brief Read a configuration file.
-   Options not documented here are documented in DrawPlot.cxx.
-
-   rootfilesname= file1 file2 ... \n
-   Names of the rootFiles whose objects will be added.
-   \n
-   \n
-   objName= name1 name2 ... \n
-   Names of the objects to be added.
-   If the structure is different than rootFilesName, the function @ChrisLib::FindDefaultTree() will be called.
-   \n
-   \n
-   inputType=number\n
-   Number of the rountine in CompareHist to call. Routines and required parameters defined in @ChrisLib::CompareHist
-   \n
-   \n
-   varName= name1 name2 ...\n
-   Names of tree branches to be read
-   varName should be have the same size than rootFilesName and contain the same number of components for each file
-   If varNames is smaller than rootFilesNames, the last entered varName component will be duplicated.
-   \n
-   \n
-   varMin= value1 value2 ... \n
-   Low range limit for histograms when reading a ttre. Several values correspond to different variable/
-   \n
-   \n
-   varMax= value1 value2 ...  \n
-   High range limit for histograms when reading a TTree.
-   \n
-   \n
-   selectionCut= cut \n
-   Perform the given cut on a TTree with same index. If less selectionCut provided than rootFilesName, no selection is performed.
-   \n
-   \n
-   eventID= value1 value2 ...\n
-   branch names of variables used to identify an event.
-   \n
-   \n
-   nComparedEvents=value1 \n
-   Integer with various use depending on routine.
-   \n
-   \n
-   varWeight= var1 var2 ...\n
-   branch names to be used as weights. If several values, they are multiplied.
-   If less components than rootFilesName, no weights are considered.
-   \n
-   \n
-   xBinning= frontier1 frontier2 ... \n
-   When plotting a tree, one can decide a non regular binning. Number of bins will be the number of entries in xBinning -1.
-   \n
-   \n
-   path= value \n
-   Directory in which to write the plot
-   \n
-   \n
-   extension=value\n
-   Extension of the output plot without the point. Accepts 'pdf', 'root', 'png'
- */
 //###########################
-
+/**
+   \brief Load the configuration file using the boost::program_options format.
+ */
 void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   string inLatexPos, varMin, varMax, eventID;
   vector< string > rootFilesName, objName, varName, varWeight, latex, latexOpt, xBinning, varErrX, varErrY, varYName;
@@ -132,7 +75,7 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
     ( "varWeight", po::value< vector<string> >(&varWeight)->multitoken(), "" )
     ( "shiftColor", po::value< string >( &m_mapOptions["shiftColor"] ), "" )
     ( "line", po::value<string>( &m_mapOptions["line"] ), "" )
-    ( "diagonalize", po::value<string>( &m_mapOptions["diagonalize"] ), "" )
+    ( "triangular", po::value<string>( &m_mapOptions["triangular"] ), "" )
     ( "loadFiles", po::value< vector<string > >( &m_loadFiles )->multitoken(), "" )
     ( "extendUp", po::value<string>( &m_mapOptions["extendUp"] ), "" )
     ( "xBinning", po::value< vector<string> >( &xBinning )->multitoken(), "" )
@@ -208,7 +151,7 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
     ParseVector( varMin, m_varMin, 0 );
     while ( m_varName.size() && m_varMin.size() < m_varName.front().size() ) m_varMin.push_back( m_varMin.back() );
   }
-  if ( m_varMin.size() != m_varMax.size() ) throw invalid_argument( "InputCompare::LoadFiles : VarMin and VarMax Variables must be either both empty or both filled" );
+  //  if ( m_varMin.size() != m_varMax.size() ) throw invalid_argument( "InputCompare::LoadFiles : VarMin and VarMax Variables must be either both empty or both filled" );
 
   m_xBinning = vector<vector<double>>( xBinning.size(), vector<double>() );
   for ( unsigned int iPlot = 0; iPlot < xBinning.size(); ++iPlot ) ParseVector( xBinning[iPlot], m_xBinning[iPlot], 0 );

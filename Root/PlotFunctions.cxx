@@ -594,14 +594,14 @@ void ChrisLib::PlotMatrix( const InputCompare &inputCompare, vector<vector<TObje
     unsigned int nCol = matrix->GetNcols();
 
     TString histTitle;
-    bool doDiagonalize = ( nCol==nLine && inputCompare.GetOption( "diagonalize" ) != "" && atoi( inputCompare.GetOption( "diagonalize" ).c_str() ) );
-    unsigned int nBins = doDiagonalize ? nLine*(nLine+1)/2 : nLine*nCol;
+    bool doTriangular = ( nCol==nLine && inputCompare.GetOption( "triangular" ) != "" && atoi( inputCompare.GetOption( "triangular" ).c_str() ) );
+    unsigned int nBins = doTriangular ? nLine*(nLine+1)/2 : nLine*nCol;
     drawVect[iPlot] = new TH1D( histTitle, histTitle, nBins, 0.5, nBins+0.5 );
     TH1D* hist = static_cast<TH1D*>( drawVect[iPlot] );
     hist->SetDirectory(0);
     int bin =1;
     for ( unsigned int iLine=0; iLine<nLine; ++iLine ) {
-      unsigned int iColMax =  doDiagonalize ? iLine+1 : nCol;
+      unsigned int iColMax =  doTriangular ? iLine+1 : nCol;
       for ( unsigned int iCol=0; iCol<iColMax; iCol++ ) {
 	if ( (*matrix)(iLine, iCol) != 100 ) hist->SetBinContent( bin, (*matrix)(iLine, iCol) );
 	hist->SetBinError( bin, 0 );

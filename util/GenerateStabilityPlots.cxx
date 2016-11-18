@@ -29,7 +29,7 @@ using namespace ChrisLib;
 using namespace std;
 
 
-int main(int argc, char *argv[])
+int main()
 {
 
   TH1::AddDirectory(kFALSE);
@@ -48,10 +48,8 @@ int main(int argc, char *argv[])
   TH1D *histTmp=0;
 
   unsigned int nEntries;
-  unsigned int timeMin=1e11;
+  unsigned long long timeMin=1e11;
   unsigned int timeMax=0;
-  map <string, double> mapDouble;
-  map <string, long long int> mapLong;
   double meanZDistri, m12, muPU, timeStamp; 
   vector <string> vectOpt;
 
@@ -100,25 +98,22 @@ int main(int argc, char *argv[])
 	  inTree= (TTree*) inFile->Get( (pattern+"_"+to_string(iFile)+"_selectionTree").c_str() );
 
 	  MapBranches mapBranches;
-	  mapBranches.LinkTreeBranches(inTree);
+	  mapBranches.LinkTreeBranches(inTree, 0, {"m12", "timeStamp", "muPU", "eta_calo_1", "eta_calo_2"});
 
 	  nEntries= inTree->GetEntries();
 
 	  for (unsigned int iEntry=0; iEntry<nEntries; iEntry++)
 	    {
 	      inTree->GetEntry(iEntry);
-	      mapDouble=mapBranches.GetMapDouble();
-	      mapLong=mapBranches.GetMapLongLong();
 
-	      m12=mapDouble.at("m12");
-	      muPU=mapDouble.at("muPU");
-	      timeStamp=mapLong.at("timeStamp");
-
+	      m12=mapBranches.GetDouble("m12");
+	      muPU=mapBranches.GetDouble("muPU");
+	      timeStamp=mapBranches.GetLongLong("timeStamp");
 	      
 	      if (m12<80 || m12>100) continue;
-	      //if ( fabs( mapDouble.at("eta_calo_1") )>1.37 && fabs( mapDouble.at("eta_calo_2") )>1.37) continue;
-	      //if ( mapDouble.at("eta_calo_1") <1.55 && mapDouble.at("eta_calo_2") <1.55) continue;
-	      //if ( mapDouble.at("eta_calo_1") > -1.55 && mapDouble.at("eta_calo_2") > -1.55) continue;
+	      //if ( fabs( mapBranches.GetDouble("eta_calo_1") )>1.37 && fabs( mapBranches.GetDouble("eta_calo_2") )>1.37) continue;
+	      //if ( mapBranches.GetDouble("eta_calo_1") <1.55 && mapBranches.GetDouble("eta_calo_2") <1.55) continue;
+	      //if ( mapBranches.GetDouble("eta_calo_1") > -1.55 && mapBranches.GetDouble("eta_calo_2") > -1.55) continue;
 	      mean[year]+=m12;
 	      counter++;
 	      if (isMuPU) prof->Fill(muPU, m12);
@@ -216,20 +211,18 @@ int main(int argc, char *argv[])
 
 	      inTree= (TTree*) inFile->Get( (pattern+"_"+to_string(iFile)+"_selectionTree").c_str() );
 	      MapBranches mapBranches;
-	      mapBranches.LinkTreeBranches(inTree);
+	      mapBranches.LinkTreeBranches(inTree, 0, {"m12", "timeStamp", "eta_calo_1", "eta_calo_2"});
 	      nEntries= inTree->GetEntries();
 	      for (unsigned int iEntry=0; iEntry<nEntries; iEntry++)
 		{
 		  inTree->GetEntry(iEntry);
-		  mapDouble=mapBranches.GetMapDouble();
-		  mapLong=mapBranches.GetMapLongLong();
-
-		  m12=mapDouble.at("m12");
+	
+		  m12=mapBranches.GetDouble("m12");
 		  if (m12<80 || m12>100) continue;
-		  //if ( fabs( mapDouble.at("eta_calo_1") )>1.37 && fabs( mapDouble.at("eta_calo_2") )>1.37) continue;
-		  if ( mapDouble.at("eta_calo_1") <1.55 && mapDouble.at("eta_calo_2") <1.55) continue;
-		  //if ( mapDouble.at("eta_calo_1") > -1.55 && mapDouble.at("eta_calo_2") > -1.55) continue;
-		  prof->Fill( mapLong.at("timeStamp"), m12);
+		  //if ( fabs( mapBranches.GetDouble("eta_calo_1") )>1.37 && fabs( mapBranches.GetDouble("eta_calo_2") )>1.37) continue;
+		  if ( mapBranches.GetDouble("eta_calo_1") <1.55 && mapBranches.GetDouble("eta_calo_2") <1.55) continue;
+		  //if ( mapBranches.GetDouble("eta_calo_1") > -1.55 && mapBranches.GetDouble("eta_calo_2") > -1.55) continue;
+		  prof->Fill( mapBranches.GetLongLong("timeStamp"), m12);
 		}
 	    }//end iFile
 	  prof->Scale(1/meanZDistri);
@@ -239,7 +232,7 @@ int main(int argc, char *argv[])
       for ( unsigned int iProf=0; iProf< vectProf.size(); iProf++)
 	{
 	  histTmp=(TH1D*)vectProf[iProf];
-	  for (unsigned int iBin=1; iBin<= vectProf[0]->GetXaxis()->GetNbins(); iBin++)
+	  for (int iBin=1; iBin<= vectProf[0]->GetXaxis()->GetNbins(); iBin++)
 	    {
 	      histTmp->GetXaxis()->SetBinLabel( iBin, ConvertEpochToDate(histTmp->GetBinCenter(iBin)).c_str() );
 	    }
@@ -249,7 +242,7 @@ int main(int argc, char *argv[])
 
       for ( unsigned int iProf=0; iProf< vectProf.size(); iProf++)
 	{
-	  for (unsigned int iBin=1; iBin<= vectProf[iProf]->GetXaxis()->GetNbins(); iBin++)
+	  for (int iBin=1; iBin<= vectProf[iProf]->GetXaxis()->GetNbins(); iBin++)
 	    {
 	      if (iBin%4!=0 && iBin!=1)  vectProf[iProf]->GetXaxis()->SetBinLabel( iBin, " " );
 	    }

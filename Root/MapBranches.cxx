@@ -13,7 +13,9 @@
 #include <map>
 #include <stdexcept>
 #include <sstream>
+#include <iterator>
 
+using std::ostream_iterator;
 using std::string;
 using std::map;
 using std::cout;
@@ -150,7 +152,7 @@ void ChrisLib::MapBranches::Print() const {
 }
 
 //============================================
-void ChrisLib::MapBranches::GetKeys( list<string> &keys ) {
+void ChrisLib::MapBranches::GetKeys( list<string> &keys ) const {
   keys.clear();
   for ( auto it = m_mapInt.begin(); it!= m_mapInt.end(); ++it  ) keys.push_back( it->first );
   for ( auto it = m_mapDouble.begin(); it!= m_mapDouble.end(); ++it  ) keys.push_back( it->first );
@@ -279,8 +281,6 @@ string ChrisLib::MapBranches::GetLabel( const string &name ) const {
   auto itUnsigned = m_mapUnsigned.find( name );
   if ( itUnsigned != m_mapUnsigned.end() ) return to_string(itUnsigned->second);
 
-  auto itString = m_mapString.find( name );
-  if ( itString != m_mapString.end() ) return itString->second;
+  return GetString( name );
 
-  throw runtime_error( "MapBranches::GetLabel : No branch named " + name );
- }
+}

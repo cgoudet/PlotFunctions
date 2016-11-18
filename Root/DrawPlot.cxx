@@ -135,9 +135,9 @@ int fillColors[] = { 3, 5 };
 
 
 int ChrisLib::DrawPlot( vector< TH1* > &inHist,  
-	      string outName, 
-	      vector<string> inOptions
-	       ) {
+			string outName, 
+			vector<string> inOptions
+			) {
 
   //================ SOME CHECKS
   if ( DEBUG ) cout << "DrawPlot hist" << endl;
@@ -159,6 +159,7 @@ int ChrisLib::DrawPlot( vector< TH1* > &inHist,
 
   //================ PAD DEFINITION
   TCanvas canvas;
+  canvas.SetBottomMargin( 0.2 );
   if ( inHist.size()==1 && inHist.front() && TString(inHist.front()->ClassName()).Contains("TH2") ) {
     canvas.SetRightMargin(0.1);
     inHist.front()->Draw( "COLZ" );
@@ -190,9 +191,9 @@ int ChrisLib::DrawPlot( vector< TH1* > &inHist,
 
   if ( !legendCoord.size() ) legendCoord={ 0.7, 0.9  };
 
-  TLine *line = new TLine( 0, 0.005, 100, 0.005);
-  line->SetLineColor( kBlack );
-  line->SetLineStyle( 3 );
+  TLine line( 0, 0.005, 100, 0.005);
+  line.SetLineColor( kBlack );
+  line.SetLineStyle( 3 );
   if ( DEBUG ) cout << "defined pads" << endl;
 
   //============ LOOP OTHER INPUT HIST
@@ -204,6 +205,7 @@ int ChrisLib::DrawPlot( vector< TH1* > &inHist,
   unsigned int totEventStack=0;
 
   if ( mapOptionsDouble["clean"] !=-99 ) CleanHist( inHist, mapOptionsDouble["clean"] );
+
   if ( DEBUG ) cout << "Cleaned" << endl;
   //  bool isNegativeValue = false;
   for ( unsigned int iHist = 0; iHist < inHist.size(); iHist++ ) {
@@ -381,7 +383,7 @@ int ChrisLib::DrawPlot( vector< TH1* > &inHist,
     if( !iHist && mapOptionsDouble["line"] != -99 ) {
       double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : (mapOptionsInt["centerZoom"] ? minX : inHist[refHist]->GetXaxis()->GetXmin() );
       double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : ( mapOptionsInt["centerZoom"] ? maxX :inHist[refHist]->GetXaxis()->GetXmax() );
-      line->DrawLine( rangeMin , mapOptionsDouble["line"], rangeMax, mapOptionsDouble["line"]);
+      line.DrawLine( rangeMin , mapOptionsDouble["line"], rangeMax, mapOptionsDouble["line"]);
     }
     //========== ADD HISTOGRAM TO LEGEND
   }//end iHist
@@ -493,7 +495,7 @@ int ChrisLib::DrawPlot( vector< TH1* > &inHist,
 	ratio[iHist]->Draw( ( iHist ) ? "e,same" : "e" );
       }
       //Create a line at 0 to visualize deviations
-      line->DrawLine( mapOptionsInt["centerZoom"] ? minX : ratio.front()->GetXaxis()->GetXmin(), 0, mapOptionsInt["centerZoom"] ? maxX :ratio.front()->GetXaxis()->GetXmax(), 0);
+      line.DrawLine( mapOptionsInt["centerZoom"] ? minX : ratio.front()->GetXaxis()->GetXmin(), 0, mapOptionsInt["centerZoom"] ? maxX :ratio.front()->GetXaxis()->GetXmax(), 0);
     }
     }//end doRatio
 
@@ -506,7 +508,7 @@ int ChrisLib::DrawPlot( vector< TH1* > &inHist,
   
 
   //========== CLEANING 
-  delete line;
+  //  
   return 0;
 }
 
@@ -662,7 +664,7 @@ vector<string> ChrisLib::PlotPerCategory( vector<TObject*> vectObj, RooCategory 
 }
 
 //================================================
-int ChrisLib::DrawPlot( vector< TGraphErrors* > inGraph,  
+int ChrisLib::DrawPlot( vector< TGraphErrors* > &inGraph,  
 	      string outName, 
 	      vector<string> inOptions
 	       ) {
@@ -685,9 +687,9 @@ int ChrisLib::DrawPlot( vector< TGraphErrors* > inGraph,
   TCanvas canvas;
   if ( !legendCoord.size() ) legendCoord={ 0.7, 0.9  };
 
-  TLine *line = new TLine( 0, 0.005, 100, 0.005);
-  line->SetLineColor( kBlack );
-  line->SetLineStyle( 3 );
+  TLine line( 0, 0.005, 100, 0.005);
+  line.SetLineColor( kBlack );
+  line.SetLineStyle( 3 );
   if ( DEBUG ) cout << "defined pads" << endl;
 
   //============ LOOP OTHER INPUT HIST
@@ -799,7 +801,7 @@ int ChrisLib::DrawPlot( vector< TGraphErrors* > inGraph,
     if( !iGraph && mapOptionsDouble["line"] != -99 ) {
       double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : (mapOptionsInt["centerZoom"] ? minX : inGraph[refGraph]->GetXaxis()->GetXmin() );
       double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : ( mapOptionsInt["centerZoom"] ? maxX :inGraph[refGraph]->GetXaxis()->GetXmax() );
-      line->DrawLine( rangeMin , mapOptionsInt["line"], rangeMax, mapOptionsInt["line"]);
+      line.DrawLine( rangeMin , mapOptionsInt["line"], rangeMax, mapOptionsInt["line"]);
     }
     //========== ADD HISTOGRAM TO LEGEND
   }//end iGraph
@@ -844,7 +846,7 @@ int ChrisLib::DrawPlot( vector< TGraphErrors* > inGraph,
   
 
   //========== CLEANING 
-  delete line;
+  
   return 0;
 }
 
@@ -950,9 +952,9 @@ void DrawPlot( vector< TObject* > &inHist,
 
   if ( !legendCoord.size() ) legendCoord={ 0.7, 0.9  };
 
-  TLine *line = new TLine( 0, 0.005, 100, 0.005);
-  line->SetLineColor( kBlack );
-  line->SetLineStyle( 3 );
+  TLine line( 0, 0.005, 100, 0.005);
+  line.SetLineColor( kBlack );
+  line.SetLineStyle( 3 );
   if ( DEBUG ) cout << "defined pads" << endl;
 
   //============ LOOP OTHER INPUT HIST
@@ -1143,7 +1145,7 @@ void DrawPlot( vector< TObject* > &inHist,
   //   if( !iHist && mapOptionsDouble["line"] != -99 ) {
   //     double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : (mapOptionsInt["centerZoom"] ? minX : inHist[refHist]->GetXaxis()->GetXmin() );
   //     double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : ( mapOptionsInt["centerZoom"] ? maxX :inHist[refHist]->GetXaxis()->GetXmax() );
-  //     line->DrawLine( rangeMin , mapOptionsDouble["line"], rangeMax, mapOptionsDouble["line"]);
+  //     line.DrawLine( rangeMin , mapOptionsDouble["line"], rangeMax, mapOptionsDouble["line"]);
   //   }
   //   //========== ADD HISTOGRAM TO LEGEND
   // }//end iHist
@@ -1255,7 +1257,7 @@ void DrawPlot( vector< TObject* > &inHist,
   // 	ratio[iHist]->Draw( ( iHist ) ? "e,same" : "e" );
   //     }
   //     //Create a line at 0 to visualize deviations
-  //     line->DrawLine( mapOptionsInt["centerZoom"] ? minX : ratio.front()->GetXaxis()->GetXmin(), 0, mapOptionsInt["centerZoom"] ? maxX :ratio.front()->GetXaxis()->GetXmax(), 0);
+  //     line.DrawLine( mapOptionsInt["centerZoom"] ? minX : ratio.front()->GetXaxis()->GetXmin(), 0, mapOptionsInt["centerZoom"] ? maxX :ratio.front()->GetXaxis()->GetXmax(), 0);
   //   }
   //   }//end doRatio
 
@@ -1268,6 +1270,6 @@ void DrawPlot( vector< TObject* > &inHist,
   
 
   // //========== CLEANING 
-  // delete line;
+  // 
 
 }

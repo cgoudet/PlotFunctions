@@ -55,8 +55,6 @@ int main( int argc, char* argv[] ) {
     cout << "inputType : " << inputType << endl;
     const vector<vector<string>> &rootFilesName = input.GetRootFilesName();
 
-    vector<vector<TH1*>> vectHist;
-    vector<vector<TGraphErrors*>> vectGraph;
     vector<vector<TObject*>> vectObj;
     try {
       if ( rootFilesName.empty() ) throw invalid_argument( "PlotTree : No input file." );
@@ -68,7 +66,7 @@ int main( int argc, char* argv[] ) {
       else throw invalid_argument( "CompareHist : No valid inputType provided." );
 
       if ( !vectObj.empty() ) DrawVect( vectObj, input );
-
+      
     }
     catch( const invalid_argument &e ) {
       cout << e.what() << endl;
@@ -76,8 +74,7 @@ int main( int argc, char* argv[] ) {
     catch( const runtime_error &e ) {
       cout << e.what() << endl;
     }
-    for ( auto it=vectObj.begin(); it!=vectObj.end(); ++it ) DeleteContainer( *it );
-      
+    //    for ( auto it=vectObj.begin(); it!=vectObj.end(); ++it ) DeleteContainer( *it );
   }
 
 }

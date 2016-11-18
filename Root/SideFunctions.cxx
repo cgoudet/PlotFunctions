@@ -830,7 +830,7 @@ void ChrisLib::PrintArray( const string &outName, const multi_array<double,2> &a
    if ( !array.size() || !array[0].size() ) return;
    if ( linesTitle.size() && linesTitle.size() != array.size() ) throw runtime_error("PrintArray : Not enough names for lines.");
    ReplaceString repStr( "_", "\\_" );
-   ReplaceString repSpace( "_", " " );
+   ReplaceString repSpace( "_", "-" );
 
    unsigned nCols = array[0].size();
    if ( linesTitle.size() ) ++nCols;

@@ -208,7 +208,7 @@ def drawMinipage( plots, title='', content='' ) :
     return output
 
 #============================================
-def addSlash( string ) :
+def AddSlash( string ) :
     return string + ( '/' if string[-1] != '/' else '' )
 
 #===================================
@@ -223,3 +223,12 @@ def BatchHeader( path, package, macro ) :
              + 'cd ${server} \n'
              + 'cp -v '+path+'/RootCoreBin/obj/x86_64-slc6-gcc49-opt/'+package+'/bin/'+macro+' . \n'
              )
+
+#======================================
+def AbsPath( inFile ) :
+    if inFile[0] == '/'  : return inFile
+    output = sub.check_output( ['pwd' ],  shell=1, stderr=sub.STDOUT ).split('\n')[0]
+    output = addSlash( output )
+    output+=inFile
+    return output
+    

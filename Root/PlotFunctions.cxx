@@ -80,7 +80,6 @@ void ChrisLib::PrintOutputCompareEvents( const multi_array<double,2> &varValues,
   unsigned nBins = varValues.size();
   vector<string> linesTitle(nBins, "" );
   vector<string> colsTitle(eventID.size()*vectHist[0].size()+1, "" );
-  cout << "colsTitle : " << eventID.size() << "*" << vectHist[0].size() << "+1=" << colsTitle.size() << endl;
   for ( unsigned iLine=0; iLine<nBins; ++iLine ) {
     stringstream ss;
     for ( unsigned iID = 0; iID<eventID.size(); ++iID ) {
@@ -136,13 +135,12 @@ void ChrisLib::PlotTextFile( const InputCompare &inputCompare, vector<vector<TOb
       cout << "iPlot : " << iPlot << " " << iAdd << endl;
       string inFileName = rootFilesName[iPlot][iAdd];
       ifstream inputStream( inFileName );
+      if ( !inputStream.good() ) throw invalid_argument( "PlotTestFile : Wrong input file " + inFileName );
 
       if ( outMode==OutMode::histEvent && iPlot ) nEvents = 0;//Read all second container for comparison at event level
 
       MapBranches mapBranch;
       mapBranch.LinkCSVFile( inputStream );
-      list<string> keys;
-      mapBranch.GetKeys( keys );
 
       while ( true ) {
 	if ( nEvents && countEvent==nEvents ) break;
@@ -409,12 +407,12 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
   const vector< vector<string> > &varWeight = inputCompare.GetVarWeight();
   const unsigned doLabels = atoi(inputCompare.GetOption("doLabels").c_str());
 
+  list<string> keys;
+  mapBranch.GetKeys( keys );
   double totWeight=1;
   if ( outMode!=OutMode::graphErrors ) for_each( varWeight[iPlot].begin(), varWeight[iPlot].end(), [&totWeight, &mapBranch]( const string &s ) { totWeight*=mapBranch.GetDouble(s);} );
-
   int foundIndex=-1;
   if ( outMode==OutMode::histEvent ) foundIndex = FillCompareEvent( inputCompare, IDValues, mapBranch, iPlot, iEntry );
-
 
   for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
     string label;
@@ -426,18 +424,18 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
       TH1 *hist = static_cast<TH1*>(vectObject[iHist][iPlot]);
       if ( doLabels && IsTH1(outMode) ) hist->GetXaxis()->SetBinLabel(1, label.c_str());
       hist->GetXaxis()->LabelsOption("u");
-      hist->GetXaxis()->SetLabelSize( 0.01 );
+      hist->GetXaxis()->SetLabelSize( 0.005 );
     }
 
-
     double yVal = varYName.size() ? mapBranch.GetDouble(varYName[iPlot][iHist]) : 0;
-    double xVal = mapBranch.GetDouble(varName[iPlot][iHist] );
+    double xVal = !doLabels ? mapBranch.GetDouble(varName[iPlot][iHist] ) : 0;
+
     int iBin = -1;
     if ( IsTH1( outMode ) ) {
       TH1* hist = static_cast< TH1* >(vectObject[iHist][iPlot]);
-    iBin = hist->GetXaxis()->FindBin( label.c_str() );
-    if ( iBin==-1 ) throw runtime_error( "FillObject : FindBin error." );
-}
+      iBin = hist->GetXaxis()->FindBin( label.c_str() );
+      if ( iBin==-1 ) throw runtime_error( "FillObject : FindBin error." );
+    }
     if ( outMode == OutMode::graphErrors ) {
       TGraphErrors *graph = static_cast<TGraphErrors*>(vectObject[iHist][iPlot]);
       string xTitle = graph->GetXaxis()->GetTitle();
@@ -446,7 +444,7 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
       graph->Set( nPoints+1);
       graph->SetPoint( nPoints, xVal, yVal );
       double errX = varErrX.size()>iPlot && varErrY[iPlot].size()>iHist ?  mapBranch.GetDouble(varErrX[iPlot][iHist]) : 0;
-    double errY = varErrY.size()>iPlot && varErrY[iPlot].size()>iHist ?  mapBranch.GetDouble(varErrY[iPlot][iHist]) : 0;
+      double errY = varErrY.size()>iPlot && varErrY[iPlot].size()>iHist ?  mapBranch.GetDouble(varErrY[iPlot][iHist]) : 0;
       graph->SetPointError( nPoints, errX, errY );
       graph->GetXaxis()->SetTitle(xTitle.c_str() );
       graph->GetYaxis()->SetTitle(yTitle.c_str());

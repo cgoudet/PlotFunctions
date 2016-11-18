@@ -66,7 +66,6 @@ int main( int argc, char* argv[] ) {
       else throw invalid_argument( "CompareHist : No valid inputType provided." );
 
       if ( !vectObj.empty() ) DrawVect( vectObj, input );
-      
     }
     catch( const invalid_argument &e ) {
       cout << e.what() << endl;
@@ -74,7 +73,7 @@ int main( int argc, char* argv[] ) {
     catch( const runtime_error &e ) {
       cout << e.what() << endl;
     }
-    //    for ( auto it=vectObj.begin(); it!=vectObj.end(); ++it ) DeleteContainer( *it );
+    for ( auto it=vectObj.begin(); it!=vectObj.end(); ++it ) DeleteContainer( *it );
   }
 
 }

@@ -135,9 +135,9 @@ int fillColors[] = { 3, 5 };
 
 
 int ChrisLib::DrawPlot( vector< TH1* > &inHist,  
-	      string outName, 
-	      vector<string> inOptions
-	       ) {
+			string outName, 
+			vector<string> inOptions
+			) {
 
   //================ SOME CHECKS
   if ( DEBUG ) cout << "DrawPlot hist" << endl;
@@ -205,6 +205,7 @@ int ChrisLib::DrawPlot( vector< TH1* > &inHist,
   unsigned int totEventStack=0;
 
   if ( mapOptionsDouble["clean"] !=-99 ) CleanHist( inHist, mapOptionsDouble["clean"] );
+
   if ( DEBUG ) cout << "Cleaned" << endl;
   //  bool isNegativeValue = false;
   for ( unsigned int iHist = 0; iHist < inHist.size(); iHist++ ) {
@@ -663,7 +664,7 @@ vector<string> ChrisLib::PlotPerCategory( vector<TObject*> vectObj, RooCategory 
 }
 
 //================================================
-int ChrisLib::DrawPlot( vector< TGraphErrors* > inGraph,  
+int ChrisLib::DrawPlot( vector< TGraphErrors* > &inGraph,  
 	      string outName, 
 	      vector<string> inOptions
 	       ) {

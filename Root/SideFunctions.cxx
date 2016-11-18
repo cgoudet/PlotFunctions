@@ -750,16 +750,16 @@ void ChrisLib::CleanHist( vector<TH1*> &vect, const double removeVal ) {
 
   for ( auto itHist = vect.begin(); itHist!=vect.end(); ++itHist ) {
     if ( *itHist == 0 ) {
+      cout << "erasing " << endl;
       vect.erase( itHist );
       --itHist;
     }
     if ( !ComparableHists( *vect.begin(), *itHist ) ) throw invalid_argument( "CleanHist : Histograms not comparables." );
   }
-
+  
   if ( vect.empty() ) return;
   int nBins = vect.front()->GetNbinsX();
   //Check which bins must be kept
-
 
   vector<int> keptBins;
   for ( int iBin = 1; iBin<=nBins; ++iBin ) {
@@ -787,12 +787,10 @@ void ChrisLib::CleanHist( vector<TH1*> &vect, const double removeVal ) {
       dumVect->SetBinError( iBin+1, vect[iVect]->GetBinError(keptBins[iBin]) );
       dumVect->GetXaxis()->SetBinLabel( iBin+1, vect[iVect]->GetXaxis()->GetBinLabel( keptBins[iBin] ) );
     }
-
     delete vect[iVect];
+    dumVect->SetName( tmpName.c_str() );
     vect[iVect] = dumVect;
-    vect[iVect]->SetName( tmpName.c_str() );
   }
-  
 }
 
 //=====================================

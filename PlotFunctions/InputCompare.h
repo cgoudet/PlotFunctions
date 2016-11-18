@@ -5,11 +5,153 @@
 #include <string>
 #include <map>
 
-/* using std::map; */
-/* using std::vector; */
-/* using std::string; */
 
 namespace ChrisLib {
+
+  /**
+     \class InputCompare
+     \brief Stores the content of boost configuration files.
+
+     Options are read from configuration files in the boost format. 
+     Simple options (i.e. not structured) are stored in string and must be check and converted upon utilization.
+     They can all be retrieved using GetOption.
+     Structured options may be subject to default modification. 
+     If so the modification is documented in the option description.
+
+     ### Options Description
+     
+     InputCompare can store all options for both PlotDist.cxx and ChrisLib::DrawPlot.
+     Only options related to PlotDist.cxx are documented here.
+     Multitoken options match an option with the objects with the same rootFileName index.
+
+     - inputType=number : ID of the routine to be called by PlotDist.cxx.
+     Description of the possibilities and their meaning is documented below.
+     
+     - rootFileName= file1 file2 ... : (Multitoken) Names of the data files.
+     Content of file1 and file2 will be merge into the same histogram/object.
+     
+     - objName= name1 name2 ...  : (Multitoken) Names of the objects within data files
+     By default, the number of objName will be increase to match the number of rootFileName' with empty values.
+     No default constraint of the number of names with an entry.
+ 
+     - varName= name1 name2 ... : (Multitoken) Name ID of the data to be plotted.
+     Number of names in each occurence must match.
+     By default, the number of varNames will be increased to match the number of rootFileName' by copying last entry.
+     
+     - varYName= name1 name2 ... : (Multitoken) Name ID of the Y axis data.
+     By default, the number of varNames will be increased to match the number of rootFileName' by copying last entry.
+     
+     - varErrX= name1 name2 ... : (Multitoken) Name ID of the variable representing X uncertainty for TGraphErrors. Empty means 0.
+     - varErrY= name1 name2 ... : (Multitoken) Name ID of the variable representing Y uncertainty for TGraphErrors. Empty means 0.
+
+     - varMin= value1 value2 ... : (Multitoken) Low range limit for histograms.
+     - varMax= value1 value2 ... : (Multitoken) High range limit for histograms.
+     - nBins=number : Number of bins for histograms (default 100)
+     - nEvents=number : Number of events to consider in each dataset. 0 means all.
+     
+     - selectionCut= cut : (Multitoken) Selection to apply to all TTrees with same index in rootFileName
+     Empty means no selection. 
+     Variables are refered to their branch name.
+
+     - eventID= value1 value2 ...: Name ID of variables used to identify a specific event. 
+
+     - varWeight= var1 var2 ... : (Multitoken) Name ID of the data used as weights. Empty means 1.
+
+     - xBinning= frontier1 frontier2 ... : (Multitoken) Frontiers of xAxis for variable bins histograms.
+
+     - plotDirectory= path : Directory in which outputs will be saved.
+
+     - doLabels=number : Boolean value changing histograms xAxis from numbers to string labels.
+     
+     - saveRoot=number : Boolean value saving the output objects in a rootFile.
+
+     - doTabular=mode : Saves the content of output objects into csv file. 
+     Authorized modes and effects are documented below. 0 means no csv file.
+
+     - loadFiles=file : (Multitoken) Configuration files to be loaded into the class. 
+     Files are loaded in the order of the occurence.
+
+     - triangular=number : Boolean allowing to plot only triangular matrix.
+
+     ### inputType Description
+     The PlotDist framework allows for variouts operation on various types of input data.
+     The inputType option define which operation will be performed.
+
+     rootFileName option is mandatory for all cases.
+
+     - 0 : Plot histograms from ROOT files (ChrisLib::PlotHist)\n
+     Mandatory variables : objName 
+
+     - 1 - 4 : Plot objects from a TTree. (See below for details of output object from databases).
+     objName is optional. I no name is provided for a given file, the macro ChrisLib::FindDefaultTree is called.
+     \n
+     Optionnal variables : triangular, doTabular, saveRoot
+
+     - 5 - 8 : Plot objects from CSV file. (See below for details of output object from databases).
+     \n
+     Optionnal variables : triangular, doTabular, saveRoot
+
+     - 9 : Split input TTrees into two subTrees which either pass or fail a selection.
+     \n
+     Mandatory variables : selectionCut
+     \n
+     
+     - 10 : Plot TMatrix values on an histogram with coordinates as labels.
+     \n
+     Mandatory variables : objName
+     \n
+     Optionnal variables : triangular, doTabular, saveRoot
+
+
+     ### Output objects from databases
+     The transformation from database to histogram is provided for bot TTree and CSV files, using the common wrapper ChrisLib::MapBranches.
+     
+     The options documented below are available for both inputs, by adding the corresponding increment to the base inputType.
+     The option Binning refer to either providing a xBinning or the combination of (nBins,varMin,varMax).
+
+     - 0 : Read a variables of given branches a plot the distribution in an histogram.
+     \n
+     Mandatory variables : Binning, varName
+     \n
+     Optionnal variables : varWeight, doTabular, saveRoot, doLabels
+
+     - 1 : Compare the same event values across different datasets. Values are printed into a csv file.
+     \n
+     Mandatory variables : Binning, varName, eventID
+     \n
+     Optionnal variables : varWeight, doTabular, saveRoot, doLabels
+     
+     
+     - 2 : Fill a TProfile with varName as Xaxis, varYName as Yaxis.
+     \n
+     Mandatory variables : Binning, varName, varYName
+     \n
+     Optionnal variables : varWeight, doTabular, saveRoot, doLabels
+
+     - 3 : Fill a TGraph errors with varName as Xaxis, varYName as Yaxis. Errors are 0 if unspecified.
+     \n
+     Mandatory variables : varName, varYName
+     \n
+     Optionnal variables : varErrX, varErrY, doTabular, saveRoot, doLabels
+     
+
+     ### doTabular Description
+     doTabular options allows to access values inside of the entries of an object (TH1D, TProfile or TGraphErrors) in the form of a csv file.
+     The first line is a header with the title of the histogram, which can be changed through the use of the legend option of ChrisLib::DrawPlot.
+     The first column is defined by either interval of the corresponding bin, the label of the bin, of the x value of the first point.
+
+     It is possible to print the values of several objects of mixted types.
+     They must all have the same number of bins/points.
+     The first column will be defined by the first object.
+     
+     Three modes are possible :
+     - 0 : No csv output
+     - 1 : Print the value of each bin.
+     - 2 : Print the value and the Y uncertainty of each bin
+     - 3 : Print the value and the Y and X uncertainty of each bin. 
+     
+ */
+
   class InputCompare 
   {
 
@@ -18,102 +160,56 @@ namespace ChrisLib {
     InputCompare( std::string fileName );
 
     //new style
+    const std::vector< std::string > &GetEventID() const { return m_eventID; }
     const std::vector< std::vector< std::string > > &GetObjName() const { return m_objName; }
     const std::vector<std::vector<std::string>> &GetRootFilesName() const { return m_rootFilesName; }
+    const std::vector< std::string > &GetSelectionCut() const { return m_selectionCut;}
+    const std::vector< double > &GetVarMin() const { return m_varMin; }
+    const std::vector< double > &GetVarMax() const { return m_varMax; }
+    const std::vector< std::vector<std::string> > &GetVarName() const { return m_varName; }
+    const std::vector< std::vector<std::string> > &GetVarYName() const { return m_varYName; }
+    const std::vector< std::vector<std::string> > &GetVarWeight() const { return m_varWeight; }
+    const std::vector<std::vector< double >> &GetXBinning() const { return m_xBinning; }
+    const std::vector< std::vector<std::string> > &GetVarErrX() const { return m_varErrX; }
+    const std::vector< std::vector<std::string> > &GetVarErrY() const { return m_varErrY; }
 
     std::string GetOption( std::string option ) const { return m_mapOptions.at(option); }    
     std::string GetOutName() const { return m_outName; }
 
+    /**
+       \brief Create the vector of options to be read by ChrisLib::DrawPlot
+    */
     std::vector<std::string> CreateVectorOptions() const;
-
-    //old (wrong style
-    std::vector< std::vector< std::string > > &GetRootFileName() { return m_rootFilesName; }
-    std::vector< std::vector< std::string > > &GetObjName() { return m_objName; }
-    std::vector< std::string > &GetLegend() { return m_legend; }
-    std::vector< std::vector<std::string> > &GetVarName() { return m_varName; }
-    std::vector< std::vector<std::string> > &GetVarErrX() { return m_varErrX; }
-    std::vector< std::vector<std::string> > &GetVarErrY() { return m_varErrY; }
-    std::vector< double > &GetVarMin() { return m_varMin; }
-    std::vector< double > &GetVarMax() { return m_varMax; }
-    std::vector<std::vector< double >> &GetXBinning() { return m_xBinning; }
-    std::vector< std::string > &GetLatex() { return m_latex; }
-    std::vector< std::string > &GetSelectionCut() { return m_selectionCut;}
-    std::vector< std::string > &GetEventID() { return m_eventID; }
-    std::vector< std::string > &GetLatexOpt() { return m_latexOpt; }
-    std::vector< std::vector<std::string> > &GetVarWeight() { return m_varWeight; }
-
-    //    std::string &GetOutName() { return m_outName; }
 
     void  LoadFile( std::string fileName );
   
   private : 
-    /**\brief names of the root files
-
-       Files with the same first index will be added.
-       Histograms generated for each index will be superimposed in the plot.
-    */
     std::vector< std::vector< std::string > > m_rootFilesName;
 
-    /**\brief names of the objects to print in each root file
-
-       No default behaviour defined. Number of files and nae must be identical.
-    */
     std::vector< std::vector< std::string > > m_objName;
 
-    /**\brief legend texts 
-
-       No default behaviour defined. m_legend size must be either 0 or equal to m_rootfilesname.size()
-    */
     std::vector< std::string > m_legend;
 
-    /**\brief List of branches to print in a TTree
-     */
     std::vector< std::vector<std::string> > m_varName;
-    std::vector<std::vector<std::string> > m_varErrX;
-    std::vector<std::vector<std::string> > m_varErrY;
-    /**\brief Vector of latex texts to print
-     */
+    std::vector< std::vector<std::string> > m_varYName;
+    std::vector< std::vector<std::string> > m_varErrX;
+    std::vector< std::vector<std::string> > m_varErrY;
     std::vector< std::string > m_latex;
 
-    /**\brief Options for latex printing
-       0 : latex X
-       1 : latex Y
-       2 : text size
-    */
-
-    /**\brief low bound for histogram X axis for TTree drawing
-     */
     std::vector< double > m_varMin;
 
-    /**\brief high bound for histogram X axis for TTree drawing
-     */
     std::vector< double > m_varMax;
 
-    /**\brief Name of the plot without suffix or prefix
-     */
     std::string m_outName ;
     std::vector< std::string > m_latexOpt;
-  
-    /**\brief std::string of selection for tree events
-     */
     std::vector< std::string > m_selectionCut;
   
-
-    /**\brief std::string of branch names to id the event
-
-       branch must hold long long int
-    */
     std::vector< std::string > m_eventID;
 
-    /**\brief std::string for name of weight branch.
-
-       Put X for no weight
-    */
     std::vector< std::vector<std::string> > m_varWeight;
     std::vector< std::string > m_loadFiles;
     std::map<std::string,std::string>  m_mapOptions;
     std::vector<std::vector<double>> m_xBinning;
-    //  bool m_doTabular;
 
   };
 

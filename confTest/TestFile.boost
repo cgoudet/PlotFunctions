@@ -1,0 +1,11 @@
+inputType=5
+rootFileName=/sps/atlas/c/cgoudet/Hgam/FrameWork/PlotFunctions/confTest/mapResult.csv
+rootFileName=/sps/atlas/c/cgoudet/Hgam/FrameWork/PlotFunctions/confTest/mapResult.csv
+
+varName=mean_down
+varName=mean_up
+
+varMin=124.9
+varMax=125.1
+nBins=20
+

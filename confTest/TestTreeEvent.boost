@@ -1,0 +1,14 @@
+inputType=2
+
+rootFileName = /sps/atlas/c/cgoudet/Calibration/DataxAOD/MC_13TeV_Zee_50ns_Lkh1_0_PairEvents_PassSel.root
+rootFileName = /sps/atlas/c/cgoudet/Calibration/DataxAOD/MC_13TeV_Zee_50ns_Lkh1_0_PairEvents_PassSel.root
+
+varName=m12
+
+varMin=0
+varMax=500
+
+nBins=20
+nEvents=10
+
+eventID=eventNumber

@@ -1,19 +1,20 @@
 #ifndef RATIOPLOTS_H
 #define RATIOPLOTS_H
 
-#include "boost/multi_array.hpp"
-using boost::multi_array;
 #include "TH2D.h"
-#include <string>
-#include <vector>
 #include "TH1D.h"
-using std::vector;
-using std::string;
 #include "RooRealVar.h"
 #include "RooAbsPdf.h"
 #include "RooAbsData.h"
 #include "RooCategory.h"
 #include "TGraphErrors.h"
+
+#include "boost/multi_array.hpp"
+using boost::multi_array;
+
+#include <string>
+#include <vector>
+#include <map>
 
 namespace ChrisLib { 
   /**\brief Plot histograms and save them in png format
@@ -51,25 +52,39 @@ namespace ChrisLib {
 
 
   */
-  int DrawPlot( vector< TH1* > &inHist,  
-		string outName, 
-		vector<string> inOptions=vector<string>()
+  int DrawPlot( std::vector< TH1* > &inHist,  
+		std::string outName, 
+		std::vector<std::string> inOptions=std::vector<std::string>()
 		);
 
-  int DrawPlot( vector< TGraphErrors* > inGraph,  
-		string outName, 
-		vector<string> inOptions=vector<string>()
+  int DrawPlot( std::vector< TGraphErrors* > inGraph,  
+		std::string outName, 
+		std::vector<std::string> inOptions=std::vector<std::string>()
 		);
 
   int DrawPlot( RooRealVar *frameVar,
-		vector<TObject*> inObj,
-		string outName,
-		vector<string> inOptions=vector<string>()
+		std::vector<TObject*> inObj,
+		std::string outName,
+		std::vector<std::string> inOptions=std::vector<std::string>()
 		);
 
-  vector<string> PlotPerCategory( //RooRealVar *varFrame, 
-				 vector<TObject*> vectObj, RooCategory *cat, string prefix = "", vector<string> options = vector<string>() );
+  std::vector<std::string> PlotPerCategory( //RooRealVar *varFrame, 
+				 std::vector<TObject*> vectObj, RooCategory *cat, std::string prefix = "", std::vector<std::string> options = std::vector<std::string>() );
 
+  //============================
+  void ReadOptions( unsigned nHist, 
+		    const std::vector<std::string> &inOptions,
+		    std::map<std::string,double> &mapDouble,
+		    std::map<std::string,int> &mapInt,
+		    std::map<std::string,std::string> &mapString,
+		    std::vector<std::string> &inLegend,
+		    std::vector<std::string> &inLatex,
+		    std::vector<std::vector<double>> &latexPos,
+		    std::vector<double> &legendCoord,
+		    std::vector<double> &rangeUserX,
+		    std::vector<double> &rangeUserY
+		    );
+		    
 }
 
 #endif

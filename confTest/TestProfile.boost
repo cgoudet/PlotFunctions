@@ -1,0 +1,15 @@
+inputType=3
+
+rootFileName = /sps/atlas/c/cgoudet/Calibration/DataxAOD/MC_13TeV_Zee_50ns_Lkh1_0_PairEvents_PassSel.root
+rootFileName = /sps/atlas/c/cgoudet/Calibration/DataxAOD/MC_13TeV_Zee_50ns_Lkh1_0_PairEvents_RejSel.root
+
+varName=eta_calo_1
+
+varMin=-1
+varMax=1
+
+nBins=10
+nEvents=100
+
+varYName=pt_1
+

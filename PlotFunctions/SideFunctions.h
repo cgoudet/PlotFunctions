@@ -12,9 +12,7 @@
 #include "boost/multi_array.hpp"
 
 #include <cstdio>
-using boost::multi_array;
-using boost::extents;
-#include "PlotFunctions/SideFunctionsTpp.h"
+
 #include "TGraphErrors.h"
 #include "TString.h"
 
@@ -31,7 +29,8 @@ using std::endl;
 #include "TXMLNode.h"
 #include <list>
 
-
+/** \brief Namespace wrapping all C++ library
+ */
 namespace ChrisLib {
 
   /*\brief Modify histograms to have a common binning as the one with most granularity.
@@ -193,6 +192,21 @@ namespace ChrisLib {
      Tested.
    */
   std::string RemoveWords( std::string name, const std::list<std::string> &toRemove );
+
+  /**\brief Print the content of histograms into a csv file
+     \param outName Name of the output file without extension
+     \param vectHist 
+     \param mode If 2 also print the histograms uncertainties
+   */
+  void PrintHist( std::vector<TObject*> &vectHist, std::string outName, int mode );
+
+  /**\brief Replace input pointer by a copy after applying a selection
+   */
+  void CopyTreeSelection( TTree* inTree, const std::string &selection );
+
+  /**\brief Write a vector of histogram into a TFile
+   */
+  void WriteVect( const std::vector<TObject*> &vectHist, const std::string &outName );
 }
 
 #endif

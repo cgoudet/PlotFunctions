@@ -1,0 +1,6 @@
+inputType=0
+
+rootFileName=/sps/atlas/c/cgoudet/Calibration/ElectronEnergyScaleFactor.root
+rootFileName=/sps/atlas/c/cgoudet/Calibration/ElectronEnergyScaleFactor.root
+objName=systAlpha
+objName=systSigma

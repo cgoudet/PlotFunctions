@@ -467,10 +467,11 @@ int ChrisLib::DrawPlot( vector< TH1* > &inHist,
   	ratio.front()->GetXaxis()->SetTitle( inHist[refHist]->GetXaxis()->GetTitle() );
   	ratio.front()->GetXaxis()->SetLabelSize( 0.1 );
   	ratio.front()->GetXaxis()->SetTitleSize( 0.1 );
-  	ratio.front()->GetYaxis()->SetLabelSize( 0.05 );
+	//  	ratio.front()->GetYaxis()->SetLabelSize( 0.05 );
+  	ratio.front()->GetYaxis()->SetLabelSize( 0.1 );
   	ratio.front()->GetYaxis()->SetTitleSize( 0.1 );
   	ratio.front()->GetYaxis()->SetTitleOffset( 0.3 );
-  	ratio.front()->GetXaxis()->SetTitleOffset( 0.7 );
+  	//ratio.front()->GetXaxis()->SetTitleOffset( 0.7 );
   	ratio.front()->SetTitle("");
         ratio.front()->GetYaxis()->SetTitle( yTitle.c_str() );
 	setTitle = 1;

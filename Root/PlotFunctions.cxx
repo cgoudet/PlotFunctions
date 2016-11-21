@@ -431,9 +431,11 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
     if ( !vectObject[iHist][iPlot] ) {
       vectObject[iHist][iPlot]=InitHist( inputCompare, iPlot, iHist );
       TH1 *hist = static_cast<TH1*>(vectObject[iHist][iPlot]);
-      if ( doLabels && IsTH1(outMode) ) hist->GetXaxis()->SetBinLabel(1, label.c_str());
-      hist->GetXaxis()->LabelsOption("u");
-      hist->GetXaxis()->SetLabelSize( 0.005 );
+      if ( doLabels && IsTH1(outMode) ) {
+	hist->GetXaxis()->SetBinLabel(1, label.c_str());
+	hist->GetXaxis()->LabelsOption("u");
+	hist->GetXaxis()->SetLabelSize( 0.005 );
+      }
     }
 
     double yVal = varYName.size() ? mapBranch.GetDouble(varYName[iPlot][iHist]) : 0;

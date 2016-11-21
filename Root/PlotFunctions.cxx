@@ -197,13 +197,17 @@ void ChrisLib::DrawVect( vector<vector<TObject*>> &vectObj, const InputCompare &
     for ( unsigned i=0; i<vectObj.size(); ++i ) {
       for ( unsigned j=0; j<vectObj[i].size(); ++j ) {
 	if ( vectHist[i][j] ) vectObj[i][j] = vectHist[i][j];
-	else vectObj[i][j] = vectGraph[i][j];
+	else if ( vectGraph[i][j] ) vectObj[i][j] = vectGraph[i][j];
+	else vectObj[i][j]=0;
+	cout << vectHist[i][j] << " " << vectHist[i][j]->GetName() << endl;
+	cout << vectObj[i][j] << " " << vectObj[i][j]->GetName() << endl;
       }
     }
-
+    cout << "filled" << endl;
 
     const int doTabular = atoi(inputCompare.GetOption("doTabular").c_str());
     if ( doTabular ) PrintHist( vectObj[iHist], outPlotName, doTabular );
+    cout << "tabular done" << endl;
     const int saveRoot = atoi(inputCompare.GetOption( "saveRoot" ).c_str());
     if ( saveRoot ) WriteVect( vectObj[iHist], outPlotName );
   }

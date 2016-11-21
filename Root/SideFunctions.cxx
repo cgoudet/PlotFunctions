@@ -917,29 +917,39 @@ void ChrisLib::PrintHist( vector<TObject*> &vectHist, string outName, int mode )
   
   fstream stream;
   outName += ".csv";
+  cout << "outName : " << outName << endl;
   stream.open( outName, fstream::out | fstream::trunc );
-  
+  if ( !stream.good() ) throw invalid_argument( "ChrisLib::PrintHist : Unknown input file " + outName );
   TH1 * hist =0;
   TGraphErrors *graph=0;
   int nBins = 1;
   for ( int iBin = 0; iBin <= nBins; ++iBin ) {
     for ( unsigned int iPlot = 0; iPlot <= vectHist.size(); ++iPlot ) {
+      cout << "before cast" << endl;
+      cout << vectHist[iPlot] << endl;
+      cout << string(vectHist[iPlot]->ClassName()) << endl;
       if ( string(vectHist[iPlot]->ClassName())=="TGraphErrors" ) graph=static_cast<TGraphErrors*>(vectHist[iPlot]);
       else hist = static_cast<TH1*>(vectHist[iPlot]);
-
+    cout << "cast done" << endl;
       if ( !iBin ) {
-
+	cout << "hist : " << hist << " " << graph << endl;
 	if ( iPlot ) {
+
 	  int tmpNBin = hist ? hist->GetNbinsX() : graph->GetN();
 	  if ( tmpNBin != nBins ) throw invalid_argument( "PrintHist : All object must have same number of points/bins." );
+	  cout << "lineName : " << endl;
 	  string lineName = vectHist[iPlot-1]->GetTitle();
+	  cout << "streaming" << endl;
 	  stream << lineName;
 	  if ( mode >= 2 ) stream << "," << lineName + " err";
 	  if ( mode >= 3 ) stream << "," << lineName + " errX";
 	}
 	else {
+	  cout << "nBins" << endl;
 	  nBins = hist ? hist->GetNbinsX() : graph->GetN();
+	  cout << "before colName " << endl;
 	  TString colName = hist ? hist->GetXaxis()->GetTitle() : graph->GetXaxis()->GetTitle();
+	  cout << "after colName " << endl;
 	  colName=colName.ReplaceAll("_", "" ).ReplaceAll("#", "" ) ;
 	  stream << colName; 
 	}

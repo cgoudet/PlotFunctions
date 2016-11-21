@@ -506,8 +506,9 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
     unsigned countEvent=0;
 
     for ( unsigned int iAdd = 0; iAdd < rootFilesName[iPlot].size(); ++iAdd ) {
-      cout << "iPlot : " << iPlot << " " << iAdd << endl;
+
       string inFileName = rootFilesName[iPlot][iAdd];
+      cout << "iPlot : " << iPlot << " " << iAdd << " " << inFileName << endl;
       TFile inFile( inFileName.c_str() );
 
       string inTreeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( &inFile, "TTree" );

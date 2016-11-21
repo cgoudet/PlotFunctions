@@ -49,10 +49,8 @@ void ChrisLib::PlotHist( const InputCompare &inputCompare, vector<vector<TObject
   const vector<vector<string>> &rootFilesName = inputCompare.GetRootFilesName();
 
   vector<TObject*> drawVect(rootFilesName.size(), 0 );
-  cout << rootFilesName.size() << endl;  
   for ( unsigned int iPlot = 0; iPlot < rootFilesName.size(); ++iPlot ) {
     for ( unsigned int iAdd = 0; iAdd < rootFilesName[iPlot].size(); ++iAdd ) {
-      cout << "indices : " << iPlot << " " << iAdd << endl;
       string inFileName = rootFilesName[iPlot][iAdd];
       TFile inFile( inFileName.c_str() );	
       if ( inputObjName.size() <= iPlot || inputObjName[iPlot].size()<=iAdd ) throw invalid_argument( "ChrisLib::PlotHist : Histograms names mandatory." );
@@ -166,7 +164,6 @@ void ChrisLib::DrawVect( vector<vector<TObject*>> &vectObj, const InputCompare &
 	  while ( vectGraph.size()<=iCan ) vectGraph.push_back( vector<TGraphErrors*>() );
 	  while ( vectGraph[iCan].size()<=iObj ) vectGraph[iCan].push_back( 0);
 	  if ( vectObj[iCan][iObj] ) {
-	    cout << "graph" << endl;
 	    vectGraph[iCan][iObj] = static_cast<TGraphErrors*>( vectObj[iCan][iObj] );
 	    isGraph=true;
 	  }
@@ -175,7 +172,6 @@ void ChrisLib::DrawVect( vector<vector<TObject*>> &vectObj, const InputCompare &
 	  while ( vectHist.size()<=iCan ) vectHist.push_back( vector<TH1*>() );
 	  while ( vectHist[iCan].size()<=iObj ) vectHist[iCan].push_back( 0);
 	  if ( vectObj[iCan][iObj] ) {
-	    cout << "hist" << endl;
 	    vectHist[iCan][iObj] = static_cast<TH1*>( vectObj[iCan][iObj] );
 	    isHist=true;
 	  }
@@ -193,7 +189,6 @@ void ChrisLib::DrawVect( vector<vector<TObject*>> &vectObj, const InputCompare &
     if ( isHist ) DrawPlot( vectHist[iHist], outPlotName, vectorOptions );
     if ( isGraph ) DrawPlot( vectGraph[iHist], outPlotName, vectorOptions );
 
-    cout << "DrawVect2" << endl;
     for ( unsigned i=0; i<vectObj.size(); ++i ) {
       for ( unsigned j=0; j<vectObj[i].size(); ++j ) {
 	if ( vectHist[i][j] ) vectObj[i][j] = vectHist[i][j];

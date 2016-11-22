@@ -924,14 +924,7 @@ void ChrisLib::PrintHist( vector<TObject*> &vectHist, string outName, int mode )
   TGraphErrors *graph=0;
   int nBins = 1;
   for ( int iBin = 0; iBin <= nBins; ++iBin ) {
-<<<<<<< HEAD
-    for ( unsigned int iPlot = 0; iPlot <= vectHist.size(); ++iPlot ) {
-      cout << "before cast" << endl;
-      cout << vectHist[iPlot] << endl;
-      cout << string(vectHist[iPlot]->ClassName()) << endl;
-=======
     for ( unsigned int iPlot = 0; iPlot < vectHist.size(); ++iPlot ) {
->>>>>>> 4ea62dd5e85bbcade12b8ba56f83541dad6e7835
       if ( string(vectHist[iPlot]->ClassName())=="TGraphErrors" ) graph=static_cast<TGraphErrors*>(vectHist[iPlot]);
       else hist = static_cast<TH1*>(vectHist[iPlot]);
     cout << "cast done" << endl;

@@ -85,14 +85,18 @@ Tested.
      \param putNameUnder Write the figure name underneath
   */
   template< typename Type1 > void WriteLatexMinipage( Type1 &latexStream, std::vector<std::string> vect, unsigned int nPlotPerWidth = 0, bool putNameUnder =false ) {
-
+    std::size_t found;
     if ( !vect.size() ) return;
     if ( !nPlotPerWidth ) nPlotPerWidth = vect.size();
 
     for ( unsigned int iPlot = 0; iPlot < vect.size(); ++iPlot ) {
       //    vect[iPlot]+=".pdf";
       latexStream << "\\begin{minipage}{" << 1./nPlotPerWidth -0.01 << "\\linewidth} " << std::endl;
-      if ( vect[iPlot] != "" ) latexStream << "\\includegraphics[width=\\linewidth]{" << vect[iPlot] << "}\\\\" << std::endl;
+      if ( vect[iPlot] != "" ) {
+	found = vect[iPlot].find(".pdf");
+	if (found!=std::string::npos) latexStream << "\\includegraphics[width=\\linewidth]{" << vect[iPlot] << "}\\\\" << std::endl;
+	else latexStream << "\\includegraphics[width=\\linewidth]{" << vect[iPlot] << ".pdf}\\\\" << std::endl;
+      }
       if ( putNameUnder ) {
 	std::string dum = vect[iPlot].substr( vect[iPlot].find_last_of( "/" )+1 );
 	dum = dum.substr( 0, dum.find_last_of( "." ) );

@@ -330,12 +330,14 @@ int ChrisLib::FindFitBestRange( TH1D *hist, int &binMin, int &binMax, double chi
 //=============================================
 
 //=============================================
-void ChrisLib::WriteLatexHeader( fstream &latexStream, string title, string author ) {
+void ChrisLib::WriteLatexHeader( fstream &latexStream, string title, string author, int mode ) {
 
   latexStream << "\\documentclass[a4paper,12pt]{article}" << endl;
   latexStream << "\\usepackage{graphicx}" << endl;
-  latexStream << "\\usepackage{csvsimple}" << endl;
-  latexStream << "\\usepackage{adjustbox}" << endl;
+  if ( mode ) {
+    latexStream << "\\usepackage{csvsimple}" << endl;
+    latexStream << "\\usepackage{adjustbox}" << endl;
+  }
   latexStream << "\\usepackage{xcolor}" << endl;
   latexStream << "\\usepackage[a4paper, textwidth=0.9\\paperwidth, textheight=0.9\\paperheight]{geometry}" << endl;
   latexStream << "\\usepackage[toc]{multitoc}" << endl;

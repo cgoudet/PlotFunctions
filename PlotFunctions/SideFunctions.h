@@ -105,7 +105,7 @@ namespace ChrisLib {
      \param latexStream streamer to the output file
      \param author text to put in author option
   */
-  void WriteLatexHeader( std::fstream &latexStream, std::string title, std::string author="Christophe Goudet" );
+  void WriteLatexHeader( std::fstream &latexStream, std::string title, std::string author="Christophe Goudet", int mode=0 );
 
   /**\brief Remove suffix and prefix from a string
      \param inString string to be modified. 

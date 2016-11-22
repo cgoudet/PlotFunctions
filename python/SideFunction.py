@@ -228,7 +228,7 @@ def BatchHeader( path, package, macro ) :
 def AbsPath( inFile ) :
     if inFile[0] == '/'  : return inFile
     output = sub.check_output( ['pwd' ],  shell=1, stderr=sub.STDOUT ).split('\n')[0]
-    output = addSlash( output )
+    output = AddSlash( output )
     output+=inFile
     return output
     

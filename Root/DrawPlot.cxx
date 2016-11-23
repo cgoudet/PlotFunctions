@@ -1219,54 +1219,55 @@ void DrawPlot( vector< TObject* > &inHist,
   }
   if ( DEBUG ) cout << "latex drawn" << endl;
 
-  // //===============  CREATE RATIO PLOTS
-  // if ( mapOptionsInt["doRatio"] ) {
-  //   padDown.cd();
-  //   double minValRatio = 0;
-  //   double maxValRatio = 0;
-  //   bool setTitle=0;
-  //   for ( unsigned int iHist = refHist+1; iHist < inHist.size(); iHist++ ) {
-  //     if ( !inHist[iHist] ) continue;
-  //     string yTitle;
-  //     //Decide how to pair histogram for ratio
-  //     switch ( mapOptionsInt["drawStyle"] ) {
-  //     case 1 :
-  // 	if ( !(iHist % 2) || !inHist[iHist-1]) continue;
-  // 	ratio.push_back( 0 );
-  // 	ratio.back() = (TH1D*) inHist[iHist]->Clone();
-  // 	ratio.back()->Add( inHist[iHist-1], -1 );
-  // 	if ( mapOptionsInt["doRatio"] == 1 ) ratio.back()->Divide( inHist[iHist-1] );
-  // 	yTitle = ( mapOptionsInt["doRatio"]==1 ) ? "#frac{h_{2n+1}-h_{2n}}{h_{2n}}" : "h_{2n+1}-h_{2n}";
-  // 	break;
-  //     default : 
-  // 	ratio.push_back( 0 );
-  // 	ratio.back() = (TH1D* ) inHist[iHist]->Clone();
-  // 	ratio.back()->Add( inHist[refHist], -1 );
-  // 	if ( mapOptionsInt["doRatio"] == 1 ) ratio.back()->Divide( inHist[refHist] );
-  // 	yTitle = ( mapOptionsInt["doRatio"]==1 ) ? "#frac{h_{n}-h_{0}}{h_{0}}" : "h_{n}-h_{0}";
-  //     }
-  //     if ( DEBUG ) cout << "ratio created" << endl;
-  //     //Set graphics properties of first hitogram
-  //     if ( !setTitle ) {
-  // 	ratio.front()->GetXaxis()->SetTitle( inHist[refHist]->GetXaxis()->GetTitle() );
-  // 	ratio.front()->GetXaxis()->SetLabelSize( 0.1 );
-  // 	ratio.front()->GetXaxis()->SetTitleSize( 0.1 );
-  // 	ratio.front()->GetYaxis()->SetLabelSize( 0.05 );
-  // 	ratio.front()->GetYaxis()->SetTitleSize( 0.1 );
-  // 	ratio.front()->GetYaxis()->SetTitleOffset( 0.3 );
-  // 	ratio.front()->GetXaxis()->SetTitleOffset( 0.7 );
-  // 	ratio.front()->SetTitle("");
-  //       ratio.front()->GetYaxis()->SetTitle( yTitle.c_str() );
-  // 	setTitle = 1;
-  //     }
-  //     if ( DEBUG ) cout << "ratio front title done" << endl;
-  //     //Update the values of Y axis range
-  //     for ( int bin = 1; bin <= ratio.front()->GetNbinsX(); bin++ ) {
-  // 	minValRatio = min( ratio.back()->GetBinContent(bin) - ratio.back()->GetBinError( bin), minValRatio );
-  // 	maxValRatio = max( ratio.back()->GetBinContent(bin)+ ratio.back()->GetBinError( bin ), maxValRatio );
-  //     }
+  //===============  CREATE RATIO PLOTS
+  if ( mapOptionsInt["doRatio"] ) {
+    padDown.cd();
+    double minValRatio = 0;
+    double maxValRatio = 0;
+    bool setTitle=0;
+    for ( unsigned int iHist = refHist+1; iHist < inHist.size(); iHist++ ) {
+      if ( !inHist[iHist] ) continue;
 
-  //   }// end iHist
+      string yTitle;
+      //Decide how to pair histogram for ratio
+      switch ( mapOptionsInt["drawStyle"] ) {
+      case 1 :
+  	if ( !(iHist % 2) || !inHist[iHist-1]) continue;
+  	ratio.push_back( 0 );
+  	ratio.back() = static_cast<TH1*>(inHist[iHist]->Clone());
+  	ratio.back()->Add( static_cast<TH1*>(inHist[iHist-1]), -1 );
+  	if ( mapOptionsInt["doRatio"] == 1 ) ratio.back()->Divide( static_cast<TH1*>(inHist[iHist-1]) );
+  	yTitle = ( mapOptionsInt["doRatio"]==1 ) ? "#frac{h_{2n+1}-h_{2n}}{h_{2n}}" : "h_{2n+1}-h_{2n}";
+  	break;
+      default : 
+  	ratio.push_back( 0 );
+  	ratio.back() = static_cast<TH1*>(inHist[iHist]->Clone());
+  	ratio.back()->Add( static_cast<TH1*>(inHist[refHist]), -1 );
+  	if ( mapOptionsInt["doRatio"] == 1 ) ratio.back()->Divide( static_cast<TH1*>(inHist[refHist]) );
+  	yTitle = ( mapOptionsInt["doRatio"]==1 ) ? "#frac{h_{n}-h_{0}}{h_{0}}" : "h_{n}-h_{0}";
+      }
+      if ( DEBUG ) cout << "ratio created" << endl;
+      //Set graphics properties of first hitogram
+      if ( !setTitle ) {
+  	ratio.front()->GetXaxis()->SetTitle( inHist[refHist]->GetXaxis()->GetTitle() );
+  	ratio.front()->GetXaxis()->SetLabelSize( 0.1 );
+  	ratio.front()->GetXaxis()->SetTitleSize( 0.1 );
+  	ratio.front()->GetYaxis()->SetLabelSize( 0.05 );
+  	ratio.front()->GetYaxis()->SetTitleSize( 0.1 );
+  	ratio.front()->GetYaxis()->SetTitleOffset( 0.3 );
+  	ratio.front()->GetXaxis()->SetTitleOffset( 0.7 );
+  	ratio.front()->SetTitle("");
+        ratio.front()->GetYaxis()->SetTitle( yTitle.c_str() );
+  	setTitle = 1;
+      }
+      if ( DEBUG ) cout << "ratio front title done" << endl;
+      //Update the values of Y axis range
+      for ( int bin = 1; bin <= ratio.front()->GetNbinsX(); bin++ ) {
+  	minValRatio = min( ratio.back()->GetBinContent(bin) - ratio.back()->GetBinError( bin), minValRatio );
+  	maxValRatio = max( ratio.back()->GetBinContent(bin)+ ratio.back()->GetBinError( bin ), maxValRatio );
+      }
+
+    }// end iHist
 
   //   if ( ratio.size() ) {
   //     if ( DEBUG ) cout << "ratio ranges " << endl;

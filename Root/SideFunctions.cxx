@@ -988,16 +988,21 @@ void ChrisLib::PrintHist( vector<TObject*> &vectHist, string outName, int mode )
 										 }
 //======================================================
 void ChrisLib::CopyTreeSelection( TTree* inTree, const string &selection ) {
+  cout << "selection : " << selection << endl;
   if ( selection == "" ) return;
   TFile *dumFile = new TFile( "/tmp/dumFile", "RECREATE" );
   gROOT->cd();
   TTree* dumTree = inTree->CopyTree( selection.c_str() );
+  cout << "dumTree : " << dumTree << endl;
+  cout << dumTree->GetName() << endl;
   if ( dumTree ) {
     delete inTree;
     inTree= dumTree;
     inTree->SetDirectory(0);
   }
   delete dumFile; dumFile=0;
+  cout << "inTree : " << inTree << endl;
+  cout << inTree->GetName() << endl;
 }
 //============================================================
 void ChrisLib::WriteVect( const vector<TObject*> &vectHist, const string &outName ) {

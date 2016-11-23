@@ -1155,43 +1155,21 @@ void DrawPlot( vector< TObject* > &inHist,
 	graph->SetMarkerColorAlpha( 0, 0 );
       }
     }
-  }
-  //   if ( inLegend.size() > iHist && TString( inLegend[iHist].c_str() ).Contains( "__FILL" ) ) {
-  //     drawOpt += "2";
-  //     inHist[iHist]->SetFillColor( fillColors[iHist] );
-  //     //      myBoxText( legendCoord[0], legendCoord[1]-0.05*iHist, 0.05, inHist[iHist]->GetFillColor(), inLegend[iHist].c_str() ); 
-  //   }
 
-  //   if ( !mapOptionsInt["stack" ] ) inHist[iHist]->Draw( drawOpt.c_str() );
-  //   else {
-  //     inHist[iHist]->SetFillColor( inHist[iHist]->GetLineColor() );
-  //     if ( inLegend.size() && !TString(inLegend[iHist]).Contains( "__STACK" ) ) {
-  // 	if ( stack.size() ) {
-  // 	  if ( mapOptionsDouble["normalize"]!=0 ) RescaleStack( stack.back(), mapOptionsDouble["normalize"] );
-  // 	  stack.back()->Draw( stack.size()==1 ? "HIST B" : "HIST B same" );
-  // 	}
-  // 	totEventStack = 0;
-  // 	stack.push_back(0);
-  // 	stack.back() = new THStack();
-  //     }
-  //     stack.back()->Add( inHist[iHist] );
-  //     totEventStack += inHist[iHist]->Integral();
-  //     if ( iHist==inHist.size()-1 ) {
-  // 	if ( mapOptionsDouble["normalize"]!=0 ) RescaleStack( stack.back(), mapOptionsDouble["normalize"] );
-  // 	stack.back()->Draw( stack.size()==1 ? "HIST B" : "HIST B same" );
-  //     }
-  //   }
+    if ( inLegend.size() > iHist && TString( inLegend[iHist].c_str() ).Contains( "__FILL" ) ) {
+      drawOpt += "2";
+      hist ? hist->SetFillColor( fillColors[iHist] ) : graph->SetFillColor( fillColors[iHist] );
+    }
+    
+    if( !iHist && mapOptionsDouble["line"] != -99 ) {
+      double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : minX;
+      double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : maxX;
+      line->DrawLine( rangeMin , mapOptionsDouble["line"], rangeMax, mapOptionsDouble["line"]);
+    }
+    //========== ADD HISTOGRAM TO LEGEND
+  }//end iHist
 
-
-  //   if( !iHist && mapOptionsDouble["line"] != -99 ) {
-  //     double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : (mapOptionsInt["centerZoom"] ? minX : inHist[refHist]->GetXaxis()->GetXmin() );
-  //     double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : ( mapOptionsInt["centerZoom"] ? maxX :inHist[refHist]->GetXaxis()->GetXmax() );
-  //     line->DrawLine( rangeMin , mapOptionsDouble["line"], rangeMax, mapOptionsDouble["line"]);
-  //   }
-  //   //========== ADD HISTOGRAM TO LEGEND
-  // }//end iHist
-
-  // if ( DEBUG ) cout << "drawn" << endl;
+  if ( DEBUG ) cout << "drawn" << endl;
   // //  stack.Draw( mapOptionsInt["stack"] ? "F" : "nostack"  ); 
 
   // if ( mapOptionsInt["logy"] ) {

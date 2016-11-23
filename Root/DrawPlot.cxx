@@ -910,6 +910,101 @@ void ChrisLib::ReadOptions( unsigned nHist,
   if ( DEBUG ) cout << "ChrisLib::ReaOptions end" << endl;
 }
 //==============================================
+void SetHistProperties( TH1* hist, map<string,int> &mapInt, map<string,string> &mapString, int iHist ) {
+  vector<string> functionNames = { "cubicFit", "quadraticFit" };
+  TIter next(hist->GetListOfFunctions());
+  while (TObject *obj = next()) {
+    hist->GetFunction( obj->GetName() )->SetLineColor( hist->GetLineColor() );
+  }
+  
+}
+//================================================
+bool IsHist( TObject* obj ) {
+  if (  string(obj->ClassName()) == "TGraphErrors" ) return false;
+  else return true;
+}
+//==============================================
+void SetProperties( TObject* obj, map<string,int> &mapInt, map<string,string> &mapString, int iHist ) {
+
+  TH1* hist=0;
+  TGraphErrors *graph=0;
+  if (  !IsHist( obj ) ) graph = static_cast<TGraphErrors*>(obj);
+  else hist=static_cast<TH1*>(obj);
+  
+  if ( !iHist ) {
+    for ( unsigned iAxis=0; iAxis<2; ++iAxis ) {
+      map<string,string>::iterator title = mapString.find( string(iAxis?"y":"x") + "Title" );
+      if ( title->second != "" ) {
+	ParseLegend( title->second );
+	TAxis *axis = 0;
+	if ( hist ) axis = iAxis ? hist->GetYaxis() : hist->GetXaxis();
+	else axis = iAxis ? graph->GetYaxis() : graph->GetXaxis();
+	axis->SetTitle( title->second.c_str() );
+      }
+    }
+    obj->UseCurrentStyle();
+  }
+
+  //If only one histograms is plotted, plot it in red
+  TAttLine *attLine= hist ? static_cast<TAttLine*>(hist) : static_cast<TAttLine*>(graph);
+  TAttMarker *attMarker = hist ? static_cast<TAttMarker*>(hist) : static_cast<TAttMarker*>(graph);
+
+  switch ( mapInt["drawStyle"] ) {
+  case 1 :
+    attLine->SetLineColor( colors[ max( 0, (int) (iHist/2 +mapInt["shiftColor"] ) )] );
+    attMarker->SetMarkerColor( colors[ max( 0 , (int) (iHist/2 + mapInt["shiftColor"]) ) ] );
+    attMarker->SetMarkerStyle( (iHist%2) ? 4 : 8 ); 
+    break;
+  }
+
+  if ( hist ) SetHistProperties( hist, mapInt, mapString, iHist );
+
+}
+//==============================================
+void GetMaxValue( TObject *obj, double &minVal, double &maxVal, double &minX, double &maxX, bool takeError, bool isRef ) {
+
+  TH1* hist=0;
+  TGraphErrors *graph=0;
+  if (  !IsHist( obj ) ) graph = static_cast<TGraphErrors*>(obj);
+  else hist=static_cast<TH1*>(obj);
+
+  if ( isRef ) {
+    if ( hist ) {
+      minVal = hist->GetBinContent(1);
+      minX = hist->GetXaxis()->GetXmin();
+    }
+    else graph->GetPoint( 0, minX, minVal );
+    maxVal=minVal;
+    maxX = minX;
+  }
+
+  if ( hist ) {
+    minX = min( minX, hist->GetXaxis()->GetXmin() );
+    maxX = max( maxX, hist->GetXaxis()->GetXmax() );
+  }
+
+  //Update the maximum range of the plot with extremum of current plot
+  int nBins = hist ? hist->GetNbinsX() : graph->GetN();
+  for ( int bin = 0; bin < nBins; ++bin ) {
+      double val = 0, err=0, valX=0, errX=0;
+      if ( hist ) {
+	val = hist->GetBinContent( bin+1 );
+	if ( takeError ) err = hist->GetBinError( bin+1 );
+      }
+      else {
+	double xGraph=0;
+	graph->GetPoint(bin, xGraph, val);
+	if ( takeError ) err = graph->GetErrorY(bin);
+	double errX = takeError ? graph->GetErrorX(bin) : 0;
+	minX = min( minX, xGraph - errX );
+	maxX = max( maxX, xGraph + errX );
+      }
+      
+      minVal = min( val - err , minVal );
+      maxVal = max( val + err , maxVal );
+    }
+}
+//==============================================
 void DrawPlot( vector< TObject* > &inHist,  
 	      string outName, 
 	      vector<string> inOptions
@@ -964,94 +1059,44 @@ void DrawPlot( vector< TObject* > &inHist,
   unsigned int totEventStack=0;
 
 
-
-  // if ( mapOptionsDouble["clean"] !=-99 ) CleanHist( inHist, mapOptionsDouble["clean"] );
+  //if ( mapOptionsDouble["clean"] !=-99 ) CleanHist( inHist, mapOptionsDouble["clean"] );
   // if ( DEBUG ) cout << "Cleaned" << endl;
-  // //  bool isNegativeValue = false;
-  // for ( unsigned int iHist = 0; iHist < inHist.size(); iHist++ ) {
-  //   if ( !inHist[iHist] ) continue;
-  //   if ( refHist == -1 ) refHist = iHist;
-  //   inHist[iHist]->UseCurrentStyle();
-  //   if ( (int) iHist == refHist ) {
-  //     if ( mapOptionsString["xTitle"]== "" ) mapOptionsString["xTitle"] = inHist[refHist]->GetXaxis()->GetTitle();
-  //     ParseLegend( mapOptionsString["xTitle"] );
-  //     inHist[refHist]->GetXaxis()->SetTitle( mapOptionsString["xTitle"].c_str() );
-  //     if ( mapOptionsString["yTitle"]!="" ) {
-  // 	ParseLegend( mapOptionsString["yTitle"] );
-  // 	inHist[refHist]->GetYaxis()->SetTitle( mapOptionsString["yTitle"].c_str() );
-  //     }
-  //     if ( DEBUG ) cout << "titles set" << endl;
-  //   }
-  //   //Set color and style of histogram
-  //   //If only one histograms is plotted, plot it in red
-  //   inHist[iHist]->SetLineColor(  colors[ max( 0, (int) ( (inHist.size()==1 ? 1 : iHist) + mapOptionsInt["shiftColor"])) ]  );
-  //   inHist[iHist]->SetMarkerColor( inHist[iHist]->GetLineColor() );
+  //  bool isNegativeValue = false;
+  for ( unsigned int iHist = 0; iHist < inHist.size(); iHist++ ) {
+    if ( !inHist[iHist] ) continue;
+    TH1* hist=0;
+    TGraphErrors *graph=0;
 
-  //   vector<string> functionNames = { "cubicFit", "quadraticFit" };
-  //   TIter next(inHist[iHist]->GetListOfFunctions());
-  //   while (TObject *obj = next()) {
-  //     cout << obj->GetName() << endl;
-  //     inHist[iHist]->GetFunction( obj->GetName() )->SetLineColor( inHist[iHist]->GetLineColor() );
-  //   }
+    if (  string(inHist[iHist]->ClassName()) == "TGraphErrors" ) graph = static_cast<TGraphErrors*>(inHist[iHist]);
+    else hist=static_cast<TH1*>(inHist[iHist]);
+
+    if ( refHist == -1 ) refHist = iHist;
+    SetProperties( inHist[iHist], mapOptionsInt, mapOptionsString, iHist-refHist );
 
 
-  //   //If only one histograms is plotted, plot it in red
-  //   switch ( mapOptionsInt["drawStyle"] ) {
-  //   case 1 :
-  //     inHist[iHist]->SetLineColor( colors[ max( 0, (int) (iHist/2 +mapOptionsInt["shiftColor"] ) )] );
-  //     inHist[iHist]->SetMarkerColor( colors[ max( 0 , (int) (iHist/2 + mapOptionsInt["shiftColor"]) ) ] );
-  //     inHist[iHist]->SetMarkerStyle( (iHist%2) ? 4 : 8 ); 
-  //     break;
-  //   }
+    if ( hist && mapOptionsInt["doChi2"] && inLegend.size() && iHist ){
+      TH1* refObj=0;
+      switch ( mapOptionsInt["drawStyle"] ) {
+      case 1 : 
+	if ( !IsHist(inHist[iHist-1]) ) throw runtime_error( "ChrisLib::DrawPlot : Chi2 on different types" );
+	refObj  = static_cast<TH1*>( inHist[iHist-1] );
+	if ( iHist % 2 ) inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( hist, static_cast<TH1*>(inHist[iHist-1]) )/hist->GetNbinsX() );
+	break;
+      default :
+	if ( !IsHist( inHist[refHist] ) ) throw runtime_error( "ChrisLib::DrawPlot : Chi2 on different types" );
+	refObj  = static_cast<TH1*>( inHist[refHist] );
+	inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( hist, refObj)/refObj->GetNbinsX() );
+      }
+    }
 
-  //   //======== CHI2 OF HISTOGRAM RATIOS
-  //   if ( mapOptionsInt["doChi2"] && inLegend.size() && iHist ){
-  //     switch ( mapOptionsInt["drawStyle"] ) {
-  //     case 1 : 
-  // 	if ( iHist % 2 ) inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( inHist[iHist], inHist[iHist-1] )/inHist[iHist]->GetNbinsX() );
-  // 	break;
-  //     default :
-  // 	inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( inHist[iHist], inHist[refHist] )/inHist[refHist]->GetNbinsX() );
-  //     }
-  //   }
-  //   if ( mapOptionsDouble["normalize"] && inHist[iHist]->Integral() && !mapOptionsInt["stack"] )  {
-  //     inHist[iHist]->Sumw2();
-  //     inHist[iHist]->Scale( mapOptionsDouble["normalize"]/inHist[iHist]->Integral() );
-  //   }
+    if ( hist && mapOptionsDouble["normalize"] && hist->Integral() && !mapOptionsInt["stack"] )  {
+      hist->Sumw2();
+      hist->Scale( mapOptionsDouble["normalize"]/hist->Integral() );
+    }
 
-  //   if ( DEBUG ) cout << "Style set" << endl;
-  //   //============ LOOK FOR Y EXTREMAL VALUES AND DEFINE Y RANGE
-  //   if( (int) iHist == refHist ) {
-  //     minVal = inHist[refHist]->GetMinimum();
-  //     maxVal = inHist[refHist]->GetMaximum();
-  //   }
-  //   //Update the maximum range of the plot with extremum of current plot
-  //   for ( int bin = 1; bin <= inHist[iHist]->GetNbinsX(); bin++ ) {
-  //     minVal = min( inHist[iHist]->GetBinContent( bin ) - inHist[iHist]->GetBinError( bin ), minVal );
-  //     maxVal = max( inHist[iHist]->GetBinContent( bin ) + inHist[iHist]->GetBinError( bin ), maxVal );
-  //     //  if ( inHist[iHist]->GetBinContent( bin ) < 0 ) isNegativeValue = true;
-  //   }
-  //    if ( DEBUG ) cout << "extremal Y values defined and set " << endl;
+    GetMaxValue( inHist[iHist], minVal, maxVal, minX, maxX, 1, static_cast<int>(iHist)==refHist );
 
-  //    //========== LOOK FOR X EXTREMAL VALUES AND DEFINE X RANGE
-  //    //initialize minX and maxX
-
-  //    //widen x axis in nominal case
-  //    if ( !mapOptionsInt["centerZoom"] ) {
-  //      minX = minX==-0.99 ? inHist[iHist]->GetXaxis()->GetXmin() : min( minX, inHist[iHist]->GetXaxis()->GetXmin() );
-  //      maxX = maxX==0.99  ? inHist[iHist]->GetXaxis()->GetXmax() :  max( maxX, inHist[iHist]->GetXaxis()->GetXmax() );
-  //    }
-  //    else {
-  //      //get smaller interva in bin unit withoutextremal 0
-  //      int lowBin = 1, upBin = inHist[iHist]->GetNbinsX();
-  //      while ( inHist[iHist]->GetBinContent( lowBin ) == 0 && lowBin!=upBin ) lowBin++;
-  //      while ( inHist[iHist]->GetBinContent( upBin ) ==0 && lowBin!=upBin ) upBin--;
-  //      minX = minX==-0.99 ? inHist[iHist]->GetXaxis()->GetBinLowEdge( lowBin ) : min( minX, inHist[iHist]->GetXaxis()->GetBinLowEdge( lowBin ) );
-  //      maxX = maxX==0.99 ? inHist[iHist]->GetXaxis()->GetBinUpEdge( upBin ) : max( maxX, inHist[iHist]->GetXaxis()->GetBinUpEdge( upBin ) );
-  //    }
-
-  //   if ( DEBUG ) cout << "X ranges defined" << endl;
-  // }//end iHist
+  }    
 
   // if ( DEBUG ) cout << "drawing" << endl;
 
@@ -1271,3 +1316,5 @@ void DrawPlot( vector< TObject* > &inHist,
   // delete line;
 
 }
+
+//

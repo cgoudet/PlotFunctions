@@ -8,6 +8,7 @@
 #include "RooAbsData.h"
 #include "RooCategory.h"
 #include "TGraphErrors.h"
+#include "TObject.h"
 
 #include "boost/multi_array.hpp"
 using boost::multi_array;
@@ -68,6 +69,11 @@ namespace ChrisLib {
 		std::vector<std::string> inOptions=std::vector<std::string>()
 		);
 
+  void DrawPlot( std::vector< TObject* > &inHist,  
+		std::string outName, 
+		std::vector<std::string> inOptions=std::vector<std::string>()
+		);
+
   std::vector<std::string> PlotPerCategory( //RooRealVar *varFrame, 
 				 std::vector<TObject*> vectObj, RooCategory *cat, std::string prefix = "", std::vector<std::string> options = std::vector<std::string>() );
 
@@ -84,6 +90,7 @@ namespace ChrisLib {
 		    std::vector<double> &rangeUserX,
 		    std::vector<double> &rangeUserY
 		    );
+
 		    
 }
 

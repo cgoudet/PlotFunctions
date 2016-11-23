@@ -919,7 +919,6 @@ void ChrisLib::PrintHist( vector<TObject*> &vectHist, string outName, int mode )
   
   fstream stream;
   outName += ".csv";
-  cout << "outName : " << outName << endl;
   stream.open( outName, fstream::out | fstream::trunc );
   if ( !stream.good() ) throw invalid_argument( "ChrisLib::PrintHist : Unknown input file " + outName );
   TH1 * hist =0;
@@ -929,26 +928,19 @@ void ChrisLib::PrintHist( vector<TObject*> &vectHist, string outName, int mode )
     for ( unsigned int iPlot = 0; iPlot < vectHist.size(); ++iPlot ) {
       if ( string(vectHist[iPlot]->ClassName())=="TGraphErrors" ) graph=static_cast<TGraphErrors*>(vectHist[iPlot]);
       else hist = static_cast<TH1*>(vectHist[iPlot]);
-    cout << "cast done" << endl;
       if ( !iBin ) {
-	cout << "hist : " << hist << " " << graph << endl;
 	if ( iPlot ) {
 
 	  int tmpNBin = hist ? hist->GetNbinsX() : graph->GetN();
 	  if ( tmpNBin != nBins ) throw invalid_argument( "PrintHist : All object must have same number of points/bins." );
-	  cout << "lineName : " << endl;
 	  string lineName = vectHist[iPlot-1]->GetTitle();
-	  cout << "streaming" << endl;
 	  stream << lineName;
 	  if ( mode >= 2 ) stream << "," << lineName + " err";
 	  if ( mode >= 3 ) stream << "," << lineName + " errX";
 	}
 	else {
-	  cout << "nBins" << endl;
 	  nBins = hist ? hist->GetNbinsX() : graph->GetN();
-	  cout << "before colName " << endl;
 	  TString colName = hist ? hist->GetXaxis()->GetTitle() : graph->GetXaxis()->GetTitle();
-	  cout << "after colName " << endl;
 	  colName=colName.ReplaceAll("_", "" ).ReplaceAll("#", "" ) ;
 	  stream << colName; 
 	}
@@ -987,22 +979,17 @@ void ChrisLib::PrintHist( vector<TObject*> &vectHist, string outName, int mode )
   cout << "Wrote " << outName  << endl;
 										 }
 //======================================================
-void ChrisLib::CopyTreeSelection( TTree* inTree, const string &selection ) {
-  cout << "selection : " << selection << endl;
+void ChrisLib::CopyTreeSelection( TTree** inTree, const string &selection ) {
   if ( selection == "" ) return;
   TFile *dumFile = new TFile( "/tmp/dumFile", "RECREATE" );
   gROOT->cd();
-  TTree* dumTree = inTree->CopyTree( selection.c_str() );
-  cout << "dumTree : " << dumTree << endl;
-  cout << dumTree->GetName() << endl;
+  TTree* dumTree = (*inTree)->CopyTree( selection.c_str() );
   if ( dumTree ) {
-    delete inTree;
-    inTree= dumTree;
-    inTree->SetDirectory(0);
+    delete *inTree;
+    (*inTree)= dumTree;
+    (*inTree)->SetDirectory(0);
   }
   delete dumFile; dumFile=0;
-  cout << "inTree : " << inTree << endl;
-  cout << inTree->GetName() << endl;
 }
 //============================================================
 void ChrisLib::WriteVect( const vector<TObject*> &vectHist, const string &outName ) {

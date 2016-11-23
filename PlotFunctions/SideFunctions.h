@@ -202,7 +202,7 @@ namespace ChrisLib {
 
   /**\brief Replace input pointer by a copy after applying a selection
    */
-  void CopyTreeSelection( TTree* inTree, const std::string &selection );
+  void CopyTreeSelection( TTree** inTree, const std::string &selection );
 
   /**\brief Write a vector of histogram into a TFile
    */

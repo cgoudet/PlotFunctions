@@ -102,102 +102,55 @@ void ChrisLib::PrintOutputCompareEvents( const multi_array<double,2> &varValues,
   PrintArray( outName, varValues, linesTitle, colsTitle );
 }
 
-//==================================================================
-void ChrisLib::PlotTextFile( const InputCompare &inputCompare, vector<vector<TObject*>> &vectHist ) {
-  TestInputs( inputCompare );
-
-  const vector<vector<string>> inputObjName = inputCompare.GetObjName();
-  const vector<vector<string>> rootFilesName = inputCompare.GetRootFilesName();
-  const vector< vector<string> > varName = inputCompare.GetVarName();
-  const vector< vector<string> > varYName = inputCompare.GetVarYName();
-  const vector< double > varMin = inputCompare.GetVarMin();
-  const vector< double > varMax = inputCompare.GetVarMax();
-  const vector< vector<string> > varWeight = inputCompare.GetVarWeight();
-
-  vectHist = vector<vector<TObject*>>( varName[0].size(), vector<TObject*>(rootFilesName.size(), 0) );
-  unsigned nEvents = atoi(inputCompare.GetOption("nEvents").c_str());
-
-  int nCols = rootFilesName.size()*varName[0].size();
-  multi_array<double,2> varValues;
-  multi_array<long long, 2> IDValues;
-
-  const OutMode outMode = GetOutMode( inputCompare );
-  if ( outMode==OutMode::histEvent ) {
-    varValues.resize( extents[nEvents][nCols] );
-    IDValues.resize( extents[nEvents][nCols] );
-  }
-
-  for ( unsigned int iPlot = 0; iPlot < rootFilesName.size(); ++iPlot ) {
-    unsigned countEvent=0;
-    for ( unsigned int iAdd = 0; iAdd < rootFilesName[iPlot].size(); ++iAdd ) {
-      cout << "iPlot : " << iPlot << " " << iAdd << endl;
-      string inFileName = rootFilesName[iPlot][iAdd];
-      ifstream inputStream( inFileName );
-      if ( !inputStream.good() ) throw invalid_argument( "PlotTestFile : Wrong input file " + inFileName );
-
-      if ( outMode==OutMode::histEvent && iPlot ) nEvents = 0;//Read all second container for comparison at event level
-
-      MapBranches mapBranch;
-      mapBranch.LinkCSVFile( inputStream );
-
-      while ( true ) {
-	if ( nEvents && countEvent==nEvents ) break;
-	mapBranch.ReadCSVEntry( inputStream );
-	if ( inputStream.eof() ) break;
-	FillObject( inputCompare, mapBranch, vectHist, IDValues, varValues, iPlot, countEvent );
-	++countEvent;
-      }
-      inputStream.close();
-    }
-  }//end iPlot
-}
-
 //==============================================================
 void ChrisLib::DrawVect( vector<vector<TObject*>> &vectObj, const InputCompare &inputCompare ) {
   if ( DEBUG ) cout << "ChrisLib::DrawVect" << endl;
-    bool isHist=false, isGraph=false;
-    vector<vector<TH1*>> vectHist;
-    vector<vector<TGraphErrors*>> vectGraph;
-    for ( unsigned int iCan=0; iCan<vectObj.size(); ++iCan ) {
-      for ( unsigned iObj=0; iObj<vectObj[iCan].size(); ++iObj ) {
-	if ( string(vectObj[iCan][iObj]->ClassName()) == "TGraphErrors" )  {
-	  while ( vectGraph.size()<=iCan ) vectGraph.push_back( vector<TGraphErrors*>() );
-	  while ( vectGraph[iCan].size()<=iObj ) vectGraph[iCan].push_back( 0);
-	  if ( vectObj[iCan][iObj] ) {
-	    vectGraph[iCan][iObj] = static_cast<TGraphErrors*>( vectObj[iCan][iObj] );
-	    isGraph=true;
-	  }
-	}
-	else {
-	  while ( vectHist.size()<=iCan ) vectHist.push_back( vector<TH1*>() );
-	  while ( vectHist[iCan].size()<=iObj ) vectHist[iCan].push_back( 0);
-	  if ( vectObj[iCan][iObj] ) {
-	    vectHist[iCan][iObj] = static_cast<TH1*>( vectObj[iCan][iObj] );
-	    isHist=true;
-	  }
-	}
-      }}
+  //    bool isHist=false, isGraph=false;
+    // vector<vector<TH1*>> vectHist;
+    // vector<vector<TGraphErrors*>> vectGraph;
+    // for ( unsigned int iCan=0; iCan<vectObj.size(); ++iCan ) {
+    //   for ( unsigned iObj=0; iObj<vectObj[iCan].size(); ++iObj ) {
+    // 	if ( string(vectObj[iCan][iObj]->ClassName()) == "TGraphErrors" )  {
+    // 	  while ( vectGraph.size()<=iCan ) vectGraph.push_back( vector<TGraphErrors*>() );
+    // 	  while ( vectGraph[iCan].size()<=iObj ) vectGraph[iCan].push_back( 0);
+    // 	  if ( vectObj[iCan][iObj] ) {
+    // 	    vectGraph[iCan][iObj] = static_cast<TGraphErrors*>( vectObj[iCan][iObj] );
+    // 	    isGraph=true;
+    // 	  }
+    // 	}
+    // 	else {
+    // 	  while ( vectHist.size()<=iCan ) vectHist.push_back( vector<TH1*>() );
+    // 	  while ( vectHist[iCan].size()<=iObj ) vectHist[iCan].push_back( 0);
+    // 	  if ( vectObj[iCan][iObj] ) {
+    // 	    vectHist[iCan][iObj] = static_cast<TH1*>( vectObj[iCan][iObj] );
+    // 	    isHist=true;
+    // 	  }
+    // 	}
+    //   }}
 
   const string plotPath = inputCompare.GetOption( "plotDirectory" ) + inputCompare.GetOutName();
   const vector< vector<string> > varName = inputCompare.GetVarName();
   const vector<string> vectorOptions = inputCompare.CreateVectorOptions();
 
   for ( unsigned iHist=0; iHist<vectObj.size(); ++iHist ) {
+    cout << "iHist" << endl;
     string outPlotName = plotPath;
     if ( !varName.empty() && varName.size()>iHist ) outPlotName += "_" + varName[0][iHist];
+    cout << "drawplot" << endl;
+    DrawPlot( vectObj[iHist], outPlotName, vectorOptions );
+    cout << "enddrawplot" << endl;
+    // if ( isHist ) DrawPlot( vectHist[iHist], outPlotName, vectorOptions );
+    // if ( isGraph ) DrawPlot( vectGraph[iHist], outPlotName, vectorOptions );
 
-    if ( isHist ) DrawPlot( vectHist[iHist], outPlotName, vectorOptions );
-    if ( isGraph ) DrawPlot( vectGraph[iHist], outPlotName, vectorOptions );
-
-    for ( unsigned i=0; i<vectObj.size(); ++i ) {
-      for ( unsigned j=0; j<vectObj[i].size(); ++j ) {
-	if ( vectHist[i][j] ) vectObj[i][j] = vectHist[i][j];
-	else if ( vectGraph[i][j] ) vectObj[i][j] = vectGraph[i][j];
-	else vectObj[i][j]=0;
-	cout << vectHist[i][j] << " " << vectHist[i][j]->GetName() << endl;
-	cout << vectObj[i][j] << " " << vectObj[i][j]->GetName() << endl;
-      }
-    }
+    // for ( unsigned i=0; i<vectObj.size(); ++i ) {
+    //   for ( unsigned j=0; j<vectObj[i].size(); ++j ) {
+    // 	if ( vectHist[i][j] ) vectObj[i][j] = vectHist[i][j];
+    // 	else if ( vectGraph[i][j] ) vectObj[i][j] = vectGraph[i][j];
+    // 	else vectObj[i][j]=0;
+    // 	cout << vectHist[i][j] << " " << vectHist[i][j]->GetName() << endl;
+    // 	cout << vectObj[i][j] << " " << vectObj[i][j]->GetName() << endl;
+    //   }
+    //    }
     cout << "filled" << endl;
 
     const int doTabular = atoi(inputCompare.GetOption("doTabular").c_str());
@@ -510,18 +463,23 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
 
       string inFileName = rootFilesName[iPlot][iAdd];
       cout << "iPlot : " << iPlot << " " << iAdd << " " << inFileName << endl;
-      TFile inFile( inFileName.c_str() );
-
-      string inTreeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( &inFile, "TTree" );
-      TTree *inTree = static_cast<TTree*>(inFile.Get( inTreeName.c_str() ) );
-      if ( !inTree ) throw invalid_argument( "PlotTree : " + inTreeName + " dnot found in " + string(inFile.GetName()) );
-      inTree->SetDirectory(0);
-
-      if ( selectionCut.size()>iPlot && selectionCut[iPlot]!="" ) CopyTreeSelection( inTree, selectionCut[iPlot] );
-	
-      int nEntries = inTree->GetEntries();
+      TTree *inTree=0;
+      TFile *inFile=0;
+      MapBranches mapBranch;
+      ifstream inputStream;
+      int nEntries=1;
       if ( outMode==OutMode::histEvent && iPlot ) nEvents = 0;//Read all second container for comparison at event level
-
+      bool isRoot = inFileName.find(".root")!=string::npos;
+      if ( isRoot ) {
+	
+      inFile = new TFile( inFileName.c_str() );
+      if ( inFile->IsZombie() ) throw invalid_argument( "ChrisLib::PlotTree : Input file does not exist " + inFileName );
+      string inTreeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( inFile, "TTree" );
+      inTree = static_cast<TTree*>(inFile->Get( inTreeName.c_str() ) );
+      if ( !inTree ) throw invalid_argument( "PlotTree : " + inTreeName + " not found in " + string(inFile->GetName()) );
+      inTree->SetDirectory(0);
+      if ( selectionCut.size()>iPlot && selectionCut[iPlot]!="" ) CopyTreeSelection( &inTree, selectionCut[iPlot] );
+      nEntries = inTree->GetEntries();
       //create a vector to store all branches names to be linked
       list<string> linkedVariables;
       copy( varName[iPlot].begin(), varName[iPlot].end(), back_inserter(linkedVariables) );
@@ -533,17 +491,32 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
       copy( varWeight[0].begin(), varWeight[0].end(), back_inserter(linkedVariables) );
       linkedVariables.sort();
       linkedVariables.erase( unique(linkedVariables.begin(), linkedVariables.end() ), linkedVariables.end() );
-      MapBranches mapBranch;
       mapBranch.LinkTreeBranches( inTree, 0, linkedVariables );
+      }
+      else { 
+	inputStream.open( inFileName );
+	if ( !inputStream.good() ) throw invalid_argument( "PlotTestFile : Wrong input file " + inFileName );
+	if ( outMode==OutMode::histEvent && iPlot ) nEvents = 0;//Read all second container for comparison at event level
+	mapBranch.LinkCSVFile( inputStream );
+      }
       for ( int iEvent = 0; iEvent < nEntries; ++iEvent ) {
 	if ( nEvents && countEvent==nEvents ) break;
-	inTree->GetEntry( iEvent );
+	if ( isRoot ) inTree->GetEntry( iEvent );
+	else {
+	  mapBranch.ReadCSVEntry( inputStream );
+	  if ( inputStream.eof() ) break;
+	  ++nEntries;
+	}
 	FillObject( inputCompare, mapBranch, vectHist, IDValues, varValues, iPlot, iEvent );
 	++countEvent;
       }//end iEvent
-      
-      delete inTree; 
-      inFile.Close( "R" ); 
+
+      if ( !isRoot ) inputStream.close();
+      else {
+	delete inTree; 
+	inFile->Close( "R" );
+	delete inFile;
+      }
     }//end iAdd
     
   }//end iPlot

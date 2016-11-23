@@ -910,7 +910,7 @@ void ChrisLib::ReadOptions( unsigned nHist,
   if ( DEBUG ) cout << "ChrisLib::ReaOptions end" << endl;
 }
 //==============================================
-void SetHistProperties( TH1* hist, map<string,int> &mapInt, map<string,string> &mapString, int iHist ) {
+void SetHistProperties( TH1* hist ) {
   vector<string> functionNames = { "cubicFit", "quadraticFit" };
   TIter next(hist->GetListOfFunctions());
   while (TObject *obj = next()) {
@@ -957,7 +957,7 @@ void SetProperties( TObject* obj, map<string,int> &mapInt, map<string,string> &m
     break;
   }
 
-  if ( hist ) SetHistProperties( hist, mapInt, mapString, iHist );
+  if ( hist ) SetHistProperties( hist );
 
 }
 //==============================================
@@ -986,7 +986,7 @@ void GetMaxValue( TObject *obj, double &minVal, double &maxVal, double &minX, do
   //Update the maximum range of the plot with extremum of current plot
   int nBins = hist ? hist->GetNbinsX() : graph->GetN();
   for ( int bin = 0; bin < nBins; ++bin ) {
-      double val = 0, err=0, valX=0, errX=0;
+      double val = 0, err=0;
       if ( hist ) {
 	val = hist->GetBinContent( bin+1 );
 	if ( takeError ) err = hist->GetBinError( bin+1 );
@@ -1052,12 +1052,12 @@ void DrawPlot( vector< TObject* > &inHist,
 
   //============ LOOP OTHER INPUT HIST
   //Find the extremum of the histograms to choose rangeUser if not given
-  double minVal=0, maxVal=0;
-  double minX=-0.99, maxX=0.99;
+  double minVal=0, maxVal=0, minX=0, maxX=0;
   vector<THStack*> stack;
   int refHist= -1;
-  unsigned int totEventStack=0;
+  //  unsigned int totEventStack=0;
 
+  TAxis *refXAxis=0, *refYAxis=0;
 
   //if ( mapOptionsDouble["clean"] !=-99 ) CleanHist( inHist, mapOptionsDouble["clean"] );
   // if ( DEBUG ) cout << "Cleaned" << endl;
@@ -1066,11 +1066,14 @@ void DrawPlot( vector< TObject* > &inHist,
     if ( !inHist[iHist] ) continue;
     TH1* hist=0;
     TGraphErrors *graph=0;
-
-    if (  string(inHist[iHist]->ClassName()) == "TGraphErrors" ) graph = static_cast<TGraphErrors*>(inHist[iHist]);
+    if ( !IsHist(inHist[iHist] ) ) graph = static_cast<TGraphErrors*>(inHist[iHist]);
     else hist=static_cast<TH1*>(inHist[iHist]);
 
-    if ( refHist == -1 ) refHist = iHist;
+    if ( refHist == -1 ) {
+      refHist = iHist;
+      refXAxis = hist ? hist->GetXaxis() : graph->GetXaxis();
+      refYAxis = hist ? hist->GetYaxis() : graph->GetYaxis();
+    }
     SetProperties( inHist[iHist], mapOptionsInt, mapOptionsString, iHist-refHist );
 
 
@@ -1098,71 +1101,66 @@ void DrawPlot( vector< TObject* > &inHist,
 
   }    
 
-  // if ( DEBUG ) cout << "drawing" << endl;
+  if ( DEBUG ) cout << "setting range" << endl;
+  while ( rangeUserY.size() < 2 ) rangeUserY.push_back( pow(-1, rangeUserY.size()+1)*0.99 );
+  if ( rangeUserY.front() == -0.99 ) rangeUserY.front() = minVal - ( maxVal - minVal ) *0.05;
+  if ( rangeUserY.back() == 0.99 ) rangeUserY.back() = maxVal + ( maxVal - minVal ) *0.05;
+  rangeUserY.back() += (rangeUserY.back() - rangeUserY.front()) * mapOptionsDouble["extendUp"];
 
-  // while ( rangeUserY.size() < 2 ) rangeUserY.push_back( pow(-1, rangeUserY.size()+1)*0.99 );
-  // if ( rangeUserY.front() == -0.99 ) rangeUserY.front() = minVal - ( maxVal - minVal ) *0.05;
-  // if ( rangeUserY.back() == 0.99 ) rangeUserY.back() = maxVal + ( maxVal - minVal ) *0.05;
-  // rangeUserY.back() += (rangeUserY.back() - rangeUserY.front()) * mapOptionsDouble["extendUp"];
+  if ( rangeUserX.size() == 2 ) refXAxis->SetRangeUser( rangeUserX[0], rangeUserX[1] );
+  else rangeUserX = { minX, maxX };
+
+  TH1F* dumHist = 0;
+  if ( !strcmp( refXAxis->GetBinLabel(1), "" ) ) {
+    if ( mapOptionsInt["doRatio"] ) dumHist = padUp.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
+    else dumHist = canvas.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
+    dumHist->GetXaxis()->SetTitle( refXAxis->GetTitle() );
+    dumHist->GetYaxis()->SetTitle( refYAxis->GetTitle() );
+
+    if (mapOptionsInt["doRatio"]) {
+      dumHist->GetYaxis()->SetTitleOffset( 0.6 );
+      dumHist->GetYaxis()->SetTitleSize( 0.06 );
+    }
+  }
+  else refYAxis->SetRangeUser( rangeUserY.front(), rangeUserY.back() );
 
 
-  // if ( rangeUserX.size() == 2 ) inHist[refHist]->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
-  // else {
-  //   rangeUserX.clear();
-  //   if ( minX==maxX ) maxX = minX+1;
-  //   rangeUserX.push_back( minX );
-  //   rangeUserX.push_back( maxX );
-  // }
+  //Plotting histograms
+  for ( unsigned int iHist = refHist; iHist < inHist.size(); ++iHist ) {
+    if ( !inHist[iHist] ) continue;
+    TH1* hist=0;
+    TGraphErrors *graph=0;
+    if ( !IsHist(inHist[iHist] ) ) graph = static_cast<TGraphErrors*>(inHist[iHist]);
+    else hist=static_cast<TH1*>(inHist[iHist]);
 
-  // TH1F* dumHist = 0;
-  // if ( !strcmp( inHist[refHist]->GetXaxis()->GetBinLabel(1), "" ) ) {
-  //   if ( mapOptionsInt["doRatio"] ) dumHist = padUp.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
-  //   else dumHist = canvas.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
-  //   dumHist->GetXaxis()->SetTitle( inHist[refHist]->GetXaxis()->GetTitle() );
-  //   dumHist->GetYaxis()->SetTitle( inHist[refHist]->GetYaxis()->GetTitle() );
+    string drawOpt = strcmp( refXAxis->GetBinLabel(1), "" ) && static_cast<int>(iHist)==refHist ?  "" :"SAME,";
+    switch ( mapOptionsInt["drawStyle"] ){
+    case 2 : drawOpt += "HIST"; break;
+    case 3 : drawOpt += "HISTL"; break;
+    // case 4 : 
+    //   inHist[0]->SetMarkerStyle(8);
+    //   inHist[1]->SetMarkerStyle(25);
+    //   inHist[iHist]->SetMarkerSize(1.3);
+    //   break;
+    default : drawOpt += "E"; 
+    }
 
-  //   if (mapOptionsInt["doRatio"]) {
-  //     dumHist->GetYaxis()->SetTitleOffset( 0.6 );
-  //     dumHist->GetYaxis()->SetTitleSize( 0.06 );
-  //   }
-  // }
-  // else {
-  //   inHist[refHist]->GetYaxis()->SetRangeUser( rangeUserY.front(), rangeUserY.back() );
-  // }
-
-  // //Plotting histograms
-  // for ( unsigned int iHist = refHist; iHist < inHist.size(); iHist++ ) {
-  //   if ( !inHist[iHist] ) continue;
-
-  //   string drawOpt = strcmp( inHist[refHist]->GetXaxis()->GetBinLabel(1), "" ) && (int)iHist==refHist ?  "" :"SAME,";
-  //   switch ( mapOptionsInt["drawStyle"] ){
-  //   case 2 : drawOpt += "HIST"; break;
-  //   case 3 : drawOpt += "HISTL"; break;
-  //   case 4 : 
-  //     inHist[0]->SetMarkerStyle(8);
-  //     inHist[1]->SetMarkerStyle(25);
-  //     inHist[iHist]->SetMarkerSize(1.3);
-  //     break;
-  //   default : drawOpt += "E"; 
-  //   }
-
-  //   if ( inLegend.size() > iHist && TString( inLegend[iHist].c_str() ).Contains( "__NOPOINT" ) ) {
-  //     inHist[iHist]->SetLineColorAlpha( 0, 0 );
-  //     inHist[iHist]->SetMarkerColorAlpha( 0, 0 );
-  //   }
-
-    
+    if ( inLegend.size() > iHist && TString( inLegend[iHist].c_str() ).Contains( "__NOPOINT" ) ) {
+      if ( hist ) {
+	hist->SetLineColorAlpha( 0, 0 );
+	hist->SetMarkerColorAlpha( 0, 0 );
+      }
+      else { 
+	graph->SetLineColorAlpha( 0, 0 );
+	graph->SetMarkerColorAlpha( 0, 0 );
+      }
+    }
+  }
   //   if ( inLegend.size() > iHist && TString( inLegend[iHist].c_str() ).Contains( "__FILL" ) ) {
   //     drawOpt += "2";
   //     inHist[iHist]->SetFillColor( fillColors[iHist] );
   //     //      myBoxText( legendCoord[0], legendCoord[1]-0.05*iHist, 0.05, inHist[iHist]->GetFillColor(), inLegend[iHist].c_str() ); 
   //   }
-
-  //   //Added for PlotNotePub (Antinea)
-  //   inHist[iHist]->SetLabelSize(0.05);
-  //   inHist[iHist]->GetXaxis()->SetTitleOffset(1.7);
-  //   //    inHist[0]->SetMarkerStyle(8);
-  //   //inHist[1]->SetMarkerStyle(25);
 
   //   if ( !mapOptionsInt["stack" ] ) inHist[iHist]->Draw( drawOpt.c_str() );
   //   else {

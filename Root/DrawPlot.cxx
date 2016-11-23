@@ -1170,27 +1170,21 @@ void DrawPlot( vector< TObject* > &inHist,
   }//end iHist
 
   if ( DEBUG ) cout << "drawn" << endl;
-  // //  stack.Draw( mapOptionsInt["stack"] ? "F" : "nostack"  ); 
-
-  // if ( mapOptionsInt["logy"] ) {
-  //   int topVal = ceil( log10( maxVal ) );
-  //   int lowVal = minVal==0 ? topVal-5 : floor( log10( minVal ) );
-  //   if ( rangeUserY[0] < 0 ) rangeUserY[0]=pow( 10, lowVal );
-  //   rangeUserY[1] = pow( 10, topVal + ( topVal - lowVal ) * (0.05 + mapOptionsDouble["extendUp"] ) );
-  //   if ( mapOptionsDouble["stack"] == 0 ) inHist[refHist]->GetYaxis()->SetRangeUser( rangeUserY[0], rangeUserY[1] );    
-  //   else {
-  //     stack.front()->SetMinimum( rangeUserY[0] );
-  //     stack.front()->SetMaximum( rangeUserY[1] );
-  //     stack.front()->Draw();
-  //   }
-  //   if ( mapOptionsInt["doRatio"] ) {
-  //     padUp.SetLogy(1);
-  //   }
-  //   else {
-  //     canvas.SetLogy(1);
-  //   }
-  //   if ( DEBUG ) cout << "logy done" << endl;
-  // }
+  
+  if ( mapOptionsInt["logy"] ) {
+    int topVal = ceil( log10( maxVal ) );
+    int lowVal = minVal==0 ? topVal-5 : floor( log10( minVal ) );
+    if ( rangeUserY[0] < 0 ) rangeUserY[0]=pow( 10, lowVal );
+    rangeUserY[1] = pow( 10, topVal + ( topVal - lowVal ) * (0.05 + mapOptionsDouble["extendUp"] ) );
+    refYaxis->SetRangeUser( rangeUserY[0], rangeUserY[1] );    
+    if ( mapOptionsInt["doRatio"] ) {
+      padUp.SetLogy(1);
+    }
+    else {
+      canvas.SetLogy(1);
+    }
+    if ( DEBUG ) cout << "logy done" << endl;
+  }
 
   // // =========== PRINT LEGENDS AND LATEX
   // canvas.cd();

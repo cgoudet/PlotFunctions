@@ -73,67 +73,60 @@ namespace ChrisLib {
 
      - triangular=number : Boolean allowing to plot only triangular matrix.
 
+
      ### inputType Description
      The PlotDist framework allows for variouts operation on various types of input data.
      The inputType option define which operation will be performed.
 
+     Options 1-4 allow the reading of a database to fill histogram or graphs. 
+     Currently TTree and CSV files can be read indiferently.
+     They are identified by the extension of the rootFileName (with or without '.root' ).
+
      rootFileName option is mandatory for all cases.
+     The option Binning refer to either providing a xBinning or the combination of (nBins,varMin,varMax).
+
 
      - 0 : Plot histograms from ROOT files (ChrisLib::PlotHist)\n
      Mandatory variables : objName 
 
-     - 1 - 4 : Plot objects from a TTree. (See below for details of output object from databases).
-     objName is optional. I no name is provided for a given file, the macro ChrisLib::FindDefaultTree is called.
+     - 1 : Read a variables of given branches and plot the distribution in an histogram.
+     \n
+     Mandatory variables : Binning, varName
+     \n
+     Optionnal variables : varWeight, doTabular, saveRoot, doLabels, objName
+
      \n
      Optionnal variables : triangular, doTabular, saveRoot
 
-     - 5 - 8 : Plot objects from CSV file. (See below for details of output object from databases).
+     - 2 : Compare the same event values across different datasets. Values are printed into a csv file.
      \n
-     Optionnal variables : triangular, doTabular, saveRoot
+     Mandatory variables : Binning, varName, eventID
+     \n
+     Optionnal variables : varWeight, doTabular, saveRoot, doLabels, objName
 
-     - 9 : Split input TTrees into two subTrees which either pass or fail a selection.
+     - 3 : Fill a TProfile with varName as Xaxis, varYName as Yaxis.
+     \n
+     Mandatory variables : Binning, varName, varYName
+     \n
+     Optionnal variables : varWeight, doTabular, saveRoot, doLabels, objName
+
+     - 4 : Fill a TGraph errors with varName as Xaxis, varYName as Yaxis. Errors are 0 if unspecified.
+     \n
+     Mandatory variables : varName, varYName
+     \n
+     Optionnal variables : varErrX, varErrY, doTabular, saveRoot, doLabels
+
+     - 5 : Split input TTrees into two subTrees which either pass or fail a selection.
      \n
      Mandatory variables : selectionCut
      \n
      
-     - 10 : Plot TMatrix values on an histogram with coordinates as labels.
+     - 6 : Plot TMatrix values on an histogram with coordinates as labels.
      \n
      Mandatory variables : objName
      \n
      Optionnal variables : triangular, doTabular, saveRoot
 
-
-     ### Output objects from databases
-     The transformation from database to histogram is provided for bot TTree and CSV files, using the common wrapper ChrisLib::MapBranches.
-     
-     The options documented below are available for both inputs, by adding the corresponding increment to the base inputType.
-     The option Binning refer to either providing a xBinning or the combination of (nBins,varMin,varMax).
-
-     - 0 : Read a variables of given branches a plot the distribution in an histogram.
-     \n
-     Mandatory variables : Binning, varName
-     \n
-     Optionnal variables : varWeight, doTabular, saveRoot, doLabels
-
-     - 1 : Compare the same event values across different datasets. Values are printed into a csv file.
-     \n
-     Mandatory variables : Binning, varName, eventID
-     \n
-     Optionnal variables : varWeight, doTabular, saveRoot, doLabels
-     
-     
-     - 2 : Fill a TProfile with varName as Xaxis, varYName as Yaxis.
-     \n
-     Mandatory variables : Binning, varName, varYName
-     \n
-     Optionnal variables : varWeight, doTabular, saveRoot, doLabels
-
-     - 3 : Fill a TGraph errors with varName as Xaxis, varYName as Yaxis. Errors are 0 if unspecified.
-     \n
-     Mandatory variables : varName, varYName
-     \n
-     Optionnal variables : varErrX, varErrY, doTabular, saveRoot, doLabels
-     
 
      ### doTabular Description
      doTabular options allows to access values inside of the entries of an object (TH1D, TProfile or TGraphErrors) in the form of a csv file.
@@ -180,22 +173,6 @@ namespace ChrisLib {
        \brief Create the vector of options to be read by ChrisLib::DrawPlot
     */
     std::vector<std::string> CreateVectorOptions() const;
-
-    //old (wrong style
-    std::vector< std::vector< std::string > > &GetRootFileName() { return m_rootFilesName; }
-    std::vector< std::vector< std::string > > &GetObjName() { return m_objName; }
-    std::vector< std::string > &GetLegend() { return m_legend; }
-    std::vector< std::vector<std::string> > &GetVarName()  { return m_varName; }
-    std::vector< std::vector<std::string> > &GetVarErrX() { return m_varErrX; }
-    std::vector< std::vector<std::string> > &GetVarErrY() { return m_varErrY; }
-    std::vector< double > &GetVarMin() { return m_varMin; }
-    std::vector< double > &GetVarMax() { return m_varMax; }
-    std::vector<std::vector< double >> &GetXBinning() { return m_xBinning; }
-    std::vector< std::string > &GetLatex() { return m_latex; }
-    std::vector< std::string > &GetSelectionCut() { return m_selectionCut;}
-    std::vector< std::string > &GetEventID() { return m_eventID; }
-    std::vector< std::string > &GetLatexOpt() { return m_latexOpt; }
-       std::vector< std::vector<std::string> > &GetVarWeight() { return m_varWeight; }
 
     void  LoadFile( std::string fileName );
   

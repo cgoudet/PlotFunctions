@@ -96,6 +96,7 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
 
   po::variables_map vm;
   ifstream ifs( fileName, ifstream::in );
+  if ( !ifs.good() ) throw invalid_argument( "InputCompare::LoadFile : Unknown file " + fileName );
   po::store(po::parse_config_file(ifs, configOptions), vm);
   po::notify( vm );
 
@@ -105,39 +106,55 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   if ( m_mapOptions["plotDirectory"] != "" && m_mapOptions["plotDirectory"].back() != '/' ) m_mapOptions["plotDirectory"] += "/";
 
   if ( DEBUG ) cout << "rootFilesName" << endl;
-  unsigned nPlots = rootFilesName.size();
-  m_rootFilesName = vector<vector<string>>( nPlots );
-  for ( unsigned int iHist = 0; iHist < nPlots; ++iHist ) ParseVector( rootFilesName[iHist], m_rootFilesName[iHist], 0 );
+
+  //Keep the push_back to allow multiple files configurations
+  for ( unsigned int iHist = 0; iHist < rootFilesName.size(); ++iHist ) {
+    m_rootFilesName.push_back( vector<string>() );
+    ParseVector( rootFilesName[iHist], m_rootFilesName.back(), 0 );
+  }
+  unsigned nPlots = m_rootFilesName.size();
+  cout << "nPlots : " << nPlots << endl;
 
   if ( DEBUG ) cout << "objName" << endl;
-  m_objName = vector<vector<string>>( nPlots );
-  for ( unsigned int iHist = 0; iHist < objName.size(); ++iHist ) ParseVector( objName[iHist], m_objName[iHist], 0 );
+  for ( unsigned int iHist = 0; iHist < objName.size(); ++iHist ) {
+    m_objName.push_back( vector<string>() ); 
+    ParseVector( objName[iHist], m_objName.back(), 0 );
+  }
 
   if ( DEBUG ) cout << "varName" << endl;
-  m_varName = vector<vector<string>>( varName.size() );
   for ( unsigned int iName = 0; iName < varName.size(); ++iName ) {
-    ParseVector( varName[iName], m_varName[iName], 0 );
-    if ( m_varName[iName].size() != m_varName[0].size() ) throw runtime_error( "InputConpare::LoadFiles : varName structure not identical for all files." );
+    m_varName.push_back( vector<string>() ); 
+    ParseVector( varName[iName], m_varName.back(), 0 );
+    if ( m_varName.back().size() != m_varName[0].size() ) throw runtime_error( "InputConpare::LoadFiles : varName structure not identical for all files." );
   }
   while ( m_varName.size() && m_varName.size() < nPlots ) m_varName.push_back( m_varName.back() );
-
   if ( DEBUG ) cout << "varYName" << endl;
-  cout << "varYName.size() : " << varYName.size() << endl;
-  m_varYName = vector<vector<string>>( varYName.size() );
+
   for ( unsigned int iYName = 0; iYName < varYName.size(); ++iYName ) {
-    ParseVector( varYName[iYName], m_varYName[iYName], 0 );
-    if ( m_varYName[iYName].size() != m_varYName[0].size() ) throw runtime_error( "InputConpare::LoadFiles : varYName structure not identical for all files." );
+    m_varYName.push_back( vector<string>() );
+    ParseVector( varYName[iYName], m_varYName.back(), 0 );
+    if ( m_varYName.back().size() != m_varYName[0].size() ) throw runtime_error( "InputConpare::LoadFiles : varYName structure not identical for all files." );
   }
   while ( m_varYName.size() && m_varYName.size() < nPlots ) m_varYName.push_back( m_varYName.back() );
 
 
-  m_varWeight = vector<vector<string>>( nPlots );
-  for ( unsigned int iPlot = 0; iPlot < varWeight.size(); iPlot++ ) ParseVector( varWeight[iPlot], m_varWeight[iPlot], 0 );
+  for ( unsigned int iPlot = 0; iPlot < varWeight.size(); iPlot++ ) {
+    m_varWeight.push_back( vector<string>() );
+    ParseVector( varWeight[iPlot], m_varWeight.back(), 0 );
+  }
+  while ( m_varWeight.size() < nPlots ) m_varWeight.push_back( vector<string>() );
 
-  m_varErrX = vector<vector<string>>( nPlots );
-  for ( unsigned int iPlot = 0; iPlot < varErrX.size(); iPlot++ ) ParseVector( varErrX[iPlot], m_varErrX[iPlot], 0 );
-  m_varErrY = vector<vector<string>>( nPlots );
-  for ( unsigned int iPlot = 0; iPlot < varErrY.size(); iPlot++ ) ParseVector( varErrY[iPlot], m_varErrY[iPlot], 0 );
+  for ( unsigned int iPlot = 0; iPlot < varErrX.size(); iPlot++ ) {
+    m_varErrX.push_back( vector<string>() );
+    ParseVector( varErrX[iPlot], m_varErrX.back(), 0 );
+  }
+  while ( m_varErrX.size() < nPlots ) m_varErrX.push_back( vector<string>() );
+
+  for ( unsigned int iPlot = 0; iPlot < varErrY.size(); iPlot++ ) {
+    m_varErrY.push_back(vector<string>() );
+    ParseVector( varErrY[iPlot], m_varErrY.back(), 0 );
+  }
+  while ( m_varErrY.size() < nPlots ) m_varErrY.push_back( vector<string>() );
 
   if ( eventID != "" ) ParseVector( eventID, m_eventID, 0 );
 
@@ -154,7 +171,10 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   //  if ( m_varMin.size() != m_varMax.size() ) throw invalid_argument( "InputCompare::LoadFiles : VarMin and VarMax Variables must be either both empty or both filled" );
 
   m_xBinning = vector<vector<double>>( xBinning.size(), vector<double>() );
-  for ( unsigned int iPlot = 0; iPlot < xBinning.size(); ++iPlot ) ParseVector( xBinning[iPlot], m_xBinning[iPlot], 0 );
+  for ( unsigned int iPlot = 0; iPlot < xBinning.size(); ++iPlot ) {
+    m_xBinning.push_back( vector<double>() );
+    ParseVector( xBinning[iPlot], m_xBinning.back(), 0 );
+  }
   while ( xBinning.size() && xBinning.size() < m_rootFilesName.size() ) xBinning.push_back( xBinning.back() );
 
   if ( DEBUG ) cout << "latex" << endl;

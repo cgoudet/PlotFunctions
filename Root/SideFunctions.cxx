@@ -330,12 +330,14 @@ int ChrisLib::FindFitBestRange( TH1D *hist, int &binMin, int &binMax, double chi
 //=============================================
 
 //=============================================
-void ChrisLib::WriteLatexHeader( fstream &latexStream, string title, string author ) {
+void ChrisLib::WriteLatexHeader( fstream &latexStream, string title, string author, int mode ) {
 
   latexStream << "\\documentclass[a4paper,12pt]{article}" << endl;
   latexStream << "\\usepackage{graphicx}" << endl;
-  latexStream << "\\usepackage{csvsimple}" << endl;
-  latexStream << "\\usepackage{adjustbox}" << endl;
+  if ( mode ) {
+    latexStream << "\\usepackage{csvsimple}" << endl;
+    latexStream << "\\usepackage{adjustbox}" << endl;
+  }
   latexStream << "\\usepackage{xcolor}" << endl;
   latexStream << "\\usepackage[a4paper, textwidth=0.9\\paperwidth, textheight=0.9\\paperheight]{geometry}" << endl;
   latexStream << "\\usepackage[toc]{multitoc}" << endl;
@@ -750,16 +752,16 @@ void ChrisLib::CleanHist( vector<TH1*> &vect, const double removeVal ) {
 
   for ( auto itHist = vect.begin(); itHist!=vect.end(); ++itHist ) {
     if ( *itHist == 0 ) {
+      cout << "erasing " << endl;
       vect.erase( itHist );
       --itHist;
     }
     if ( !ComparableHists( *vect.begin(), *itHist ) ) throw invalid_argument( "CleanHist : Histograms not comparables." );
   }
-
+  
   if ( vect.empty() ) return;
   int nBins = vect.front()->GetNbinsX();
   //Check which bins must be kept
-
 
   vector<int> keptBins;
   for ( int iBin = 1; iBin<=nBins; ++iBin ) {
@@ -787,12 +789,10 @@ void ChrisLib::CleanHist( vector<TH1*> &vect, const double removeVal ) {
       dumVect->SetBinError( iBin+1, vect[iVect]->GetBinError(keptBins[iBin]) );
       dumVect->GetXaxis()->SetBinLabel( iBin+1, vect[iVect]->GetXaxis()->GetBinLabel( keptBins[iBin] ) );
     }
-
     delete vect[iVect];
+    dumVect->SetName( tmpName.c_str() );
     vect[iVect] = dumVect;
-    vect[iVect]->SetName( tmpName.c_str() );
   }
-  
 }
 
 //=====================================
@@ -830,7 +830,7 @@ void ChrisLib::PrintArray( const string &outName, const multi_array<double,2> &a
    if ( !array.size() || !array[0].size() ) return;
    if ( linesTitle.size() && linesTitle.size() != array.size() ) throw runtime_error("PrintArray : Not enough names for lines.");
    ReplaceString repStr( "_", "\\_" );
-   ReplaceString repSpace( "_", " " );
+   ReplaceString repSpace( "_", "-" );
 
    unsigned nCols = array[0].size();
    if ( linesTitle.size() ) ++nCols;
@@ -920,18 +920,17 @@ void ChrisLib::PrintHist( vector<TObject*> &vectHist, string outName, int mode )
   fstream stream;
   outName += ".csv";
   stream.open( outName, fstream::out | fstream::trunc );
-  
+  if ( !stream.good() ) throw invalid_argument( "ChrisLib::PrintHist : Unknown input file " + outName );
   TH1 * hist =0;
   TGraphErrors *graph=0;
   int nBins = 1;
   for ( int iBin = 0; iBin <= nBins; ++iBin ) {
-    for ( unsigned int iPlot = 0; iPlot <= vectHist.size(); ++iPlot ) {
+    for ( unsigned int iPlot = 0; iPlot < vectHist.size(); ++iPlot ) {
       if ( string(vectHist[iPlot]->ClassName())=="TGraphErrors" ) graph=static_cast<TGraphErrors*>(vectHist[iPlot]);
       else hist = static_cast<TH1*>(vectHist[iPlot]);
-
       if ( !iBin ) {
-
 	if ( iPlot ) {
+
 	  int tmpNBin = hist ? hist->GetNbinsX() : graph->GetN();
 	  if ( tmpNBin != nBins ) throw invalid_argument( "PrintHist : All object must have same number of points/bins." );
 	  string lineName = vectHist[iPlot-1]->GetTitle();
@@ -980,15 +979,15 @@ void ChrisLib::PrintHist( vector<TObject*> &vectHist, string outName, int mode )
   cout << "Wrote " << outName  << endl;
 										 }
 //======================================================
-void ChrisLib::CopyTreeSelection( TTree* inTree, const string &selection ) {
+void ChrisLib::CopyTreeSelection( TTree** inTree, const string &selection ) {
   if ( selection == "" ) return;
   TFile *dumFile = new TFile( "/tmp/dumFile", "RECREATE" );
   gROOT->cd();
-  TTree* dumTree = inTree->CopyTree( selection.c_str() );
+  TTree* dumTree = (*inTree)->CopyTree( selection.c_str() );
   if ( dumTree ) {
-    delete inTree;
-    inTree= dumTree;
-    inTree->SetDirectory(0);
+    delete *inTree;
+    (*inTree)= dumTree;
+    (*inTree)->SetDirectory(0);
   }
   delete dumFile; dumFile=0;
 }

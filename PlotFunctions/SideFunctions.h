@@ -105,7 +105,7 @@ namespace ChrisLib {
      \param latexStream streamer to the output file
      \param author text to put in author option
   */
-  void WriteLatexHeader( std::fstream &latexStream, std::string title, std::string author="Christophe Goudet" );
+  void WriteLatexHeader( std::fstream &latexStream, std::string title, std::string author="Christophe Goudet", int mode=0 );
 
   /**\brief Remove suffix and prefix from a string
      \param inString string to be modified. 
@@ -202,7 +202,7 @@ namespace ChrisLib {
 
   /**\brief Replace input pointer by a copy after applying a selection
    */
-  void CopyTreeSelection( TTree* inTree, const std::string &selection );
+  void CopyTreeSelection( TTree** inTree, const std::string &selection );
 
   /**\brief Write a vector of histogram into a TFile
    */

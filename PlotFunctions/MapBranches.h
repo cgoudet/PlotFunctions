@@ -77,7 +77,7 @@ namespace ChrisLib {
     void SetVal( std::string label, unsigned int val ) { m_mapUnsigned[label] = val; }
 
     //    const void* GetVal( std::string name ) const;
-    void GetKeys( std::list<std::string> &keys );
+    void GetKeys( std::list<std::string> &keys ) const;
     std::string GetLabel( const std::string &name ) const;
     void ClearMaps();
 

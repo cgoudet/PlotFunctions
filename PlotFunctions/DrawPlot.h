@@ -58,7 +58,7 @@ namespace ChrisLib {
 		std::vector<std::string> inOptions=std::vector<std::string>()
 		);
 
-  int DrawPlot( std::vector< TGraphErrors* > inGraph,  
+  int DrawPlot( std::vector< TGraphErrors* > &inGraph,
 		std::string outName, 
 		std::vector<std::string> inOptions=std::vector<std::string>()
 		);
@@ -69,7 +69,7 @@ namespace ChrisLib {
 		std::vector<std::string> inOptions=std::vector<std::string>()
 		);
 
-  int DrawPlot( std::vector< TObject* > &inHist,  
+  void DrawPlot( std::vector< TObject* > &inHist,  
 		std::string outName, 
 		std::vector<std::string> inOptions=std::vector<std::string>()
 		);

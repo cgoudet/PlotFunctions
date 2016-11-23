@@ -18,7 +18,6 @@ namespace ChrisLib {
   void PlotHist( const InputCompare &inputCompare, std::vector<std::vector<TObject*>> &vectHist );
   void PlotTree( const InputCompare &inputCompare, std::vector<std::vector<TH1*>> &vectHist, std::vector<std::vector<TGraphErrors*>> &vectGraph );
   void PlotTree( const InputCompare &inputCompare, std::vector<std::vector<TObject*>> &vectHist );
-  void PlotTextFile( const InputCompare &inputCompare, std::vector<std::vector<TObject*>> &vectHist );
   void SplitTree( const InputCompare &inputCompare );
   void PlotMatrix( const InputCompare &inputCompare, std::vector<std::vector<TObject*>> &vectObj );
   

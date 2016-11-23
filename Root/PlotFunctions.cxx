@@ -216,6 +216,7 @@ void ChrisLib::SplitTree( const InputCompare &inputCompare ) {
 //============================================================
 TObject* ChrisLib::InitHist( const InputCompare &inputCompare, unsigned iPlot, unsigned iHist ) {
   if ( DEBUG ) cout << "ChrisLib::InitHist" << endl;
+
   const OutMode outMode = GetOutMode( inputCompare );
 
   const vector< vector<string> > &varErrX = inputCompare.GetVarErrX();
@@ -386,7 +387,7 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
       if ( doLabels && IsTH1(outMode) ) {
 	hist->GetXaxis()->SetBinLabel(1, label.c_str());
 	hist->GetXaxis()->LabelsOption("u");
-	hist->GetXaxis()->SetLabelSize( 0.005 );
+	hist->GetXaxis()->SetLabelSize( 0.025 );
       }
     }
 

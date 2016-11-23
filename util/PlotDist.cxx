@@ -1,5 +1,6 @@
 #include "PlotFunctions/SideFunctionsTpp.h"
 #include "PlotFunctions/PlotFunctions.h"
+#include "PlotFunctions/AtlasStyle.h"
 
 #include <boost/program_options.hpp>
 
@@ -47,7 +48,7 @@ int main( int argc, char* argv[] ) {
   
   if (vm.count("help")) {cout << desc; return 0;}
   //=============================================
-  
+  SetAtlasStyle();  
   for ( unsigned int iFile = 0; iFile < inFiles.size(); iFile++ ) {
     cout << "iFile : " << iFile << " " << inFiles[iFile] << endl;
     InputCompare input( inFiles[iFile] );

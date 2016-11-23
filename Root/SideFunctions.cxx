@@ -789,6 +789,7 @@ void ChrisLib::CleanHist( vector<TH1*> &vect, const double removeVal ) {
       dumVect->SetBinError( iBin+1, vect[iVect]->GetBinError(keptBins[iBin]) );
       dumVect->GetXaxis()->SetBinLabel( iBin+1, vect[iVect]->GetXaxis()->GetBinLabel( keptBins[iBin] ) );
     }
+    dumVect->GetXaxis()->SetLabelSize( vect[iVect]->GetXaxis()->GetLabelSize() );
     delete vect[iVect];
     dumVect->SetName( tmpName.c_str() );
     vect[iVect] = dumVect;

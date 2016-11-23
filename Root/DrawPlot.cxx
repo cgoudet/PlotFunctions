@@ -1176,7 +1176,7 @@ void DrawPlot( vector< TObject* > &inHist,
     int lowVal = minVal==0 ? topVal-5 : floor( log10( minVal ) );
     if ( rangeUserY[0] < 0 ) rangeUserY[0]=pow( 10, lowVal );
     rangeUserY[1] = pow( 10, topVal + ( topVal - lowVal ) * (0.05 + mapOptionsDouble["extendUp"] ) );
-    refYaxis->SetRangeUser( rangeUserY[0], rangeUserY[1] );    
+    refYAxis->SetRangeUser( rangeUserY[0], rangeUserY[1] );    
     if ( mapOptionsInt["doRatio"] ) {
       padUp.SetLogy(1);
     }
@@ -1186,30 +1186,39 @@ void DrawPlot( vector< TObject* > &inHist,
     if ( DEBUG ) cout << "logy done" << endl;
   }
 
-  // // =========== PRINT LEGENDS AND LATEX
-  // canvas.cd();
-  // for ( unsigned int iLegend=0; iLegend<inLegend.size(); iLegend++ ) {
-  //   if ( !inHist[iLegend] ) continue;
-  //   bool doFill = inLegend.size() > iLegend && TString( inLegend[iLegend].c_str() ).Contains( "__FILL" );
-  //   ParseLegend( inHist[iLegend] , inLegend[iLegend] );
-  //   if ( doFill )  myBoxText( legendCoord[0], legendCoord[1]-0.04*iLegend, inHist[iLegend]->GetFillColor(), inLegend[iLegend].c_str() ); 
-  //   else if ( mapOptionsInt["drawStyle"] ) myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetMarkerColor(), inHist[iLegend]->GetMarkerStyle(), inLegend[iLegend].c_str()  ); 
-  //   else myLineText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetLineColor(), inHist[iLegend]->GetLineStyle(), inLegend[iLegend].c_str()  ); 
-  //   if (mapOptionsInt["drawStyle"]==4)
-  //     {
-  // 	myLineText( legendCoord[0]-0.005, legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetLineColor(), inHist[iLegend]->GetLineStyle(), ""  ); 
-  // 	myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetMarkerColor(), inHist[iLegend]->GetMarkerStyle(), inLegend[iLegend].c_str()  );
-  //     }
-  // }
-  // if ( DEBUG )  cout << "legend drawn" << endl;
-  // for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {
-  //   if ( latexPos[iLatex].size() != 2 ) continue;
-  //   bool doLabel = TString( inLatex[iLatex] ).Contains("__ATLAS");
-  //   ParseLegend( inLatex[iLatex] );
-  //   if ( doLabel ) ATLASLabel( latexPos[iLatex][0], latexPos[iLatex][1], inLatex[iLatex].c_str(),1 , 0.04 );
-  //   else myText( latexPos[iLatex][0], latexPos[iLatex][1], 1, inLatex[iLatex].c_str() );
-  // }
-  // if ( DEBUG ) cout << "latex drawn" << endl;
+  // =========== PRINT LEGENDS AND LATEX
+  canvas.cd();
+  for ( unsigned int iLegend=0; iLegend<inLegend.size(); iLegend++ ) {
+    if ( !inHist[iLegend] ) continue;
+    TH1* hist=0;
+    TGraphErrors *graph=0;
+    if ( !IsHist(inHist[iLegend] ) ) graph = static_cast<TGraphErrors*>(inHist[iLegend]);
+    else hist=static_cast<TH1*>(inHist[iLegend]);
+    int color = hist ? hist->GetLineColor() : graph->GetLineColor();
+    int lineStyle = hist ? hist->GetLineStyle() : graph->GetLineStyle();
+    int markerStyle = hist ?  hist->GetMarkerStyle() : graph->GetMarkerStyle();
+    bool doFill = inLegend.size() > iLegend && TString( inLegend[iLegend].c_str() ).Contains( "__FILL" );
+    if ( hist ) ParseLegend( hist, inLegend[iLegend] );
+    else ParseLegend( graph, inLegend[iLegend] );
+    if ( doFill )  myBoxText( legendCoord[0], legendCoord[1]-0.04*iLegend, color, inLegend[iLegend].c_str() ); 
+    else if ( mapOptionsInt["drawStyle"] ) myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, markerStyle, inLegend[iLegend].c_str()  ); 
+    else myLineText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, lineStyle, inLegend[iLegend].c_str()  ); 
+    if (mapOptionsInt["drawStyle"]==4) {
+  	myLineText( legendCoord[0]-0.005, legendCoord[1]-0.05*iLegend, color, lineStyle, ""  ); 
+  	myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, markerStyle, inLegend[iLegend].c_str()  );
+    }
+  }
+  if ( DEBUG )  cout << "legend drawn" << endl;
+
+  for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {
+    if ( latexPos[iLatex].size() != 2 ) continue;
+    bool doLabel = TString( inLatex[iLatex] ).Contains("__ATLAS");
+    ParseLegend( inLatex[iLatex] );
+    if ( doLabel ) ATLASLabel( latexPos[iLatex][0], latexPos[iLatex][1], inLatex[iLatex].c_str(),1 , 0.04 );
+    else myText( latexPos[iLatex][0], latexPos[iLatex][1], 1, inLatex[iLatex].c_str() );
+  }
+  if ( DEBUG ) cout << "latex drawn" << endl;
+
   // //===============  CREATE RATIO PLOTS
   // if ( mapOptionsInt["doRatio"] ) {
   //   padDown.cd();

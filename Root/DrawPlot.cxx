@@ -1249,7 +1249,7 @@ void DrawPlot( vector< TObject* > &inHist,
       if ( DEBUG ) cout << "ratio created" << endl;
       //Set graphics properties of first hitogram
       if ( !setTitle ) {
-  	ratio.front()->GetXaxis()->SetTitle( inHist[refHist]->GetXaxis()->GetTitle() );
+  	ratio.front()->GetXaxis()->SetTitle( refXAxis->GetTitle() );
   	ratio.front()->GetXaxis()->SetLabelSize( 0.1 );
   	ratio.front()->GetXaxis()->SetTitleSize( 0.1 );
   	ratio.front()->GetYaxis()->SetLabelSize( 0.05 );
@@ -1269,32 +1269,24 @@ void DrawPlot( vector< TObject* > &inHist,
 
     }// end iHist
 
-  //   if ( ratio.size() ) {
-  //     if ( DEBUG ) cout << "ratio ranges " << endl;
-  //     //Plot all the ratio plots
-  //     ratio.front()->GetYaxis()->SetRangeUser( minValRatio - (maxValRatio-minValRatio)*0.05, maxValRatio+(maxValRatio-minValRatio)*0.05 );
-  //     if ( rangeUserX.size() == 2 ) ratio.front()->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
-  //     else if ( mapOptionsInt["centerZoom"] ) ratio.front()->GetXaxis()->SetRangeUser( minX, maxX );
-  //     if ( DEBUG ) cout << "plot ratio" << endl;
-  //     for ( unsigned int iHist = 0; iHist < ratio.size(); iHist++ ) {
-  // 	ratio[iHist]->Draw( ( iHist ) ? "e,same" : "e" );
-  //     }
-  //     //Create a line at 0 to visualize deviations
-  //     line->DrawLine( mapOptionsInt["centerZoom"] ? minX : ratio.front()->GetXaxis()->GetXmin(), 0, mapOptionsInt["centerZoom"] ? maxX :ratio.front()->GetXaxis()->GetXmax(), 0);
-  //   }
-  //   }//end doRatio
+    if ( ratio.size() ) {
+      if ( DEBUG ) cout << "ratio ranges " << endl;
+      //Plot all the ratio plots
+      ratio.front()->GetYaxis()->SetRangeUser( minValRatio - (maxValRatio-minValRatio)*0.05, maxValRatio+(maxValRatio-minValRatio)*0.05 );
+      if ( rangeUserX.size() == 2 ) ratio.front()->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
+      else if ( mapOptionsInt["centerZoom"] ) ratio.front()->GetXaxis()->SetRangeUser( minX, maxX );
+      if ( DEBUG ) cout << "plot ratio" << endl;
+      for ( unsigned int iHist = 0; iHist < ratio.size(); iHist++ ) {
+  	ratio[iHist]->Draw( ( iHist ) ? "e,same" : "e" );
+      }
+      //Create a line at 0 to visualize deviations
+      line->DrawLine( mapOptionsInt["centerZoom"] ? minX : ratio.front()->GetXaxis()->GetXmin(), 0, mapOptionsInt["centerZoom"] ? maxX :ratio.front()->GetXaxis()->GetXmax(), 0);
+    }
+  }//end doRatio
 
-  // if ( DEBUG ) cout << "saving" << endl;
-  // string canOutName = outName + "." + mapOptionsString["extension"];
-  // canvas.SaveAs( canOutName.c_str() );
+  if ( DEBUG ) cout << "saving" << endl;
+  string canOutName = outName + "." + mapOptionsString["extension"];
+  canvas.SaveAs( canOutName.c_str() );
 
-  // //  canvas.SaveAs( TString(outName) + ".pdf" );
-  // //  canvas.SaveAs( TString(outName) + ".root" );
-  
+  }
 
-  // //========== CLEANING 
-  // delete line;
-
-}
-
-//

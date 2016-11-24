@@ -917,7 +917,8 @@ void SetHistProperties( TH1* hist ) {
   vector<string> functionNames = { "cubicFit", "quadraticFit" };
   TIter next(hist->GetListOfFunctions());
   while (TObject *obj = next()) {
-    hist->GetFunction( obj->GetName() )->SetLineColor( hist->GetLineColor() );
+  if ( strcmp( hist->GetFunction( obj->GetName() )->ClassName(), "TF1" ) ) continue;
+  hist->GetFunction( obj->GetName() )->SetLineColor( hist->GetLineColor() );
   }
   
 }
@@ -933,6 +934,7 @@ void SetProperties( TObject* obj, map<string,int> &mapInt, map<string,string> &m
   if (  !IsHist( obj ) ) graph = static_cast<TGraphErrors*>(obj);
   else hist=static_cast<TH1*>(obj);
   
+  obj->UseCurrentStyle();
   if ( !iHist ) {
     for ( unsigned iAxis=0; iAxis<2; ++iAxis ) {
       map<string,string>::iterator title = mapString.find( string(iAxis?"y":"x") + "Title" );

@@ -57,6 +57,7 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
     ( "inputType", po::value<string>( &m_mapOptions["inputType"] ),"" )
     ( "doRatio", po::value<string>( &m_mapOptions["doRatio"] ), "" )
     ( "normalize", po::value<string>( &m_mapOptions["normalize"] ), "" )
+    ( "scale", po::value<string>( &m_mapOptions["scale"] ), "" )
     ( "doChi2", po::value<string>( &m_mapOptions["doChi2"] ), "" )
     ( "centerZoom", po::value<string>( &m_mapOptions["centerZoom"] ), "" )
     ( "varName", po::value< vector<string> >( &varName )->multitoken(), "" )

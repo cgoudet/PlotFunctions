@@ -872,6 +872,7 @@ void ChrisLib::ReadOptions( unsigned nHist,
 
   mapDouble["extendUp"]=0;
   mapDouble["normalize"]=0;
+  mapDouble["scale"]=0;
   mapDouble["line"]=-99;
   mapDouble["clean"]=-99;
 
@@ -1157,9 +1158,13 @@ void ChrisLib::DrawPlot( vector< TObject* > &inHist,
     }
     
 
-    if ( hist && mapOptionsDouble["normalize"] && hist->Integral() && !mapOptionsInt["stack"] )  {
+    if ( hist && mapOptionsDouble["normalize"] && hist->Integral() )  {
       hist->Sumw2();
       hist->Scale( mapOptionsDouble["normalize"]/hist->Integral() );
+    }
+    else if ( hist && mapOptionsDouble["scale"] ) {
+      hist->Sumw2();
+      hist->Scale( mapOptionsDouble["scale"] );
     }
 
 

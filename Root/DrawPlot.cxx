@@ -867,7 +867,7 @@ void ChrisLib::ReadOptions( unsigned nHist,
   
   if ( DEBUG ) cout << "ChrisLib::ReaOptions" << endl;
 
-  list<string> allowedInt = { "doRatio", "shiftColor", "doChi2", "centerZoom", "drawStyle", "logy", "stack", "offset", "orderX" };
+  list<string> allowedInt = { "doRatio", "shiftColor", "doChi2", "centerZoom", "drawStyle", "logy", "stack", "offset", "orderX", "grid" };
   for ( auto it=allowedInt.begin(); it!=allowedInt.end(); ++it ) mapInt[*it]=0;
 
   mapDouble["extendUp"]=0;
@@ -917,7 +917,8 @@ void SetHistProperties( TH1* hist ) {
   vector<string> functionNames = { "cubicFit", "quadraticFit" };
   TIter next(hist->GetListOfFunctions());
   while (TObject *obj = next()) {
-    hist->GetFunction( obj->GetName() )->SetLineColor( hist->GetLineColor() );
+  if ( strcmp( hist->GetFunction( obj->GetName() )->ClassName(), "TF1" ) ) continue;
+  hist->GetFunction( obj->GetName() )->SetLineColor( hist->GetLineColor() );
   }
   
 }
@@ -928,12 +929,12 @@ bool IsHist( TObject* obj ) {
 }
 //==============================================
 void SetProperties( TObject* obj, map<string,int> &mapInt, map<string,string> &mapString, int iHist ) {
-
   TH1* hist=0;
   TGraphErrors *graph=0;
   if (  !IsHist( obj ) ) graph = static_cast<TGraphErrors*>(obj);
   else hist=static_cast<TH1*>(obj);
   
+  obj->UseCurrentStyle();
   if ( !iHist ) {
     for ( unsigned iAxis=0; iAxis<2; ++iAxis ) {
       map<string,string>::iterator title = mapString.find( string(iAxis?"y":"x") + "Title" );
@@ -947,7 +948,7 @@ void SetProperties( TObject* obj, map<string,int> &mapInt, map<string,string> &m
     }
     if ( graph && mapInt["orderX"] ) graph->Sort();
 
-    obj->UseCurrentStyle();
+
   }
 
   //If only one histograms is plotted, plot it in red
@@ -1008,7 +1009,6 @@ void GetMaxValue( TObject *obj, double &minVal, double &maxVal, double &minX, do
 	minX = min( minX, xGraph - errX );
 	maxX = max( maxX, xGraph + errX );
       }
-      
       minVal = min( val - err , minVal );
       maxVal = max( val + err , maxVal );
     }
@@ -1086,6 +1086,7 @@ void ChrisLib::DrawPlot( vector< TObject* > &inHist,
 
   //================ PAD DEFINITION
   TCanvas canvas;
+  canvas.SetGrid( mapOptionsInt["grid"]%2, mapOptionsInt["grid"]/2 );
   TPad padUp( "padUp", "padUp", 0, 0.3, 1, 1 );
   padUp.SetBottomMargin( 0 );
   TPad padDown( "padDown", "padDown", 0, 0, 1, 0.3 );
@@ -1115,7 +1116,12 @@ void ChrisLib::DrawPlot( vector< TObject* > &inHist,
 
   TAxis *refXAxis=0, *refYAxis=0;
 
-  //if ( mapOptionsDouble["clean"] !=-99 ) CleanHist( inHist, mapOptionsDouble["clean"] );
+  if ( mapOptionsDouble["clean"] !=-99 ) {
+    vector<TH1*> hists;
+    for ( auto it=inHist.begin(); it!=inHist.end(); ++it ) hists.push_back( static_cast<TH1*>(*it));
+    CleanHist( hists, mapOptionsDouble["clean"] );
+    for ( unsigned i=0; i<inHist.size(); ++i ) inHist[i] = hists[i];
+  }
   // if ( DEBUG ) cout << "Cleaned" << endl;
   //  bool isNegativeValue = false;
   for ( unsigned int iHist = 0; iHist < inHist.size(); iHist++ ) {
@@ -1130,8 +1136,8 @@ void ChrisLib::DrawPlot( vector< TObject* > &inHist,
       refXAxis = hist ? hist->GetXaxis() : graph->GetXaxis();
       refYAxis = hist ? hist->GetYaxis() : graph->GetYaxis();
     }
-    SetProperties( inHist[iHist], mapOptionsInt, mapOptionsString, iHist-refHist );
 
+    SetProperties( inHist[iHist], mapOptionsInt, mapOptionsString, iHist-refHist );
 
     if ( hist && mapOptionsInt["doChi2"] && inLegend.size() && iHist ){
       TH1* refObj=0;
@@ -1142,20 +1148,25 @@ void ChrisLib::DrawPlot( vector< TObject* > &inHist,
 	if ( iHist % 2 ) inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( hist, static_cast<TH1*>(inHist[iHist-1]) )/hist->GetNbinsX() );
 	break;
       default :
+
 	if ( !IsHist( inHist[refHist] ) ) throw runtime_error( "ChrisLib::DrawPlot : Chi2 on different types" );
 	refObj  = static_cast<TH1*>( inHist[refHist] );
 	inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( hist, refObj)/refObj->GetNbinsX() );
+
       }
     }
+    
 
     if ( hist && mapOptionsDouble["normalize"] && hist->Integral() && !mapOptionsInt["stack"] )  {
       hist->Sumw2();
       hist->Scale( mapOptionsDouble["normalize"]/hist->Integral() );
     }
 
-    GetMaxValue( inHist[iHist], minVal, maxVal, minX, maxX, 1, static_cast<int>(iHist)==refHist );
+
+    GetMaxValue( inHist[iHist], minVal, maxVal, minX, maxX, 0, static_cast<int>(iHist)==refHist );
 
   }    
+
 
   if ( DEBUG ) cout << "setting range" << endl;
   while ( rangeUserY.size() < 2 ) rangeUserY.push_back( pow(-1, rangeUserY.size()+1)*0.99 );

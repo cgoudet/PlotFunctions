@@ -40,7 +40,7 @@ using std::bitset;
 using std::ifstream;
 using std::ostream_iterator;
 
-#define DEBUG 1
+#define DEBUG 0
 //=====================================================
 void ChrisLib::PlotHist( const InputCompare &inputCompare, vector<vector<TObject*>> &vectHist ) {
   if ( DEBUG ) cout << "ChrisLib::PlotHist" << endl;  
@@ -133,12 +133,10 @@ void ChrisLib::DrawVect( vector<vector<TObject*>> &vectObj, const InputCompare &
   const vector<string> vectorOptions = inputCompare.CreateVectorOptions();
 
   for ( unsigned iHist=0; iHist<vectObj.size(); ++iHist ) {
-    cout << "iHist" << endl;
     string outPlotName = plotPath;
     if ( !varName.empty() && varName.size()>iHist ) outPlotName += "_" + varName[0][iHist];
-    cout << "drawplot" << endl;
     DrawPlot( vectObj[iHist], outPlotName, vectorOptions );
-    cout << "enddrawplot" << endl;
+
     // if ( isHist ) DrawPlot( vectHist[iHist], outPlotName, vectorOptions );
     // if ( isGraph ) DrawPlot( vectGraph[iHist], outPlotName, vectorOptions );
 

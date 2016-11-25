@@ -1066,9 +1066,8 @@ void ChrisLib::DrawPlot( vector< TObject* > &inHist,
 	      vector<string> inOptions
 	       ) {
 
-  cout << "DrawPlotObj" << endl;
+  if ( DEBUG ) cout << "ChrisLib::DrawPlot" << endl;
   //================ SOME CHECKS
-  if ( DEBUG ) cout << "DrawPlot" << endl;
 
   map<string, int >  mapOptionsInt;
   map<string, double > mapOptionsDouble;

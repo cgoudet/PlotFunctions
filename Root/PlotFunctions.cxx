@@ -473,7 +473,7 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
       bool isRoot = inFileName.find(".root")!=string::npos;
       if ( isRoot ) {
 	
-      inFile = new TFile( inFileName.c_str() );
+	inFile = new TFile( inFileName.c_str() );
       if ( inFile->IsZombie() ) throw invalid_argument( "ChrisLib::PlotTree : Input file does not exist " + inFileName );
       string inTreeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( inFile, "TTree" );
       inTree = static_cast<TTree*>(inFile->Get( inTreeName.c_str() ) );

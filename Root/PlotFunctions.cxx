@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <sstream>
 #include <bitset>
+#include <iomanip>
 
 using namespace ChrisLib;
 using std::vector;
@@ -287,7 +288,7 @@ void ChrisLib::TestInputs( const InputCompare &inputCompare ) {
   if ( outMode!=OutMode::none ) errors.set(4);
   if ( doLabels && IsTH1( outMode ) ) errors.set(0,0);
 
-  if ( errors.test(0) && xBinning.empty() && varMin.empty() && varMax.empty() ) throw invalid_argument( "TestInput : No information for binning provided" );
+  if ( errors.test(0) && xBinning.empty() && ( varMin.empty() || varMax.empty()) ) throw invalid_argument( "TestInput : No information for binning provided" );
   if ( errors.test(4) && (varName.empty() || varName[0].empty()) ) throw invalid_argument( "TestInput : Require varName." );
   if ( errors.test(1) && eventID.empty() ) throw invalid_argument( "TestInput : Require eventID." );
   if ( errors.test(2) && (varYName.empty()||varYName[0].empty()) ) throw invalid_argument( "TestInput : Require varYName." );
@@ -330,18 +331,15 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
   const vector< vector<string> > &varWeight = inputCompare.GetVarWeight();
   const unsigned doLabels = atoi(inputCompare.GetOption("doLabels").c_str());
 
-  list<string> keys;
-  mapBranch.GetKeys( keys );
   double totWeight=1;
-  if ( outMode!=OutMode::graphErrors ) for_each( varWeight[iPlot].begin(), varWeight[iPlot].end(), [&totWeight, &mapBranch]( const string &s ) { totWeight*=mapBranch.GetDouble(s);} );
+  if ( outMode!=OutMode::graphErrors ) for_each( varWeight[iPlot].begin(), varWeight[iPlot].end(), [&totWeight, &mapBranch]( const string &s ) { totWeight*=stod(mapBranch.GetLabel(s));} );
   int foundIndex=-1;
   if ( outMode==OutMode::histEvent ) foundIndex = FillCompareEvent( inputCompare, IDValues, mapBranch, iPlot, iEntry );
 
   for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
     string label;
     if ( doLabels ) label = ReplaceString( "\\_", "_" )(mapBranch.GetLabel( varName[iPlot][iHist] ));
-    if ( outMode==OutMode::histEvent && ( !iPlot || foundIndex != -1 ) ) varValues[foundIndex][iHist*varName.size()+iPlot] = mapBranch.GetDouble( varName[iPlot][iHist] );
-    
+    if ( outMode==OutMode::histEvent && ( !iPlot || foundIndex != -1 ) ) varValues[foundIndex][iHist*varName.size()+iPlot] = stod(mapBranch.GetLabel( varName[iPlot][iHist] ));
     if ( !vectObject[iHist][iPlot] ) {
       vectObject[iHist][iPlot]=InitHist( inputCompare, iPlot, iHist );
       TH1 *hist = static_cast<TH1*>(vectObject[iHist][iPlot]);
@@ -352,8 +350,8 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
       }
     }
 
-    double yVal = varYName.size() ? mapBranch.GetDouble(varYName[iPlot][iHist]) : 0;
-    double xVal = !doLabels ? mapBranch.GetDouble(varName[iPlot][iHist] ) : 0;
+    double yVal = varYName.size() ? stod(mapBranch.GetLabel(varYName[iPlot][iHist])) : 0;
+    double xVal = !doLabels ? static_cast<double>(mapBranch.GetLongLong(varName[iPlot][iHist] )) : 0;
 
     int iBin = -1;
     if ( doLabels && IsTH1( outMode ) ) {
@@ -383,7 +381,6 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
 	      ) {
       if ( doLabels ) static_cast<TH1D*>(vectObject[iHist][iPlot])->Fill( iBin-1, totWeight );
       else static_cast<TH1D*>(vectObject[iHist][iPlot])->Fill( xVal , totWeight );
-
     }
 
   }// End iHist

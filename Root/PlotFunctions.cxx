@@ -105,28 +105,6 @@ void ChrisLib::PrintOutputCompareEvents( const multi_array<double,2> &varValues,
 //==============================================================
 void ChrisLib::DrawVect( vector<vector<TObject*>> &vectObj, const InputCompare &inputCompare ) {
   if ( DEBUG ) cout << "ChrisLib::DrawVect" << endl;
-  //    bool isHist=false, isGraph=false;
-    // vector<vector<TH1*>> vectHist;
-    // vector<vector<TGraphErrors*>> vectGraph;
-    // for ( unsigned int iCan=0; iCan<vectObj.size(); ++iCan ) {
-    //   for ( unsigned iObj=0; iObj<vectObj[iCan].size(); ++iObj ) {
-    // 	if ( string(vectObj[iCan][iObj]->ClassName()) == "TGraphErrors" )  {
-    // 	  while ( vectGraph.size()<=iCan ) vectGraph.push_back( vector<TGraphErrors*>() );
-    // 	  while ( vectGraph[iCan].size()<=iObj ) vectGraph[iCan].push_back( 0);
-    // 	  if ( vectObj[iCan][iObj] ) {
-    // 	    vectGraph[iCan][iObj] = static_cast<TGraphErrors*>( vectObj[iCan][iObj] );
-    // 	    isGraph=true;
-    // 	  }
-    // 	}
-    // 	else {
-    // 	  while ( vectHist.size()<=iCan ) vectHist.push_back( vector<TH1*>() );
-    // 	  while ( vectHist[iCan].size()<=iObj ) vectHist[iCan].push_back( 0);
-    // 	  if ( vectObj[iCan][iObj] ) {
-    // 	    vectHist[iCan][iObj] = static_cast<TH1*>( vectObj[iCan][iObj] );
-    // 	    isHist=true;
-    // 	  }
-    // 	}
-    //   }}
 
   const string plotPath = inputCompare.GetOption( "plotDirectory" ) + inputCompare.GetOutName();
   const vector< vector<string> > varName = inputCompare.GetVarName();
@@ -137,23 +115,8 @@ void ChrisLib::DrawVect( vector<vector<TObject*>> &vectObj, const InputCompare &
     if ( !varName.empty() && varName.size()>iHist ) outPlotName += "_" + varName[0][iHist];
     DrawPlot( vectObj[iHist], outPlotName, vectorOptions );
 
-    // if ( isHist ) DrawPlot( vectHist[iHist], outPlotName, vectorOptions );
-    // if ( isGraph ) DrawPlot( vectGraph[iHist], outPlotName, vectorOptions );
-
-    // for ( unsigned i=0; i<vectObj.size(); ++i ) {
-    //   for ( unsigned j=0; j<vectObj[i].size(); ++j ) {
-    // 	if ( vectHist[i][j] ) vectObj[i][j] = vectHist[i][j];
-    // 	else if ( vectGraph[i][j] ) vectObj[i][j] = vectGraph[i][j];
-    // 	else vectObj[i][j]=0;
-    // 	cout << vectHist[i][j] << " " << vectHist[i][j]->GetName() << endl;
-    // 	cout << vectObj[i][j] << " " << vectObj[i][j]->GetName() << endl;
-    //   }
-    //    }
-    cout << "filled" << endl;
-
     const int doTabular = atoi(inputCompare.GetOption("doTabular").c_str());
     if ( doTabular ) PrintHist( vectObj[iHist], outPlotName, doTabular );
-    cout << "tabular done" << endl;
     const int saveRoot = atoi(inputCompare.GetOption( "saveRoot" ).c_str());
     if ( saveRoot ) WriteVect( vectObj[iHist], outPlotName );
   }
@@ -393,7 +356,7 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
     double xVal = !doLabels ? mapBranch.GetDouble(varName[iPlot][iHist] ) : 0;
 
     int iBin = -1;
-    if ( IsTH1( outMode ) ) {
+    if ( doLabels && IsTH1( outMode ) ) {
       TH1* hist = static_cast< TH1* >(vectObject[iHist][iPlot]);
       iBin = hist->GetXaxis()->FindBin( label.c_str() );
       if ( iBin==-1 ) throw runtime_error( "FillObject : FindBin error." );

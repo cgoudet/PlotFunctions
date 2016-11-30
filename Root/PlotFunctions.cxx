@@ -351,7 +351,7 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
     }
 
     double yVal = varYName.size() ? stod(mapBranch.GetLabel(varYName[iPlot][iHist])) : 0;
-    double xVal = !doLabels ? static_cast<double>(mapBranch.GetLongLong(varName[iPlot][iHist] )) : 0;
+    double xVal = !doLabels ? stod(mapBranch.GetLabel(varName[iPlot][iHist] )) : 0;
 
     int iBin = -1;
     if ( doLabels && IsTH1( outMode ) ) {

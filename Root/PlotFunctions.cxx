@@ -553,7 +553,6 @@ void ChrisLib::PlotMatrix( const InputCompare &inputCompare, vector<vector<TObje
     hist->SetLineWidth( 1 );
     hist->LabelsOption("v" );
     hist->GetXaxis()->SetTitle( "Line_Column" );
-    break;
   }
   vectObj.push_back( drawVect );  
 }

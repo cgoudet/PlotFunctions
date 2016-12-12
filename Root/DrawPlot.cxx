@@ -230,7 +230,6 @@ int ChrisLib::DrawPlot( vector< TH1* > &inHist,
     vector<string> functionNames = { "cubicFit", "quadraticFit" };
     TIter next(inHist[iHist]->GetListOfFunctions());
     while (TObject *obj = next()) {
-      cout << obj->GetName() << endl;
       inHist[iHist]->GetFunction( obj->GetName() )->SetLineColor( inHist[iHist]->GetLineColor() );
     }
 
@@ -948,8 +947,6 @@ void SetProperties( TObject* obj, map<string,int> &mapInt, map<string,string> &m
       }
     }
     if ( graph && mapInt["orderX"] ) graph->Sort();
-
-
   }
 
   //If only one histograms is plotted, plot it in red

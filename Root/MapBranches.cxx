@@ -297,3 +297,15 @@ string ChrisLib::MapBranches::GetLabel( const string &name ) const {
   return GetString( name );
 
 }
+//=======================================================
+bool ChrisLib::MapBranches::IsLinked() const {
+
+  return ( m_mapInt.size() ||
+	   m_mapDouble.size() ||
+	   m_mapULongLong.size() ||
+	   m_mapLongLong.size() ||
+	   m_mapUnsigned.size() ||
+	   m_mapString.size()
+	   );
+
+}

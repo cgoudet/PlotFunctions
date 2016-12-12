@@ -483,7 +483,7 @@ string ChrisLib::FindDefaultTree( const TFile* inFile, string type, string keyWo
   
   TIter nextkey( inFile->GetListOfKeys());
   TKey *key=0;
-  while ((key = (TKey*)nextkey())) {
+  while ((key = static_cast<TKey*>(nextkey()))) {
     if (strcmp( type.c_str(),key->GetClassName())) continue;//Check wether the class name of the object is what is looked for
     listTreeNames.push_back( key->GetName() );
   }

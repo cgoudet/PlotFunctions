@@ -1323,7 +1323,8 @@ void ChrisLib::DrawPlot( vector< TObject* > &inHist,
   	ratio[iHist]->Draw( ( iHist ) ? "e,same" : "e" );
       }
       //Create a line at 0 to visualize deviations
-      line.DrawLine( mapOptionsInt["centerZoom"] ? minX : ratio.front()->GetXaxis()->GetXmin(), 0, mapOptionsInt["centerZoom"] ? maxX :ratio.front()->GetXaxis()->GetXmax(), 0);
+      //      line.DrawLine( rangeUserXratio.front()->GetXaxis()->GetXmin(), 0, ratio.front()->GetXaxis()->GetXmax(), 0);
+      line.DrawLine( rangeUserX[0], 0, rangeUserX[1], 0);
     }
   }//end doRatio
 

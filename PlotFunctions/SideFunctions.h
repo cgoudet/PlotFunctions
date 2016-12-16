@@ -26,7 +26,7 @@ using std::endl;
 
 #include "TGraphErrors.h"
 #include "TString.h"
-#include "TXMLNode.h"
+//#include "TXMLNode.h"
 #include <list>
 
 /** \brief Namespace wrapping all C++ library
@@ -146,7 +146,7 @@ namespace ChrisLib {
 
   void RescaleStack( THStack *stack, double integral );
 
-  std::map<std::string,std::string> MapAttrNode( TXMLNode* node );
+  //  std::map<std::string,std::string> MapAttrNode( TXMLNode* node );
 
   /*\brief Create the list with the all the possible combination of given name.
     Tested.

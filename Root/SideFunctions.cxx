@@ -17,7 +17,7 @@
 #include "RooRealVar.h"
 #include <RooStats/ModelConfig.h>
 #include "RooProduct.h"
-#include "TXMLAttr.h"
+//#include "TXMLAttr.h"
 #include "TList.h"
 #include "TF1.h"
 #include "TCanvas.h"
@@ -809,21 +809,21 @@ string ChrisLib::ConvertEpochToDate ( int epochTime )
 }
 
 //=====================================
-map<string,string> ChrisLib::MapAttrNode( TXMLNode* node ) {
+// map<string,string> ChrisLib::MapAttrNode( TXMLNode* node ) {
 
-  map<string,string> outMap;
-  outMap["nodeName"]=node->GetNodeName();
-  TList *attr = node->GetAttributes();
-  TIterator *it = 0;
-  if(attr!=0) {
-    it = attr->MakeIterator();
-    for ( auto attr = (TXMLAttr*) it->Next(); attr!=0; attr=(TXMLAttr*)it->Next() ) {
-      outMap[attr->GetName()] = attr->GetValue();
-    }
-    delete it; it=0;
-  }
-  return outMap;
-}
+//   map<string,string> outMap;
+//   outMap["nodeName"]=node->GetNodeName();
+//   TList *attr = node->GetAttributes();
+//   TIterator *it = 0;
+//   if(attr!=0) {
+//     it = attr->MakeIterator();
+//     for ( auto attr = (TXMLAttr*) it->Next(); attr!=0; attr=(TXMLAttr*)it->Next() ) {
+//       outMap[attr->GetName()] = attr->GetValue();
+//     }
+//     delete it; it=0;
+//   }
+//   return outMap;
+// }
 
 //=====================================
 void ChrisLib::PrintArray( const string &outName, const multi_array<double,2> &array, const vector<string> &linesTitle, const vector<string> &colsTitle ) {
@@ -929,49 +929,50 @@ void ChrisLib::PrintHist( vector<TObject*> &vectHist, string outName, int mode )
     for ( unsigned int iPlot = 0; iPlot < vectHist.size(); ++iPlot ) {
       if ( string(vectHist[iPlot]->ClassName())=="TGraphErrors" ) graph=static_cast<TGraphErrors*>(vectHist[iPlot]);
       else hist = static_cast<TH1*>(vectHist[iPlot]);
+      
       if ( !iBin ) {
-	if ( iPlot ) {
-
-	  int tmpNBin = hist ? hist->GetNbinsX() : graph->GetN();
-	  if ( tmpNBin != nBins ) throw invalid_argument( "PrintHist : All object must have same number of points/bins." );
-	  string lineName = vectHist[iPlot-1]->GetTitle();
-	  stream << lineName;
-	  if ( mode >= 2 ) stream << "," << lineName + " err";
-	  if ( mode >= 3 ) stream << "," << lineName + " errX";
-	}
-	else {
+	if ( !iPlot ) {
 	  nBins = hist ? hist->GetNbinsX() : graph->GetN();
 	  TString colName = hist ? hist->GetXaxis()->GetTitle() : graph->GetXaxis()->GetTitle();
 	  colName=colName.ReplaceAll("_", "" ).ReplaceAll("#", "" ) ;
-	  stream << colName; 
+	  stream << colName << ","; 
 	}
+	
+	int tmpNBin = hist ? hist->GetNbinsX() : graph->GetN();
+	if ( tmpNBin != nBins ) throw invalid_argument( "PrintHist : All object must have same number of points/bins." );
+	string lineName = vectHist[iPlot]->GetTitle();
+	stream << lineName;
+	if ( mode >= 2 ) stream << "," << lineName + " err";
+	if ( mode >= 3 ) stream << "," << lineName + " errX";
+
       }
       else {
-	if ( iPlot ) { 
-	  double valY, errX, errY;
-	  if ( hist ) {
-	    valY = hist->GetBinContent(iBin);
-	    errY = hist->GetBinError(iBin);
-	    errX = hist->GetXaxis()->GetBinWidth(iBin);
-	  }
-	  else if ( graph ) {
-	    graph->GetPoint( iBin-1, errX, valY );
-	    errX = graph->GetErrorX( iBin-1 );
-	    errY = graph->GetErrorY( iBin-1 );
-	  }
-	  stream << valY;
-	  if ( mode >= 2 ) stream << "," << errY;
-	  if ( mode >= 3 ) stream << "," << errX;
-	}
-	else {
+	if ( !iPlot ) {
 	  if ( hist ) stream << ( strcmp( hist->GetXaxis()->GetBinLabel(iBin), "" ) ? TString(hist->GetXaxis()->GetBinLabel(iBin)) :  TString::Format( "] %2.2f : %2.2f]", hist->GetXaxis()->GetBinLowEdge( iBin ), hist->GetXaxis()->GetBinUpEdge( iBin ) ) );
 	  else if ( graph ) {
 	    double x, y;
-	    graph->GetPoint( 0, x, y );
+	    graph->GetPoint( iBin-1, x, y );
 	    stream << x << endl;
 	  }
+	  stream << ",";
 	}
+	
+	double valY, errX, errY;
+	if ( hist ) {
+	  valY = hist->GetBinContent(iBin);
+	  errY = hist->GetBinError(iBin);
+	  errX = hist->GetXaxis()->GetBinWidth(iBin);
+	}
+	else if ( graph ) {
+	  graph->GetPoint( iBin-1, errX, valY );
+	  errX = graph->GetErrorX( iBin-1 );
+	  errY = graph->GetErrorY( iBin-1 );
+	}
+	stream << valY;
+	if ( mode >= 2 ) stream << "," << errY;
+	if ( mode >= 3 ) stream << "," << errX;
       }
+	
       if ( iPlot != vectHist.size() ) stream << ",";
     }
     stream << endl;

@@ -7,9 +7,9 @@ using std::cout;
 using std::endl;
 #include "TList.h"
 #include "TIterator.h"
-#include "TXMLAttr.h"
-#include "TXMLDocument.h"
-#include "TDOMParser.h"
+// #include "TXMLAttr.h"
+// #include "TXMLDocument.h"
+// #include "TDOMParser.h"
 using std::vector;
 using namespace ChrisLib;
 
@@ -57,17 +57,17 @@ int ChrisLib::Arbre::AddChild( Arbre &child ) {
 }
 
 //===================================
-Arbre ChrisLib::Arbre::ParseXML( string inFileName ) {
-  //  cout << "ParseXML( " << inFileName << " ) " << endl;  
+// Arbre ChrisLib::Arbre::ParseXML( string inFileName ) {
+//   //  cout << "ParseXML( " << inFileName << " ) " << endl;  
 
-  TDOMParser xmlparser;
-  //Check if the xml file is ok                                                                                                                                                                      
-  xmlparser.ParseFile( inFileName.c_str() );
-  TXMLDocument* xmldoc = xmlparser.GetXMLDocument();
-  TXMLNode * rootNode = xmldoc->GetRootNode();
-  Arbre outArbre = CopyNode( rootNode );
-  return outArbre;
-}
+//   TDOMParser xmlparser;
+//   //Check if the xml file is ok                                                                                                                                                                      
+//   xmlparser.ParseFile( inFileName.c_str() );
+//   TXMLDocument* xmldoc = xmlparser.GetXMLDocument();
+//   TXMLNode * rootNode = xmldoc->GetRootNode();
+//   Arbre outArbre = CopyNode( rootNode );
+//   return outArbre;
+// }
 //===================================
 void ChrisLib::Arbre::Dump( string prefix ) {
 
@@ -98,39 +98,39 @@ void ChrisLib::Arbre::SetAttribute( string key, string value ) {
     m_attributes[key] = value;
 }
 //===================================
-Arbre ChrisLib::Arbre::CopyNode( TXMLNode * node ) {
+// Arbre ChrisLib::Arbre::CopyNode( TXMLNode * node ) {
   
-  Arbre outArbre( node->GetNodeName() );
-  TList *attr = node->GetAttributes();
-  TIterator *it = 0;
-  if(attr!=0) {
-    it = attr->MakeIterator();
-    for ( auto attr = (TXMLAttr*) it->Next(); attr!=0; attr=(TXMLAttr*)it->Next() ) {
-      outArbre.SetAttribute( attr->GetName(),attr->GetValue() );
-    }
-    delete it; it=0;
-  }
+//   Arbre outArbre( node->GetNodeName() );
+//   TList *attr = node->GetAttributes();
+//   TIterator *it = 0;
+//   if(attr!=0) {
+//     it = attr->MakeIterator();
+//     for ( auto attr = (TXMLAttr*) it->Next(); attr!=0; attr=(TXMLAttr*)it->Next() ) {
+//       outArbre.SetAttribute( attr->GetName(),attr->GetValue() );
+//     }
+//     delete it; it=0;
+//   }
 
-  const char* dum = node->GetText();
-  if ( dum ) {
-    string dumStr(dum);
-    if ( dumStr != "" ) outArbre.SetAttribute( "text", dumStr );
-    //    cout << node->GetNodeName() << " " << dumStr << endl;
-  }
+//   const char* dum = node->GetText();
+//   if ( dum ) {
+//     string dumStr(dum);
+//     if ( dumStr != "" ) outArbre.SetAttribute( "text", dumStr );
+//     //    cout << node->GetNodeName() << " " << dumStr << endl;
+//   }
 
-//cout << node->GetText() << endl;
-  // map<string,string> dumMap = outArbre.GetAttributes();
-  // PrintMapKeys( dumMap );
+// //cout << node->GetText() << endl;
+//   // map<string,string> dumMap = outArbre.GetAttributes();
+//   // PrintMapKeys( dumMap );
 
-  TXMLNode *childNode = node->GetChildren();
-  while ( childNode!=0 ) {
-    Arbre childArbre = CopyNode( childNode );
-    outArbre.AddChild( childArbre );
-    childNode = childNode->GetNextNode();
-  }
-  return outArbre;
+//   TXMLNode *childNode = node->GetChildren();
+//   while ( childNode!=0 ) {
+//     Arbre childArbre = CopyNode( childNode );
+//     outArbre.AddChild( childArbre );
+//     childNode = childNode->GetNextNode();
+//   }
+//   return outArbre;
 
-}
+//}
 //===================================
 int  ChrisLib::Arbre::GetArbresPath( Arbre &arbre, vector<Arbre> &outVect, vector<string> path, vector<map<string, string>> vectOptions ) {
   if ( vectOptions.size() && vectOptions.size() != path.size() ) { cout << "options and path do not have same size" << endl; exit(0); }

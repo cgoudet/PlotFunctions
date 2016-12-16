@@ -7,7 +7,7 @@ using std::list;
 using std::map;
 #include <string>
 using std::string;
-//#include "TXMLNode.h"
+#include "TXMLNode.h"
 #include <vector>
 using std::vector;
 
@@ -34,8 +34,8 @@ namespace ChrisLib {
 
 
 
-    //static Arbre ParseXML( string inFileName );
-    //    static Arbre CopyNode( TXMLNode * node );
+    static Arbre ParseXML( string inFileName );
+    static Arbre CopyNode( TXMLNode * node );
 
     static int  GetArbresPath( Arbre &arbre , vector<Arbre> &outVect, vector<string> path = vector<string>(), vector<map<string, string>> vectOptions = vector<map<string, string>>() );
 

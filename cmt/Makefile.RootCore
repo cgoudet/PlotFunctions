@@ -13,17 +13,17 @@ PACKAGE          = PlotFunctions
 PACKAGE_PRELOAD  =  RooFitCore RooFit RooStats HistFactory
 
 # additional compilation flags to pass (not propagated to dependent packages):
-PACKAGE_CXXFLAGS = -lboost_program_options  -lboost_unit_test_framework -lXMLParser
+PACKAGE_CXXFLAGS = -lboost_program_options  -lboost_unit_test_framework -lXMLParser 
 
 # additional compilation flags to pass (propagated to dependent packages):
-PACKAGE_OBJFLAGS = -lboost_program_options  -lboost_unit_test_framework
+PACKAGE_OBJFLAGS = -lboost_program_options  -lboost_unit_test_framework -lXMLParser 
 
 # additional linker flags to pass (for compiling the library):
-PACKAGE_LDFLAGS  = -lboost_program_options  -lboost_unit_test_framework
+PACKAGE_LDFLAGS  = -lboost_program_options  -lboost_unit_test_framework -lXMLParser 
 
 
 # additional linker flags to pass (for compiling binaries):
-PACKAGE_BINFLAGS = -lboost_program_options -lboost_unit_test_framework
+PACKAGE_BINFLAGS = -lboost_program_options -lboost_unit_test_framework -lXMLParser 
 
 # additional linker flags to pass (propagated to client libraries):
 PACKAGE_LIBFLAGS = 

@@ -1,6 +1,8 @@
 #ifndef RATIOPLOTS_H
 #define RATIOPLOTS_H
 
+#include "PlotFunctions/DrawOptions.h"
+
 #include "TH2D.h"
 #include "TH1D.h"
 #include "RooRealVar.h"
@@ -73,6 +75,9 @@ namespace ChrisLib {
 		std::string outName, 
 		std::vector<std::string> inOptions=std::vector<std::string>()
 		);
+
+  void DrawPlot( std::vector< TObject* > &inHist, ChrisLib::DrawOptions &drawOpt );
+
 
   std::vector<std::string> PlotPerCategory( //RooRealVar *varFrame, 
 				 std::vector<TObject*> vectObj, RooCategory *cat, std::string prefix = "", std::vector<std::string> options = std::vector<std::string>() );

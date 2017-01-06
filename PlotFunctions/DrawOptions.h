@@ -15,27 +15,27 @@ namespace ChrisLib {
 
    ### Options Description
    
-   - doRatio=number : Create a bin by bin ratio pad of plotted histograms. 
+   - doRatio=<int> : Create a bin by bin ratio pad of plotted histograms. 
    By default, comparison is performed with respect to the first plotted histogram (see drawStyle for other mode).
    Two values accepted : doRatio=1 performs the comparison (y2-y1)/y1 and doRatio=2 performs the per bin difference.
    
-   - doChi2=number : Compute the chi2 between current histogram and firt drawn histogram (see drawStyle for other mode).
-   The number is interpreted as a boolean
+   - doChi2=<int> : Compute the chi2 between current histogram and firt drawn histogram (see drawStyle for other mode).
+   The <int> is interpreted as a boolean
    
-   - drawStyle=number : Change the behaviour of histogram comparison.
+   - drawStyle=<int> : Change the behaviour of histogram comparison.
    By default (0), histograms are compared to the first drawn histogram.
    drawStyle=1 matches histogram by successive pairs and comparison are performed in between the paired histograms.
    
-   - grid=number : Print the grid on the plot.
+   - grid=<int> : Print the grid on the plot.
    By default (0) no grid is drawn. 
-   An odd number switches on the grid for the x axis.
-   number>1 switches on the y axis grid.
+   An odd <int> switches on the grid for the x axis.
+   <int>>1 switches on the y axis grid.
    
-   - logy=number : Set log scale on y axis.
-   Number is interpreted as a boolean.
+   - logy=<int> : Set log scale on y axis.
+   <Int> is interpreted as a boolean.
    
-   - orderX=number : Order the histogram points in increasing X.
-   Number is interpreted as a boolean.
+   - orderX=<int> : Order the histogram points in increasing X.
+   <Int> is interpreted as a boolean.
    
    - plotDirectory=<directory_path> : Points to the directory where the plot shoulb be saved. 
 
@@ -44,25 +44,29 @@ namespace ChrisLib {
    If the string is empty or no legend provided, the name of the object is displayed in the legend.
    The legend option can be either not specified, or specified the exact number of object present in the plot.
    
-   - legendPos=numberX numberX : Top left relative coordinate (x,y) of the legend box.
+   - legendPos=<int>X <int>X : Top left relative coordinate (x,y) of the legend box.
    By default it is set to (0.7, 0.9).
    
    - latex=<string> (multitoken) : Additionnal text to be dispayed on the plot.
    
-   - latexOpt=numberX numberY (multitoken) : Position in relative coordinate (x,y) of the latex option with same index.
+   - latexOpt=<int>X <int>Y (multitoken) : Position in relative coordinate (x,y) of the latex option with same index.
    latexOpt must be specified the same number of times than latex option.
 
+   - extendUp=<double> : allows for an increase of <double>(%) of blank space between the top of the curve and the border of the plot.
+   
+   - line=<double> : draw a line accross the main pad at constant y=<double>
  */
 class DrawOptions {
  public :
   DrawOptions();
 
   bool GetDoChi2() const { return m_bools.at("doChi2"); }
-  bool GetGrid() const { return m_bools.at("grid"); }
+
   bool GetLogY() const { return m_bools.at("logy"); }
   bool GetOffset() const { return m_bools.at("offset"); }
   bool GetOrderX() const { return m_bools.at("orderX"); }
-  
+
+  int GetGrid() const { return m_ints.at("grid"); }
   int GetDoRatio() const { return m_ints.at("doRatio"); }
   int GetDrawStyle() const { return m_ints.at("drawStyle"); }
   int GetShiftColor() const { return m_ints.at("shiftColor"); }
@@ -73,9 +77,10 @@ class DrawOptions {
   double GetLine() const { return m_doubles.at("line"); }
   double GetClean() const { return m_doubles.at("clean"); }
   
-  std::string GetXTitle() const { return m_strings.at("xTitle"); }
-  std::string GetYTitle() const { return m_strings.at("yTitle"); }
-  std::string GetExtension() const { return m_strings.at("extension"); }
+  const std::string &GetXTitle() const { return m_strings.at("xTitle"); }
+  const std::string &GetYTitle() const { return m_strings.at("yTitle"); }
+  const std::string &GetExtension() const { return m_strings.at("extension"); }
+  const std::string &GetOutName() const { return m_strings.at("outName"); }
 
   const std::vector<double> &GetLegendCoord() const { return m_legendCoord; }
   const std::vector<double> &GetRangeUserX() const { return m_rangeUserX; }
@@ -85,6 +90,8 @@ class DrawOptions {
   const std::vector<std::string> &GetLatex() const { return m_latex; }
   
   const std::vector<std::vector<double>> &GetLatexPos() const { return m_latexPos; }
+
+  void SetLegends( const std::vector<std::string> &legends ) { m_legends=legends; }
   
   void FillOptions( const std::vector<std::string> &options );
   void AddOption( const std::string &option );

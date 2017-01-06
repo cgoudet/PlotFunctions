@@ -291,9 +291,9 @@ double ChrisLib::ComputeChi2( TH1 *MCHist, TH1 *DataHist ) {
   double chi2 = 0;
   for ( int i = 1; i < MCHist->GetNbinsX()+1; ++i ) {
     double valdif = ( MCHist->GetBinError( i )==0 && DataHist->GetBinError( i )==0 ) ? 0 : MCHist->GetBinContent( i ) - DataHist->GetBinContent( i );
-    //    cout << "valdif : " << valdif << " = " << MCHist->GetBinContent( i ) << " - " << DataHist->GetBinContent( i ) << endl;
+    //cout << "valdif : " << valdif << " = " << MCHist->GetBinContent( i ) << " - " << DataHist->GetBinContent( i ) << endl;
     double sigma2 = ( valdif != 0 ) ? MCHist->GetBinError( i ) * MCHist->GetBinError( i ) + DataHist->GetBinError( i ) * DataHist->GetBinError( i ) : 1;
-    //    cout << "sigma2 : " << sigma2 << " :  " << MCHist->GetBinError( i ) << " " << DataHist->GetBinError( i ) << endl;
+    //cout << "sigma2 : " << sigma2 << " :  " << MCHist->GetBinError( i ) << " " << DataHist->GetBinError( i ) << endl;
     chi2 += valdif * valdif / sigma2; 
   }
     
@@ -366,19 +366,17 @@ void ChrisLib::RemoveExtremalEmptyBins( TH1 *hist ) {
 }
 
 //========================================================
-void ChrisLib::ParseLegend( TGraphErrors *graph, string &legend ) {
+string ChrisLib::ParseLegend( TGraphErrors *graph, const string &legend ) {
   TString dumString = legend;
   if ( graph ) { 
     dumString.ReplaceAll( "__ENTRIES", TString::Format( "%1.0d", graph->GetN() ) );
     dumString.ReplaceAll( "__MEAN", TString::Format( "%1.3e", graph->GetMean() ) );
     dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", graph->GetRMS() ) );
   }
-
-  legend = dumString;
-  ParseLegend( legend );
+  return ParseLegend( static_cast<string>(dumString) );
 }
 //================================
-void ChrisLib::ParseLegend( string &legend ) {
+string ChrisLib::ParseLegend( const string &legend ) {
   TString dumString = legend;
   dumString.ReplaceAll( "__HASHTAG", "#" );
   dumString.ReplaceAll( "__FILL", "" );
@@ -386,11 +384,11 @@ void ChrisLib::ParseLegend( string &legend ) {
   dumString.ReplaceAll("__ATLAS", "" );
   dumString.ReplaceAll("__STACK", "" );
   dumString.ReplaceAll("ETA_CALO", "#eta_{CALO}" );
-  legend = dumString;
+  return static_cast<string>( dumString );
 }
 
 //============================
-void ChrisLib::ParseLegend( TH1* hist, string &legend ) {
+string ChrisLib::ParseLegend( TH1* hist, const string &legend ) {
 
   TString dumString = legend;
   if ( hist ) { 
@@ -399,9 +397,7 @@ void ChrisLib::ParseLegend( TH1* hist, string &legend ) {
     dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", hist->GetStdDev() ) );
     dumString.ReplaceAll( "__INTEGRAL", TString::Format( "%1.3e", hist->GetSumOfWeights() ) );
   }
-
-  legend = dumString;
-  ParseLegend( legend );
+  return ParseLegend( static_cast<string>(dumString) );
 }
 
 //============================================

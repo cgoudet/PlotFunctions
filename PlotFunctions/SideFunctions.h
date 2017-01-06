@@ -122,9 +122,9 @@ namespace ChrisLib {
   */
   void RemoveExtremalEmptyBins( TH1 *hist );
 
-  void ParseLegend( TH1* hist, std::string &legend );
-  void ParseLegend( TGraphErrors *graph, std::string &legend );
-  void ParseLegend( std::string &legend );
+  std::string ParseLegend( TH1* hist, const std::string &legend );
+  std::string ParseLegend( TGraphErrors *graph, const std::string &legend );
+  std::string ParseLegend( const std::string &legend );
 
   /**\brief Create a boostraped Tree out of inputTrees
      \param inTrees vector of input Trees

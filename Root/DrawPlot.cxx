@@ -18,6 +18,7 @@
 #include "TF1.h"
 #include "TObject.h"
 
+#include <iterator>
 #include <iostream>
 #include <map>
 #include <list>
@@ -134,383 +135,383 @@ int fillColors[] = { 3, 5 };
  */
 
 
-// int ChrisLib::DrawPlot( vector< TH1* > &inHist,  
-// 			string outName, 
-// 			vector<string> inOptions
-// 			) {
+int ChrisLib::DrawPlot( vector< TH1* > &inHist,  
+			string outName, 
+			vector<string> inOptions
+			) {
 
-//   //================ SOME CHECKS
-//   if ( DEBUG ) cout << "DrawPlot hist" << endl;
+  //================ SOME CHECKS
+  if ( DEBUG ) cout << "DrawPlot hist" << endl;
 
-//   map<string, int >  mapOptionsInt;
-//   map<string, double > mapOptionsDouble;
-//   vector<string> inLegend, inLatex; 
-//   vector< vector< double > > latexPos;
-//   vector< double > legendCoord, rangeUserX, rangeUserY;
-//   map<string, string> mapOptionsString;
-//   ReadOptions( inHist.size(), inOptions, mapOptionsDouble, mapOptionsInt, mapOptionsString,
-// 	       inLegend, inLatex, latexPos, legendCoord, rangeUserX, rangeUserY );
-
-
-//   SetAtlasStyle();
-
-//   if ( DEBUG ) cout << "Options read" << endl;
-//   vector< TH1* > ratio;
-
-//   //================ PAD DEFINITION
-//   TCanvas canvas;
-//   canvas.SetBottomMargin( 0.2 );
-//   if ( inHist.size()==1 && inHist.front() && TString(inHist.front()->ClassName()).Contains("TH2") ) {
-//     canvas.SetRightMargin(0.1);
-//     inHist.front()->Draw( "COLZ" );
-//     for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {
-//       if ( latexPos[iLatex].size() != 2 ) continue;
-
-//       myText( latexPos[iLatex][0], latexPos[iLatex][1], 1, inLatex[iLatex].c_str() );
-//     }
-//     string canOutName = outName + "." + mapOptionsString["extension"];
-//     canvas.SaveAs( canOutName.c_str() );
-//     return 0;
-//   }
-
-//   if ( DEBUG ) cout << "No 2D plot" << endl;
-
-//   TPad padUp( "padUp", "padUp", 0, 0.3, 1, 1 );
-//   padUp.SetBottomMargin( 0 );
-//   TPad padDown( "padDown", "padDown", 0, 0, 1, 0.3 );
-//   padDown.SetTopMargin( 0 );
-//   padDown.SetBottomMargin( 0.2 );
-
-//   if ( mapOptionsInt["doRatio"] ) {
-//     padUp.Draw();
-//     canvas.cd();
-//     padDown.Draw();
-//     padUp.cd();
-//   }
+  map<string, int >  mapOptionsInt;
+  map<string, double > mapOptionsDouble;
+  vector<string> inLegend, inLatex; 
+  vector< vector< double > > latexPos;
+  vector< double > legendCoord, rangeUserX, rangeUserY;
+  map<string, string> mapOptionsString;
+  ReadOptions( inHist.size(), inOptions, mapOptionsDouble, mapOptionsInt, mapOptionsString,
+	       inLegend, inLatex, latexPos, legendCoord, rangeUserX, rangeUserY );
 
 
-//   if ( !legendCoord.size() ) legendCoord={ 0.7, 0.9  };
+  SetAtlasStyle();
 
-//   TLine line( 0, 0.005, 100, 0.005);
-//   line.SetLineColor( kBlack );
-//   line.SetLineStyle( 3 );
-//   if ( DEBUG ) cout << "defined pads" << endl;
+  if ( DEBUG ) cout << "Options read" << endl;
+  vector< TH1* > ratio;
 
-//   //============ LOOP OTHER INPUT HIST
-//   //Find the extremum of the histograms to choose rangeUser if not given
-//   double minVal=0, maxVal=0;
-//   double minX=-0.99, maxX=0.99;
-//   vector<THStack*> stack;
-//   int refHist= -1;
-//   unsigned int totEventStack=0;
+  //================ PAD DEFINITION
+  TCanvas canvas;
+  canvas.SetBottomMargin( 0.2 );
+  if ( inHist.size()==1 && inHist.front() && TString(inHist.front()->ClassName()).Contains("TH2") ) {
+    canvas.SetRightMargin(0.1);
+    inHist.front()->Draw( "COLZ" );
+    for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {
+      if ( latexPos[iLatex].size() != 2 ) continue;
 
-//   if ( mapOptionsDouble["clean"] !=-99 ) CleanHist( inHist, mapOptionsDouble["clean"] );
+      myText( latexPos[iLatex][0], latexPos[iLatex][1], 1, inLatex[iLatex].c_str() );
+    }
+    string canOutName = outName + "." + mapOptionsString["extension"];
+    canvas.SaveAs( canOutName.c_str() );
+    return 0;
+  }
 
-//   if ( DEBUG ) cout << "Cleaned" << endl;
-//   //  bool isNegativeValue = false;
-//   for ( unsigned int iHist = 0; iHist < inHist.size(); iHist++ ) {
-//     if ( !inHist[iHist] ) continue;
-//     if ( refHist == -1 ) refHist = iHist;
-//     inHist[iHist]->UseCurrentStyle();
-//     if ( (int) iHist == refHist ) {
-//       if ( mapOptionsString["xTitle"]== "" ) mapOptionsString["xTitle"] = inHist[refHist]->GetXaxis()->GetTitle();
-//       ParseLegend( mapOptionsString["xTitle"] );
-//       inHist[refHist]->GetXaxis()->SetTitle( mapOptionsString["xTitle"].c_str() );
-//       if ( mapOptionsString["yTitle"]!="" ) {
-// 	ParseLegend( mapOptionsString["yTitle"] );
-// 	inHist[refHist]->GetYaxis()->SetTitle( mapOptionsString["yTitle"].c_str() );
-//       }
-//       if ( DEBUG ) cout << "titles set" << endl;
-//     }
-//     //Set color and style of histogram
-//     //If only one histograms is plotted, plot it in red
-//     inHist[iHist]->SetLineColor(  colors[ max( 0, (int) ( (inHist.size()==1 ? 1 : iHist) + mapOptionsInt["shiftColor"])) ]  );
-//     inHist[iHist]->SetMarkerColor( inHist[iHist]->GetLineColor() );
+  if ( DEBUG ) cout << "No 2D plot" << endl;
 
-//     vector<string> functionNames = { "cubicFit", "quadraticFit" };
-//     TIter next(inHist[iHist]->GetListOfFunctions());
-//     while (TObject *obj = next()) {
-//       inHist[iHist]->GetFunction( obj->GetName() )->SetLineColor( inHist[iHist]->GetLineColor() );
-//     }
+  TPad padUp( "padUp", "padUp", 0, 0.3, 1, 1 );
+  padUp.SetBottomMargin( 0 );
+  TPad padDown( "padDown", "padDown", 0, 0, 1, 0.3 );
+  padDown.SetTopMargin( 0 );
+  padDown.SetBottomMargin( 0.2 );
+
+  if ( mapOptionsInt["doRatio"] ) {
+    padUp.Draw();
+    canvas.cd();
+    padDown.Draw();
+    padUp.cd();
+  }
 
 
-//     //If only one histograms is plotted, plot it in red
-//     switch ( mapOptionsInt["drawStyle"] ) {
-//     case 1 :
-//       inHist[iHist]->SetLineColor( colors[ max( 0, (int) (iHist/2 +mapOptionsInt["shiftColor"] ) )] );
-//       inHist[iHist]->SetMarkerColor( colors[ max( 0 , (int) (iHist/2 + mapOptionsInt["shiftColor"]) ) ] );
-//       inHist[iHist]->SetMarkerStyle( (iHist%2) ? 4 : 8 ); 
-//       break;
-//     }
+  if ( !legendCoord.size() ) legendCoord={ 0.7, 0.9  };
 
-//     //======== CHI2 OF HISTOGRAM RATIOS
-//     if ( mapOptionsInt["doChi2"] && inLegend.size() && iHist ){
-//       switch ( mapOptionsInt["drawStyle"] ) {
-//       case 1 : 
-// 	if ( iHist % 2 ) inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( inHist[iHist], inHist[iHist-1] )/inHist[iHist]->GetNbinsX() );
-// 	break;
-//       default :
-// 	inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( inHist[iHist], inHist[refHist] )/inHist[refHist]->GetNbinsX() );
-//       }
-//     }
-//     if ( mapOptionsDouble["normalize"] && inHist[iHist]->Integral() && !mapOptionsInt["stack"] )  {
-//       inHist[iHist]->Sumw2();
-//       inHist[iHist]->Scale( mapOptionsDouble["normalize"]/inHist[iHist]->Integral() );
-//     }
+  TLine line( 0, 0.005, 100, 0.005);
+  line.SetLineColor( kBlack );
+  line.SetLineStyle( 3 );
+  if ( DEBUG ) cout << "defined pads" << endl;
 
-//     if ( DEBUG ) cout << "Style set" << endl;
-//     //============ LOOK FOR Y EXTREMAL VALUES AND DEFINE Y RANGE
-//     if( (int) iHist == refHist ) {
-//       minVal = inHist[refHist]->GetMinimum();
-//       maxVal = inHist[refHist]->GetMaximum();
-//     }
-//     //Update the maximum range of the plot with extremum of current plot
-//     for ( int bin = 1; bin <= inHist[iHist]->GetNbinsX(); bin++ ) {
-//       minVal = min( inHist[iHist]->GetBinContent( bin ) - inHist[iHist]->GetBinError( bin ), minVal );
-//       maxVal = max( inHist[iHist]->GetBinContent( bin ) + inHist[iHist]->GetBinError( bin ), maxVal );
-//       //  if ( inHist[iHist]->GetBinContent( bin ) < 0 ) isNegativeValue = true;
-//     }
-//      if ( DEBUG ) cout << "extremal Y values defined and set " << endl;
+  //============ LOOP OTHER INPUT HIST
+  //Find the extremum of the histograms to choose rangeUser if not given
+  double minVal=0, maxVal=0;
+  double minX=-0.99, maxX=0.99;
+  vector<THStack*> stack;
+  int refHist= -1;
+  unsigned int totEventStack=0;
 
-//      //========== LOOK FOR X EXTREMAL VALUES AND DEFINE X RANGE
-//      //initialize minX and maxX
+  if ( mapOptionsDouble["clean"] !=-99 ) CleanHist( inHist, mapOptionsDouble["clean"] );
 
-//      //widen x axis in nominal case
-//      if ( !mapOptionsInt["centerZoom"] ) {
-//        minX = minX==-0.99 ? inHist[iHist]->GetXaxis()->GetXmin() : min( minX, inHist[iHist]->GetXaxis()->GetXmin() );
-//        maxX = maxX==0.99  ? inHist[iHist]->GetXaxis()->GetXmax() :  max( maxX, inHist[iHist]->GetXaxis()->GetXmax() );
-//      }
-//      else {
-//        //get smaller interva in bin unit withoutextremal 0
-//        int lowBin = 1, upBin = inHist[iHist]->GetNbinsX();
-//        while ( inHist[iHist]->GetBinContent( lowBin ) == 0 && lowBin!=upBin ) lowBin++;
-//        while ( inHist[iHist]->GetBinContent( upBin ) ==0 && lowBin!=upBin ) upBin--;
-//        minX = minX==-0.99 ? inHist[iHist]->GetXaxis()->GetBinLowEdge( lowBin ) : min( minX, inHist[iHist]->GetXaxis()->GetBinLowEdge( lowBin ) );
-//        maxX = maxX==0.99 ? inHist[iHist]->GetXaxis()->GetBinUpEdge( upBin ) : max( maxX, inHist[iHist]->GetXaxis()->GetBinUpEdge( upBin ) );
-//      }
+  if ( DEBUG ) cout << "Cleaned" << endl;
+  //  bool isNegativeValue = false;
+  for ( unsigned int iHist = 0; iHist < inHist.size(); iHist++ ) {
+    if ( !inHist[iHist] ) continue;
+    if ( refHist == -1 ) refHist = iHist;
+    inHist[iHist]->UseCurrentStyle();
+    if ( (int) iHist == refHist ) {
+      if ( mapOptionsString["xTitle"]== "" ) mapOptionsString["xTitle"] = inHist[refHist]->GetXaxis()->GetTitle();
+      ParseLegend( mapOptionsString["xTitle"] );
+      inHist[refHist]->GetXaxis()->SetTitle( mapOptionsString["xTitle"].c_str() );
+      if ( mapOptionsString["yTitle"]!="" ) {
+	ParseLegend( mapOptionsString["yTitle"] );
+	inHist[refHist]->GetYaxis()->SetTitle( mapOptionsString["yTitle"].c_str() );
+      }
+      if ( DEBUG ) cout << "titles set" << endl;
+    }
+    //Set color and style of histogram
+    //If only one histograms is plotted, plot it in red
+    inHist[iHist]->SetLineColor(  colors[ max( 0, (int) ( (inHist.size()==1 ? 1 : iHist) + mapOptionsInt["shiftColor"])) ]  );
+    inHist[iHist]->SetMarkerColor( inHist[iHist]->GetLineColor() );
 
-//     if ( DEBUG ) cout << "X ranges defined" << endl;
-//   }//end iHist
-
-//   if ( DEBUG ) cout << "drawing" << endl;
-
-//   while ( rangeUserY.size() < 2 ) rangeUserY.push_back( pow(-1, rangeUserY.size()+1)*0.99 );
-//   if ( rangeUserY.front() == -0.99 ) rangeUserY.front() = minVal - ( maxVal - minVal ) *0.05;
-//   if ( rangeUserY.back() == 0.99 ) rangeUserY.back() = maxVal + ( maxVal - minVal ) *0.05;
-//   rangeUserY.back() += (rangeUserY.back() - rangeUserY.front()) * mapOptionsDouble["extendUp"];
+    vector<string> functionNames = { "cubicFit", "quadraticFit" };
+    TIter next(inHist[iHist]->GetListOfFunctions());
+    while (TObject *obj = next()) {
+      inHist[iHist]->GetFunction( obj->GetName() )->SetLineColor( inHist[iHist]->GetLineColor() );
+    }
 
 
-//   if ( rangeUserX.size() == 2 ) inHist[refHist]->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
-//   else {
-//     rangeUserX.clear();
-//     if ( minX==maxX ) maxX = minX+1;
-//     rangeUserX.push_back( minX );
-//     rangeUserX.push_back( maxX );
-//   }
+    //If only one histograms is plotted, plot it in red
+    switch ( mapOptionsInt["drawStyle"] ) {
+    case 1 :
+      inHist[iHist]->SetLineColor( colors[ max( 0, (int) (iHist/2 +mapOptionsInt["shiftColor"] ) )] );
+      inHist[iHist]->SetMarkerColor( colors[ max( 0 , (int) (iHist/2 + mapOptionsInt["shiftColor"]) ) ] );
+      inHist[iHist]->SetMarkerStyle( (iHist%2) ? 4 : 8 ); 
+      break;
+    }
 
-//   TH1F* dumHist = 0;
-//   if ( !strcmp( inHist[refHist]->GetXaxis()->GetBinLabel(1), "" ) ) {
-//     if ( mapOptionsInt["doRatio"] ) dumHist = padUp.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
-//     else dumHist = canvas.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
-//     dumHist->GetXaxis()->SetTitle( inHist[refHist]->GetXaxis()->GetTitle() );
-//     dumHist->GetYaxis()->SetTitle( inHist[refHist]->GetYaxis()->GetTitle() );
+    //======== CHI2 OF HISTOGRAM RATIOS
+    if ( mapOptionsInt["doChi2"] && inLegend.size() && iHist ){
+      switch ( mapOptionsInt["drawStyle"] ) {
+      case 1 : 
+	if ( iHist % 2 ) inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( inHist[iHist], inHist[iHist-1] )/inHist[iHist]->GetNbinsX() );
+	break;
+      default :
+	inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( inHist[iHist], inHist[refHist] )/inHist[refHist]->GetNbinsX() );
+      }
+    }
+    if ( mapOptionsDouble["normalize"] && inHist[iHist]->Integral() && !mapOptionsInt["stack"] )  {
+      inHist[iHist]->Sumw2();
+      inHist[iHist]->Scale( mapOptionsDouble["normalize"]/inHist[iHist]->Integral() );
+    }
 
-//     if (mapOptionsInt["doRatio"]) {
-//       dumHist->GetYaxis()->SetTitleOffset( 0.6 );
-//       dumHist->GetYaxis()->SetTitleSize( 0.06 );
-//     }
-//   }
-//   else {
-//     inHist[refHist]->GetYaxis()->SetRangeUser( rangeUserY.front(), rangeUserY.back() );
-//   }
+    if ( DEBUG ) cout << "Style set" << endl;
+    //============ LOOK FOR Y EXTREMAL VALUES AND DEFINE Y RANGE
+    if( (int) iHist == refHist ) {
+      minVal = inHist[refHist]->GetMinimum();
+      maxVal = inHist[refHist]->GetMaximum();
+    }
+    //Update the maximum range of the plot with extremum of current plot
+    for ( int bin = 1; bin <= inHist[iHist]->GetNbinsX(); bin++ ) {
+      minVal = min( inHist[iHist]->GetBinContent( bin ) - inHist[iHist]->GetBinError( bin ), minVal );
+      maxVal = max( inHist[iHist]->GetBinContent( bin ) + inHist[iHist]->GetBinError( bin ), maxVal );
+      //  if ( inHist[iHist]->GetBinContent( bin ) < 0 ) isNegativeValue = true;
+    }
+     if ( DEBUG ) cout << "extremal Y values defined and set " << endl;
 
-//   //Plotting histograms
-//   for ( unsigned int iHist = refHist; iHist < inHist.size(); iHist++ ) {
-//     if ( !inHist[iHist] ) continue;
+     //========== LOOK FOR X EXTREMAL VALUES AND DEFINE X RANGE
+     //initialize minX and maxX
 
-//     string drawOpt = strcmp( inHist[refHist]->GetXaxis()->GetBinLabel(1), "" ) && (int)iHist==refHist ?  "" :"SAME,";
-//     switch ( mapOptionsInt["drawStyle"] ){
-//     case 2 : drawOpt += "HIST"; break;
-//     case 3 : drawOpt += "HISTL"; break;
-//     case 4 : 
-//       inHist[0]->SetMarkerStyle(8);
-//       inHist[1]->SetMarkerStyle(25);
-//       inHist[iHist]->SetMarkerSize(1.3);
-//       break;
-//     default : drawOpt += "E"; 
-//     }
+     //widen x axis in nominal case
+     if ( !mapOptionsInt["centerZoom"] ) {
+       minX = minX==-0.99 ? inHist[iHist]->GetXaxis()->GetXmin() : min( minX, inHist[iHist]->GetXaxis()->GetXmin() );
+       maxX = maxX==0.99  ? inHist[iHist]->GetXaxis()->GetXmax() :  max( maxX, inHist[iHist]->GetXaxis()->GetXmax() );
+     }
+     else {
+       //get smaller interva in bin unit withoutextremal 0
+       int lowBin = 1, upBin = inHist[iHist]->GetNbinsX();
+       while ( inHist[iHist]->GetBinContent( lowBin ) == 0 && lowBin!=upBin ) lowBin++;
+       while ( inHist[iHist]->GetBinContent( upBin ) ==0 && lowBin!=upBin ) upBin--;
+       minX = minX==-0.99 ? inHist[iHist]->GetXaxis()->GetBinLowEdge( lowBin ) : min( minX, inHist[iHist]->GetXaxis()->GetBinLowEdge( lowBin ) );
+       maxX = maxX==0.99 ? inHist[iHist]->GetXaxis()->GetBinUpEdge( upBin ) : max( maxX, inHist[iHist]->GetXaxis()->GetBinUpEdge( upBin ) );
+     }
 
-//     if ( inLegend.size() > iHist && TString( inLegend[iHist].c_str() ).Contains( "__NOPOINT" ) ) {
-//       inHist[iHist]->SetLineColorAlpha( 0, 0 );
-//       inHist[iHist]->SetMarkerColorAlpha( 0, 0 );
-//     }
+    if ( DEBUG ) cout << "X ranges defined" << endl;
+  }//end iHist
+
+  if ( DEBUG ) cout << "drawing" << endl;
+
+  while ( rangeUserY.size() < 2 ) rangeUserY.push_back( pow(-1, rangeUserY.size()+1)*0.99 );
+  if ( rangeUserY.front() == -0.99 ) rangeUserY.front() = minVal - ( maxVal - minVal ) *0.05;
+  if ( rangeUserY.back() == 0.99 ) rangeUserY.back() = maxVal + ( maxVal - minVal ) *0.05;
+  rangeUserY.back() += (rangeUserY.back() - rangeUserY.front()) * mapOptionsDouble["extendUp"];
+
+
+  if ( rangeUserX.size() == 2 ) inHist[refHist]->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
+  else {
+    rangeUserX.clear();
+    if ( minX==maxX ) maxX = minX+1;
+    rangeUserX.push_back( minX );
+    rangeUserX.push_back( maxX );
+  }
+
+  TH1F* dumHist = 0;
+  if ( !strcmp( inHist[refHist]->GetXaxis()->GetBinLabel(1), "" ) ) {
+    if ( mapOptionsInt["doRatio"] ) dumHist = padUp.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
+    else dumHist = canvas.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
+    dumHist->GetXaxis()->SetTitle( inHist[refHist]->GetXaxis()->GetTitle() );
+    dumHist->GetYaxis()->SetTitle( inHist[refHist]->GetYaxis()->GetTitle() );
+
+    if (mapOptionsInt["doRatio"]) {
+      dumHist->GetYaxis()->SetTitleOffset( 0.6 );
+      dumHist->GetYaxis()->SetTitleSize( 0.06 );
+    }
+  }
+  else {
+    inHist[refHist]->GetYaxis()->SetRangeUser( rangeUserY.front(), rangeUserY.back() );
+  }
+
+  //Plotting histograms
+  for ( unsigned int iHist = refHist; iHist < inHist.size(); iHist++ ) {
+    if ( !inHist[iHist] ) continue;
+
+    string drawOpt = strcmp( inHist[refHist]->GetXaxis()->GetBinLabel(1), "" ) && (int)iHist==refHist ?  "" :"SAME,";
+    switch ( mapOptionsInt["drawStyle"] ){
+    case 2 : drawOpt += "HIST"; break;
+    case 3 : drawOpt += "HISTL"; break;
+    case 4 : 
+      inHist[0]->SetMarkerStyle(8);
+      inHist[1]->SetMarkerStyle(25);
+      inHist[iHist]->SetMarkerSize(1.3);
+      break;
+    default : drawOpt += "E"; 
+    }
+
+    if ( inLegend.size() > iHist && TString( inLegend[iHist].c_str() ).Contains( "__NOPOINT" ) ) {
+      inHist[iHist]->SetLineColorAlpha( 0, 0 );
+      inHist[iHist]->SetMarkerColorAlpha( 0, 0 );
+    }
 
     
-//     if ( inLegend.size() > iHist && TString( inLegend[iHist].c_str() ).Contains( "__FILL" ) ) {
-//       drawOpt += "2";
-//       inHist[iHist]->SetFillColor( fillColors[iHist] );
-//       //      myBoxText( legendCoord[0], legendCoord[1]-0.05*iHist, 0.05, inHist[iHist]->GetFillColor(), inLegend[iHist].c_str() ); 
-//     }
+    if ( inLegend.size() > iHist && TString( inLegend[iHist].c_str() ).Contains( "__FILL" ) ) {
+      drawOpt += "2";
+      inHist[iHist]->SetFillColor( fillColors[iHist] );
+      //      myBoxText( legendCoord[0], legendCoord[1]-0.05*iHist, 0.05, inHist[iHist]->GetFillColor(), inLegend[iHist].c_str() ); 
+    }
 
-//     //Added for PlotNotePub (Antinea)
-//     //    inHist[iHist]->SetLabelSize(0.05);
-//     //    inHist[iHist]->GetXaxis()->SetTitleOffset(1.7);
-//     //    inHist[0]->SetMarkerStyle(8);
-//     //inHist[1]->SetMarkerStyle(25);
+    //Added for PlotNotePub (Antinea)
+    //    inHist[iHist]->SetLabelSize(0.05);
+    //    inHist[iHist]->GetXaxis()->SetTitleOffset(1.7);
+    //    inHist[0]->SetMarkerStyle(8);
+    //inHist[1]->SetMarkerStyle(25);
 
-//     if ( !mapOptionsInt["stack" ] ) inHist[iHist]->Draw( drawOpt.c_str() );
-//     else {
-//       inHist[iHist]->SetFillColor( inHist[iHist]->GetLineColor() );
-//       if ( inLegend.size() && !TString(inLegend[iHist]).Contains( "__STACK" ) ) {
-// 	if ( stack.size() ) {
-// 	  if ( mapOptionsDouble["normalize"]!=0 ) RescaleStack( stack.back(), mapOptionsDouble["normalize"] );
-// 	  stack.back()->Draw( stack.size()==1 ? "HIST B" : "HIST B same" );
-// 	}
-// 	totEventStack = 0;
-// 	stack.push_back(0);
-// 	stack.back() = new THStack();
-//       }
-//       stack.back()->Add( inHist[iHist] );
-//       totEventStack += inHist[iHist]->Integral();
-//       if ( iHist==inHist.size()-1 ) {
-// 	if ( mapOptionsDouble["normalize"]!=0 ) RescaleStack( stack.back(), mapOptionsDouble["normalize"] );
-// 	stack.back()->Draw( stack.size()==1 ? "HIST B" : "HIST B same" );
-//       }
-//     }
+    if ( !mapOptionsInt["stack" ] ) inHist[iHist]->Draw( drawOpt.c_str() );
+    else {
+      inHist[iHist]->SetFillColor( inHist[iHist]->GetLineColor() );
+      if ( inLegend.size() && !TString(inLegend[iHist]).Contains( "__STACK" ) ) {
+	if ( stack.size() ) {
+	  if ( mapOptionsDouble["normalize"]!=0 ) RescaleStack( stack.back(), mapOptionsDouble["normalize"] );
+	  stack.back()->Draw( stack.size()==1 ? "HIST B" : "HIST B same" );
+	}
+	totEventStack = 0;
+	stack.push_back(0);
+	stack.back() = new THStack();
+      }
+      stack.back()->Add( inHist[iHist] );
+      totEventStack += inHist[iHist]->Integral();
+      if ( iHist==inHist.size()-1 ) {
+	if ( mapOptionsDouble["normalize"]!=0 ) RescaleStack( stack.back(), mapOptionsDouble["normalize"] );
+	stack.back()->Draw( stack.size()==1 ? "HIST B" : "HIST B same" );
+      }
+    }
 
 
-//     if( !iHist && mapOptionsDouble["line"] != -99 ) {
-//       double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : (mapOptionsInt["centerZoom"] ? minX : inHist[refHist]->GetXaxis()->GetXmin() );
-//       double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : ( mapOptionsInt["centerZoom"] ? maxX :inHist[refHist]->GetXaxis()->GetXmax() );
-//       line.DrawLine( rangeMin , mapOptionsDouble["line"], rangeMax, mapOptionsDouble["line"]);
-//     }
-//     //========== ADD HISTOGRAM TO LEGEND
-//   }//end iHist
+    if( !iHist && mapOptionsDouble["line"] != -99 ) {
+      double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : (mapOptionsInt["centerZoom"] ? minX : inHist[refHist]->GetXaxis()->GetXmin() );
+      double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : ( mapOptionsInt["centerZoom"] ? maxX :inHist[refHist]->GetXaxis()->GetXmax() );
+      line.DrawLine( rangeMin , mapOptionsDouble["line"], rangeMax, mapOptionsDouble["line"]);
+    }
+    //========== ADD HISTOGRAM TO LEGEND
+  }//end iHist
 
-//   if ( DEBUG ) cout << "drawn" << endl;
-//   //  stack.Draw( mapOptionsInt["stack"] ? "F" : "nostack"  ); 
+  if ( DEBUG ) cout << "drawn" << endl;
+  //  stack.Draw( mapOptionsInt["stack"] ? "F" : "nostack"  ); 
 
-//   if ( mapOptionsInt["logy"] ) {
-//     int topVal = ceil( log10( maxVal ) );
-//     int lowVal = minVal==0 ? topVal-5 : floor( log10( minVal ) );
-//     if ( rangeUserY[0] < 0 ) rangeUserY[0]=pow( 10, lowVal );
-//     rangeUserY[1] = pow( 10, topVal + ( topVal - lowVal ) * (0.05 + mapOptionsDouble["extendUp"] ) );
-//     if ( mapOptionsDouble["stack"] == 0 ) inHist[refHist]->GetYaxis()->SetRangeUser( rangeUserY[0], rangeUserY[1] );    
-//     else {
-//       stack.front()->SetMinimum( rangeUserY[0] );
-//       stack.front()->SetMaximum( rangeUserY[1] );
-//       stack.front()->Draw();
-//     }
-//     if ( mapOptionsInt["doRatio"] ) {
-//       padUp.SetLogy(1);
-//     }
-//     else {
-//       canvas.SetLogy(1);
-//     }
-//     if ( DEBUG ) cout << "logy done" << endl;
-//   }
+  if ( mapOptionsInt["logy"] ) {
+    int topVal = ceil( log10( maxVal ) );
+    int lowVal = minVal==0 ? topVal-5 : floor( log10( minVal ) );
+    if ( rangeUserY[0] < 0 ) rangeUserY[0]=pow( 10, lowVal );
+    rangeUserY[1] = pow( 10, topVal + ( topVal - lowVal ) * (0.05 + mapOptionsDouble["extendUp"] ) );
+    if ( mapOptionsDouble["stack"] == 0 ) inHist[refHist]->GetYaxis()->SetRangeUser( rangeUserY[0], rangeUserY[1] );    
+    else {
+      stack.front()->SetMinimum( rangeUserY[0] );
+      stack.front()->SetMaximum( rangeUserY[1] );
+      stack.front()->Draw();
+    }
+    if ( mapOptionsInt["doRatio"] ) {
+      padUp.SetLogy(1);
+    }
+    else {
+      canvas.SetLogy(1);
+    }
+    if ( DEBUG ) cout << "logy done" << endl;
+  }
 
-//   // =========== PRINT LEGENDS AND LATEX
-//   canvas.cd();
-//   for ( unsigned int iLegend=0; iLegend<inLegend.size(); iLegend++ ) {
-//     if ( !inHist[iLegend] ) continue;
-//     bool doFill = inLegend.size() > iLegend && TString( inLegend[iLegend].c_str() ).Contains( "__FILL" );
-//     ParseLegend( inHist[iLegend] , inLegend[iLegend] );
-//     if ( doFill )  myBoxText( legendCoord[0], legendCoord[1]-0.04*iLegend, inHist[iLegend]->GetFillColor(), inLegend[iLegend].c_str() ); 
-//     else if ( mapOptionsInt["drawStyle"] ) myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetMarkerColor(), inHist[iLegend]->GetMarkerStyle(), inLegend[iLegend].c_str()  ); 
-//     else myLineText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetLineColor(), inHist[iLegend]->GetLineStyle(), inLegend[iLegend].c_str()  ); 
-//     if (mapOptionsInt["drawStyle"]==4)
-//       {
-// 	myLineText( legendCoord[0]-0.005, legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetLineColor(), inHist[iLegend]->GetLineStyle(), ""  ); 
-// 	myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetMarkerColor(), inHist[iLegend]->GetMarkerStyle(), inLegend[iLegend].c_str()  );
-//       }
-//   }
-//   if ( DEBUG )  cout << "legend drawn" << endl;
-//   for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {
-//     if ( latexPos[iLatex].size() != 2 ) continue;
-//     bool doLabel = TString( inLatex[iLatex] ).Contains("__ATLAS");
-//     ParseLegend( inLatex[iLatex] );
-//     if ( doLabel ) ATLASLabel( latexPos[iLatex][0], latexPos[iLatex][1], inLatex[iLatex].c_str(),1 , 0.04 );
-//     else myText( latexPos[iLatex][0], latexPos[iLatex][1], 1, inLatex[iLatex].c_str() );
-//   }
-//   if ( DEBUG ) cout << "latex drawn" << endl;
-//   //===============  CREATE RATIO PLOTS
-//   if ( mapOptionsInt["doRatio"] ) {
-//     padDown.cd();
-//     double minValRatio = 0;
-//     double maxValRatio = 0;
-//     bool setTitle=0;
-//     for ( unsigned int iHist = refHist+1; iHist < inHist.size(); iHist++ ) {
-//       if ( !inHist[iHist] ) continue;
-//       string yTitle;
-//       //Decide how to pair histogram for ratio
-//       switch ( mapOptionsInt["drawStyle"] ) {
-//       case 1 :
-// 	if ( !(iHist % 2) || !inHist[iHist-1]) continue;
-// 	ratio.push_back( 0 );
-// 	ratio.back() = (TH1D*) inHist[iHist]->Clone();
-// 	ratio.back()->Add( inHist[iHist-1], -1 );
-// 	if ( mapOptionsInt["doRatio"] == 1 ) ratio.back()->Divide( inHist[iHist-1] );
-// 	yTitle = ( mapOptionsInt["doRatio"]==1 ) ? "#frac{h_{2n+1}-h_{2n}}{h_{2n}}" : "h_{2n+1}-h_{2n}";
-// 	break;
-//       default : 
-// 	ratio.push_back( 0 );
-// 	ratio.back() = (TH1D* ) inHist[iHist]->Clone();
-// 	ratio.back()->Add( inHist[refHist], -1 );
-// 	if ( mapOptionsInt["doRatio"] == 1 ) ratio.back()->Divide( inHist[refHist] );
-// 	yTitle = ( mapOptionsInt["doRatio"]==1 ) ? "#frac{h_{n}-h_{0}}{h_{0}}" : "h_{n}-h_{0}";
-//       }
-//       if ( DEBUG ) cout << "ratio created" << endl;
-//       //Set graphics properties of first hitogram
-//       if ( !setTitle ) {
-//   	ratio.front()->GetXaxis()->SetTitle( inHist[refHist]->GetXaxis()->GetTitle() );
-//   	ratio.front()->GetXaxis()->SetLabelSize( 0.1 );
-//   	ratio.front()->GetXaxis()->SetTitleSize( 0.1 );
-// 	//  	ratio.front()->GetYaxis()->SetLabelSize( 0.05 );
-//   	ratio.front()->GetYaxis()->SetLabelSize( 0.08 );
-//   	ratio.front()->GetYaxis()->SetTitleSize( 0.1 );
-//   	ratio.front()->GetYaxis()->SetTitleOffset( 0.5 );
-//   	ratio.front()->GetXaxis()->SetTitleOffset( 0.7 );
-//   	ratio.front()->SetTitle("");
-//         ratio.front()->GetYaxis()->SetTitle( yTitle.c_str() );
-// 	setTitle = 1;
-//       }
-//       if ( DEBUG ) cout << "ratio front title done" << endl;
-//       //Update the values of Y axis range
-//       for ( int bin = 1; bin <= ratio.front()->GetNbinsX(); bin++ ) {
-//   	minValRatio = min( ratio.back()->GetBinContent(bin) - ratio.back()->GetBinError( bin), minValRatio );
-//   	maxValRatio = max( ratio.back()->GetBinContent(bin)+ ratio.back()->GetBinError( bin ), maxValRatio );
-//       }
+  // =========== PRINT LEGENDS AND LATEX
+  canvas.cd();
+  for ( unsigned int iLegend=0; iLegend<inLegend.size(); iLegend++ ) {
+    if ( !inHist[iLegend] ) continue;
+    bool doFill = inLegend.size() > iLegend && TString( inLegend[iLegend].c_str() ).Contains( "__FILL" );
+    ParseLegend( inHist[iLegend] , inLegend[iLegend] );
+    if ( doFill )  myBoxText( legendCoord[0], legendCoord[1]-0.04*iLegend, inHist[iLegend]->GetFillColor(), inLegend[iLegend].c_str() ); 
+    else if ( mapOptionsInt["drawStyle"] ) myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetMarkerColor(), inHist[iLegend]->GetMarkerStyle(), inLegend[iLegend].c_str()  ); 
+    else myLineText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetLineColor(), inHist[iLegend]->GetLineStyle(), inLegend[iLegend].c_str()  ); 
+    if (mapOptionsInt["drawStyle"]==4)
+      {
+	myLineText( legendCoord[0]-0.005, legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetLineColor(), inHist[iLegend]->GetLineStyle(), ""  ); 
+	myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, inHist[iLegend]->GetMarkerColor(), inHist[iLegend]->GetMarkerStyle(), inLegend[iLegend].c_str()  );
+      }
+  }
+  if ( DEBUG )  cout << "legend drawn" << endl;
+  for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {
+    if ( latexPos[iLatex].size() != 2 ) continue;
+    bool doLabel = TString( inLatex[iLatex] ).Contains("__ATLAS");
+    ParseLegend( inLatex[iLatex] );
+    if ( doLabel ) ATLASLabel( latexPos[iLatex][0], latexPos[iLatex][1], inLatex[iLatex].c_str(),1 , 0.04 );
+    else myText( latexPos[iLatex][0], latexPos[iLatex][1], 1, inLatex[iLatex].c_str() );
+  }
+  if ( DEBUG ) cout << "latex drawn" << endl;
+  //===============  CREATE RATIO PLOTS
+  if ( mapOptionsInt["doRatio"] ) {
+    padDown.cd();
+    double minValRatio = 0;
+    double maxValRatio = 0;
+    bool setTitle=0;
+    for ( unsigned int iHist = refHist+1; iHist < inHist.size(); iHist++ ) {
+      if ( !inHist[iHist] ) continue;
+      string yTitle;
+      //Decide how to pair histogram for ratio
+      switch ( mapOptionsInt["drawStyle"] ) {
+      case 1 :
+	if ( !(iHist % 2) || !inHist[iHist-1]) continue;
+	ratio.push_back( 0 );
+	ratio.back() = (TH1D*) inHist[iHist]->Clone();
+	ratio.back()->Add( inHist[iHist-1], -1 );
+	if ( mapOptionsInt["doRatio"] == 1 ) ratio.back()->Divide( inHist[iHist-1] );
+	yTitle = ( mapOptionsInt["doRatio"]==1 ) ? "#frac{h_{2n+1}-h_{2n}}{h_{2n}}" : "h_{2n+1}-h_{2n}";
+	break;
+      default : 
+	ratio.push_back( 0 );
+	ratio.back() = (TH1D* ) inHist[iHist]->Clone();
+	ratio.back()->Add( inHist[refHist], -1 );
+	if ( mapOptionsInt["doRatio"] == 1 ) ratio.back()->Divide( inHist[refHist] );
+	yTitle = ( mapOptionsInt["doRatio"]==1 ) ? "#frac{h_{n}-h_{0}}{h_{0}}" : "h_{n}-h_{0}";
+      }
+      if ( DEBUG ) cout << "ratio created" << endl;
+      //Set graphics properties of first hitogram
+      if ( !setTitle ) {
+  	ratio.front()->GetXaxis()->SetTitle( inHist[refHist]->GetXaxis()->GetTitle() );
+  	ratio.front()->GetXaxis()->SetLabelSize( 0.1 );
+  	ratio.front()->GetXaxis()->SetTitleSize( 0.1 );
+	//  	ratio.front()->GetYaxis()->SetLabelSize( 0.05 );
+  	ratio.front()->GetYaxis()->SetLabelSize( 0.08 );
+  	ratio.front()->GetYaxis()->SetTitleSize( 0.1 );
+  	ratio.front()->GetYaxis()->SetTitleOffset( 0.5 );
+  	ratio.front()->GetXaxis()->SetTitleOffset( 0.7 );
+  	ratio.front()->SetTitle("");
+        ratio.front()->GetYaxis()->SetTitle( yTitle.c_str() );
+	setTitle = 1;
+      }
+      if ( DEBUG ) cout << "ratio front title done" << endl;
+      //Update the values of Y axis range
+      for ( int bin = 1; bin <= ratio.front()->GetNbinsX(); bin++ ) {
+  	minValRatio = min( ratio.back()->GetBinContent(bin) - ratio.back()->GetBinError( bin), minValRatio );
+  	maxValRatio = max( ratio.back()->GetBinContent(bin)+ ratio.back()->GetBinError( bin ), maxValRatio );
+      }
 
-//     }// end iHist
+    }// end iHist
 
-//     if ( ratio.size() ) {
-//       if ( DEBUG ) cout << "ratio ranges " << endl;
-//       //Plot all the ratio plots
-//       ratio.front()->GetYaxis()->SetRangeUser( minValRatio - (maxValRatio-minValRatio)*0.05, maxValRatio+(maxValRatio-minValRatio)*0.05 );
-//       if ( rangeUserX.size() == 2 ) ratio.front()->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
-//       else if ( mapOptionsInt["centerZoom"] ) ratio.front()->GetXaxis()->SetRangeUser( minX, maxX );
-//       if ( DEBUG ) cout << "plot ratio" << endl;
-//       for ( unsigned int iHist = 0; iHist < ratio.size(); iHist++ ) {
-// 	ratio[iHist]->Draw( ( iHist ) ? "e,same" : "e" );
-//       }
-//       //Create a line at 0 to visualize deviations
-//       line.DrawLine( mapOptionsInt["centerZoom"] ? minX : ratio.front()->GetXaxis()->GetXmin(), 0, mapOptionsInt["centerZoom"] ? maxX :ratio.front()->GetXaxis()->GetXmax(), 0);
-//     }
-//     }//end doRatio
+    if ( ratio.size() ) {
+      if ( DEBUG ) cout << "ratio ranges " << endl;
+      //Plot all the ratio plots
+      ratio.front()->GetYaxis()->SetRangeUser( minValRatio - (maxValRatio-minValRatio)*0.05, maxValRatio+(maxValRatio-minValRatio)*0.05 );
+      if ( rangeUserX.size() == 2 ) ratio.front()->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
+      else if ( mapOptionsInt["centerZoom"] ) ratio.front()->GetXaxis()->SetRangeUser( minX, maxX );
+      if ( DEBUG ) cout << "plot ratio" << endl;
+      for ( unsigned int iHist = 0; iHist < ratio.size(); iHist++ ) {
+	ratio[iHist]->Draw( ( iHist ) ? "e,same" : "e" );
+      }
+      //Create a line at 0 to visualize deviations
+      line.DrawLine( mapOptionsInt["centerZoom"] ? minX : ratio.front()->GetXaxis()->GetXmin(), 0, mapOptionsInt["centerZoom"] ? maxX :ratio.front()->GetXaxis()->GetXmax(), 0);
+    }
+    }//end doRatio
 
-//   if ( DEBUG ) cout << "saving" << endl;
-//   string canOutName = outName + "." + mapOptionsString["extension"];
-//   canvas.SaveAs( canOutName.c_str() );
+  if ( DEBUG ) cout << "saving" << endl;
+  string canOutName = outName + "." + mapOptionsString["extension"];
+  canvas.SaveAs( canOutName.c_str() );
 
-//    canvas.SaveAs( TString(outName) + ".pdf" );
-//    canvas.SaveAs( TString(outName) + ".root" );
+   canvas.SaveAs( TString(outName) + ".pdf" );
+   canvas.SaveAs( TString(outName) + ".root" );
   
 
-//    //  ========== CLEANING 
+   //  ========== CLEANING 
    
-//   return 0;
-// }
+  return 0;
+}
 
 
 //===================================
@@ -928,7 +929,7 @@ bool IsHist( TObject* obj ) {
   else return true;
 }
 //==============================================
-void SetProperties( TObject* obj, map<string,int> &mapInt, map<string,string> &mapString, int iHist ) {
+void SetProperties( TObject* obj, const DrawOptions &drawOpt, int iHist ) {
   TH1* hist=0;
   TGraphErrors *graph=0;
   if (  !IsHist( obj ) ) graph = static_cast<TGraphErrors*>(obj);
@@ -937,31 +938,33 @@ void SetProperties( TObject* obj, map<string,int> &mapInt, map<string,string> &m
   obj->UseCurrentStyle();
   if ( !iHist ) {
     for ( unsigned iAxis=0; iAxis<2; ++iAxis ) {
-      map<string,string>::iterator title = mapString.find( string(iAxis?"y":"x") + "Title" );
-      if ( title->second != "" ) {
-	ParseLegend( title->second );
+      string title = iAxis ? drawOpt.GetYTitle() : drawOpt.GetXTitle();
+      if ( title!= "" ) {
+	ParseLegend( title );
 	TAxis *axis = 0;
 	if ( hist ) axis = iAxis ? hist->GetYaxis() : hist->GetXaxis();
 	else axis = iAxis ? graph->GetYaxis() : graph->GetXaxis();
-	axis->SetTitle( title->second.c_str() );
+	axis->SetTitle( title.c_str() );
       }
     }
-    if ( graph && mapInt["orderX"] ) graph->Sort();
+    if ( graph && drawOpt.GetOrderX() ) graph->Sort();
   }
 
   //If only one histograms is plotted, plot it in red
   TAttLine *attLine= hist ? static_cast<TAttLine*>(hist) : static_cast<TAttLine*>(graph);
   TAttMarker *attMarker = hist ? static_cast<TAttMarker*>(hist) : static_cast<TAttMarker*>(graph);
   attMarker->SetMarkerSize( 0.5 );
-  switch ( mapInt["drawStyle"] ) {
+  
+  int shiftColor = drawOpt.GetShiftColor();
+  switch ( drawOpt.GetDrawStyle() ) {
   case 1 :
-    attLine->SetLineColor( colors[ max( 0, iHist/2 +mapInt["shiftColor"] )] );
-    attMarker->SetMarkerColor( colors[ max( 0 , static_cast<int>(iHist/2 + mapInt["shiftColor"])) ] );
+    attLine->SetLineColor( colors[ max( 0, iHist/2 + shiftColor )] );
+    attMarker->SetMarkerColor( colors[ max( 0 , static_cast<int>(iHist/2 + shiftColor)) ] );
     attMarker->SetMarkerStyle( (iHist%2) ? 4 : 8 ); 
     break;
   default :
-    attLine->SetLineColor( colors[iHist+mapInt["shiftColor"]] );
-    attMarker->SetMarkerColor( colors[ iHist + mapInt["shiftColor"] ] );
+    attLine->SetLineColor( colors[iHist+shiftColor] );
+    attMarker->SetMarkerColor( colors[ iHist + shiftColor ] );
     attMarker->SetMarkerStyle( 8 ); 
   }
 
@@ -1012,13 +1015,13 @@ void GetMaxValue( TObject *obj, double &minVal, double &maxVal, double &minX, do
     }
 }
 //==============================================
-void DrawText( vector<TObject*> &inHist, 
-	       vector<string> &inLegend, 
-	       vector<string> &inLatex,
-	       const map<string,int> &mapOptionsInt,
-	       const vector<double> &legendCoord,
-	       const vector<vector<double>> &latexPos
+void DrawText( vector<TObject*> &inHist,
+	       const DrawOptions &drawOpt
 	       ) {
+
+  vector<string> inLegend { drawOpt.GetLegends() };
+  const vector<double> legendCoord = drawOpt.GetLegendCoord();
+  int drawStyle = drawOpt.GetDrawStyle();
   
   for ( unsigned int iLegend=0; iLegend<inLegend.size(); iLegend++ ) {
     if ( !inHist[iLegend] ) continue;
@@ -1031,26 +1034,35 @@ void DrawText( vector<TObject*> &inHist,
     int color = attLine->GetLineColor();
     int lineStyle = attLine->GetLineStyle();
     int markerStyle = attMarker->GetMarkerStyle();
-    bool doFill = inLegend.size() > iLegend && TString( inLegend[iLegend].c_str() ).Contains( "__FILL" );
-    if ( hist ) ParseLegend( hist, inLegend[iLegend] );
-    else ParseLegend( graph, inLegend[iLegend] );
+    bool doFill = inLegend.size() > iLegend && inLegend[iLegend].find("__FILL")!=string::npos;
+    inLegend[iLegend] =  hist ? ParseLegend( hist, inLegend[iLegend] ) : ParseLegend( graph, inLegend[iLegend] );
     if ( doFill ) {
       color = hist ? hist->GetFillColor() : graph->GetFillColor();
       myBoxText( legendCoord[0], legendCoord[1]-0.04*iLegend, color, inLegend[iLegend].c_str() ); 
     }
-    else if ( mapOptionsInt.at("drawStyle") ) myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, markerStyle, inLegend[iLegend].c_str()  ); 
-    else myLineText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, lineStyle, inLegend[iLegend].c_str()  ); 
-    if (mapOptionsInt.at("drawStyle")==4) {
-  	myLineText( legendCoord[0]-0.005, legendCoord[1]-0.05*iLegend, color, lineStyle, ""  ); 
-  	myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, markerStyle, inLegend[iLegend].c_str()  );
+    else if ( drawStyle ) {
+      cout << "marker" << endl;
+      cout << "legendCoord.size() : " << legendCoord.size() << endl;
+      cout << "inLegend : " << iLegend << "/" << inLegend.size() << endl;
+      cout << inLegend[iLegend] << endl;
+      myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, markerStyle, inLegend[iLegend].c_str()  );
+      cout << "end marker" << endl;
     }
+    else myLineText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, lineStyle, inLegend[iLegend].c_str()  );
+    //Added by Antinea but don't know the impact
+    // if (drawStyle==4) {
+    // 	myLineText( legendCoord[0]-0.005, legendCoord[1]-0.05*iLegend, color, lineStyle, ""  ); 
+    // 	myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, markerStyle, inLegend[iLegend].c_str()  );
+    // }
   }
   if ( DEBUG )  cout << "legend drawn" << endl;
 
+  vector<string> inLatex { drawOpt.GetLatex() };
+  const vector<vector<double>> latexPos = drawOpt.GetLatexPos();
   for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {
     if ( latexPos[iLatex].size() != 2 ) continue;
-    bool doLabel = TString( inLatex[iLatex] ).Contains("__ATLAS");
-    ParseLegend( inLatex[iLatex] );
+    bool doLabel = inLatex[iLatex].find("__ATLAS") != string::npos;
+    inLatex[iLatex] = ParseLegend( inLatex[iLatex] );
     if ( doLabel ) ATLASLabel( latexPos[iLatex][0], latexPos[iLatex][1], inLatex[iLatex].c_str(),1 , 0.04 );
     else myText( latexPos[iLatex][0], latexPos[iLatex][1], 1, inLatex[iLatex].c_str() );
   }
@@ -1061,45 +1073,45 @@ void DrawText( vector<TObject*> &inHist,
 
 //==============================================
 void ChrisLib::DrawPlot( vector< TObject* > &inHist,  
-	      string outName, 
-	      vector<string> inOptions
-	       ) {
+			 string outName, 
+			 vector<string> inOptions
+			 ) {
+  DrawOptions drawOpt;
+  drawOpt.FillOptions( inOptions );
+  if (outName != "" ) drawOpt.AddOption( "outName="+outName );
+  DrawPlot( inHist, drawOpt );
+}
+
+  //==============================================
+void ChrisLib::DrawPlot( vector< TObject* > &inHist,  DrawOptions &drawOpt ) {
+
+
 
   if ( DEBUG ) cout << "ChrisLib::DrawPlot" << endl;
-  //================ SOME CHECKS
-
-  map<string, int >  mapOptionsInt;
-  map<string, double > mapOptionsDouble;
-  vector<string> inLegend, inLatex; 
-  vector< vector< double > > latexPos;
-  vector< double > legendCoord, rangeUserX, rangeUserY;
-  map<string, string> mapOptionsString;
-  ReadOptions( inHist.size(), inOptions, mapOptionsDouble, mapOptionsInt, mapOptionsString,
-	       inLegend, inLatex, latexPos, legendCoord, rangeUserX, rangeUserY );
-
-
   SetAtlasStyle();
 
-  if ( DEBUG ) cout << "Options read" << endl;
   vector< TH1* > ratio;
-
+  int doRatio = drawOpt.GetDoRatio();
+  
   //================ PAD DEFINITION
   TCanvas canvas;
-  canvas.SetGrid( mapOptionsInt["grid"]%2, mapOptionsInt["grid"]/2 );
+  int doGrid = drawOpt.GetGrid();
+  canvas.SetGrid( doGrid%2, doGrid/2 );
+
   TPad padUp( "padUp", "padUp", 0, 0.3, 1, 1 );
   padUp.SetBottomMargin( 0 );
   TPad padDown( "padDown", "padDown", 0, 0, 1, 0.3 );
   padDown.SetTopMargin( 0 );
   padDown.SetBottomMargin( 0.2 );
   
-  if ( mapOptionsInt["doRatio"] ) {
+  if ( doRatio ) {
     padUp.Draw();
+    padUp.SetGrid( doGrid%2, doGrid/2 );
+    padDown.SetGrid( doGrid%2, doGrid/2 );
     canvas.cd();
     padDown.Draw();
     padUp.cd();
   }
-
-  if ( !legendCoord.size() ) legendCoord={ 0.7, 0.9  };
 
   TLine line( 0, 0.005, 100, 0.005);
   line.SetLineColor( kBlack );
@@ -1109,21 +1121,23 @@ void ChrisLib::DrawPlot( vector< TObject* > &inHist,
   //============ LOOP OTHER INPUT HIST
   //Find the extremum of the histograms to choose rangeUser if not given
   double minVal=0, maxVal=0, minX=0, maxX=0;
-  vector<THStack*> stack;
   int refHist= -1;
-  //  unsigned int totEventStack=0;
 
   TAxis *refXAxis=0, *refYAxis=0;
 
-  if ( mapOptionsDouble["clean"] !=-99 ) {
+  if ( drawOpt.GetClean() !=-99 ) {
     vector<TH1*> hists;
     for ( auto it=inHist.begin(); it!=inHist.end(); ++it ) hists.push_back( static_cast<TH1*>(*it));
-    CleanHist( hists, mapOptionsDouble["clean"] );
+    CleanHist( hists, drawOpt.GetClean() );
     copy( hists.begin(), hists.end(), inHist.begin() );
   }
-  // if ( DEBUG ) cout << "Cleaned" << endl;
-  //  bool isNegativeValue = false;
-  for ( unsigned int iHist = 0; iHist < inHist.size(); iHist++ ) {
+
+  vector<string> inLegend { drawOpt.GetLegends() };
+  if ( !inLegend.empty() && inLegend.size() != inHist.size() ) throw invalid_argument( "DrawPlot : Number of legend must match the one of histograms." );
+  const vector<double> legendCoord = drawOpt.GetLegendCoord();
+
+  
+  for ( unsigned int iHist = 0; iHist < inHist.size(); ++iHist ) {
     if ( !inHist[iHist] ) continue;
     TH1* hist=0;
     TGraphErrors *graph=0;
@@ -1136,58 +1150,64 @@ void ChrisLib::DrawPlot( vector< TObject* > &inHist,
       refYAxis = hist ? hist->GetYaxis() : graph->GetYaxis();
     }
 
-    SetProperties( inHist[iHist], mapOptionsInt, mapOptionsString, iHist-refHist );
+    SetProperties( inHist[iHist], drawOpt, iHist-refHist );
 
-    if ( hist && mapOptionsInt["doChi2"] && inLegend.size() && iHist ){
+    
+
+    double normalize = drawOpt.GetNormalize();
+    double scale = drawOpt.GetScale();
+    if ( hist && normalize!=-99 && hist->Integral() )  {
+      hist->Sumw2();
+      hist->Scale( normalize/hist->Integral() );
+    }
+    else if ( hist && scale!=-99 ) {
+      hist->Sumw2();
+      hist->Scale( scale );
+    }
+
+    GetMaxValue( inHist[iHist], minVal, maxVal, minX, maxX, 0, static_cast<int>(iHist)==refHist );
+
+    if ( hist && drawOpt.GetDoChi2() && inLegend.size() && iHist ){
       TH1* refObj=0;
-      switch ( mapOptionsInt["drawStyle"] ) {
+      switch ( drawOpt.GetDrawStyle() ) {
       case 1 : 
 	if ( !IsHist(inHist[iHist-1]) ) throw runtime_error( "ChrisLib::DrawPlot : Chi2 on different types" );
 	refObj  = static_cast<TH1*>( inHist[iHist-1] );
 	if ( iHist % 2 ) inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( hist, static_cast<TH1*>(inHist[iHist-1]) )/hist->GetNbinsX() );
 	break;
       default :
-
+	
 	if ( !IsHist( inHist[refHist] ) ) throw runtime_error( "ChrisLib::DrawPlot : Chi2 on different types" );
 	refObj  = static_cast<TH1*>( inHist[refHist] );
 	inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( hist, refObj)/refObj->GetNbinsX() );
-
+	
       }
     }
-    
 
-    if ( hist && mapOptionsDouble["normalize"] && hist->Integral() )  {
-      hist->Sumw2();
-      hist->Scale( mapOptionsDouble["normalize"]/hist->Integral() );
-    }
-    else if ( hist && mapOptionsDouble["scale"] ) {
-      hist->Sumw2();
-      hist->Scale( mapOptionsDouble["scale"] );
-    }
+  }//end for iHist
 
-
-    GetMaxValue( inHist[iHist], minVal, maxVal, minX, maxX, 0, static_cast<int>(iHist)==refHist );
-
-  }    
-
+  if ( drawOpt.GetDoChi2() && inLegend.size() ) drawOpt.SetLegends( inLegend );
 
   if ( DEBUG ) cout << "setting range" << endl;
+  vector<double> rangeUserY { drawOpt.GetRangeUserY() };
   while ( rangeUserY.size() < 2 ) rangeUserY.push_back( pow(-1, rangeUserY.size()+1)*0.99 );
   if ( rangeUserY.front() == -0.99 ) rangeUserY.front() = minVal - ( maxVal - minVal ) *0.05;
   if ( rangeUserY.back() == 0.99 ) rangeUserY.back() = maxVal + ( maxVal - minVal ) *0.05;
-  rangeUserY.back() += (rangeUserY.back() - rangeUserY.front()) * mapOptionsDouble["extendUp"];
+  rangeUserY.back() += (rangeUserY.back() - rangeUserY.front()) * drawOpt.GetExtendUp();
 
+  vector<double> rangeUserX { drawOpt.GetRangeUserX() };
   if ( rangeUserX.size() == 2 ) refXAxis->SetRangeUser( rangeUserX[0], rangeUserX[1] );
   else rangeUserX = { minX, maxX };
 
   TH1F* dumHist = 0;
   if ( !strcmp( refXAxis->GetBinLabel(1), "" ) ) {
-    if ( mapOptionsInt["doRatio"] ) dumHist = padUp.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
+    if ( doRatio ) dumHist = padUp.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
     else dumHist = canvas.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
+    
     dumHist->GetXaxis()->SetTitle( refXAxis->GetTitle() );
     dumHist->GetYaxis()->SetTitle( refYAxis->GetTitle() );
 
-    if (mapOptionsInt["doRatio"]) {
+    if (doRatio) {
       dumHist->GetYaxis()->SetTitleOffset( 0.6 );
       dumHist->GetYaxis()->SetTitleSize( 0.06 );
     }
@@ -1203,16 +1223,16 @@ void ChrisLib::DrawPlot( vector< TObject* > &inHist,
     if ( !IsHist(inHist[iHist] ) ) graph = static_cast<TGraphErrors*>(inHist[iHist]);
     else hist=static_cast<TH1*>(inHist[iHist]);
 
-    string drawOpt = strcmp( refXAxis->GetBinLabel(1), "" ) && static_cast<int>(iHist)==refHist ?  "" :"SAME,";
-    switch ( mapOptionsInt["drawStyle"] ){
-    case 2 : drawOpt += "HIST"; break;
-    case 3 : drawOpt += "HISTL"; break;
+    string drawOption = strcmp( refXAxis->GetBinLabel(1), "" ) && static_cast<int>(iHist)==refHist ?  "" :"SAME,";
+    switch ( drawOpt.GetDrawStyle() ){
+    case 2 : drawOption += "HIST"; break;
+    case 3 : drawOption += "HISTL"; break;
     // case 4 : 
     //   inHist[0]->SetMarkerStyle(8);
     //   inHist[1]->SetMarkerStyle(25);
     //   inHist[iHist]->SetMarkerSize(1.3);
     //   break;
-    default : drawOpt += "E"; 
+    default : drawOption += "E"; 
     }
 
     if ( inLegend.size() > iHist && TString( inLegend[iHist].c_str() ).Contains( "__NOPOINT" ) ) {
@@ -1228,44 +1248,36 @@ void ChrisLib::DrawPlot( vector< TObject* > &inHist,
     }
 
     if ( inLegend.size() > iHist && TString( inLegend[iHist].c_str() ).Contains( "__FILL" ) ) {
-      drawOpt += "2";
+      drawOption += "2";
       hist ? hist->SetFillColor( fillColors[iHist] ) : graph->SetFillColor( fillColors[iHist] );
     }
-    
-    if( !iHist && mapOptionsDouble["line"] != -99 ) {
+
+    double lineVal = drawOpt.GetLine();
+    if( !iHist && lineVal != -99 ) {
       double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : minX;
       double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : maxX;
-      line.DrawLine( rangeMin , mapOptionsDouble["line"], rangeMax, mapOptionsDouble["line"]);
+      line.DrawLine( rangeMin , lineVal, rangeMax, lineVal);
     }
 
-    inHist[iHist]->Draw( drawOpt.c_str() );
+    inHist[iHist]->Draw( drawOption.c_str() );
     //========== ADD HISTOGRAM TO LEGEND
   }//end iHist
 
   if ( DEBUG ) cout << "drawn" << endl;
-  
-  if ( mapOptionsInt["logy"] ) {
-    int topVal = ceil( log10( maxVal ) );
-    int lowVal = minVal==0 ? topVal-5 : floor( log10( minVal ) );
-    if ( rangeUserY[0] < 0 ) rangeUserY[0]=pow( 10, lowVal );
-    rangeUserY[1] = pow( 10, topVal + ( topVal - lowVal ) * (0.05 + mapOptionsDouble["extendUp"] ) );
-    refYAxis->SetRangeUser( rangeUserY[0], rangeUserY[1] );    
-    if ( mapOptionsInt["doRatio"] ) {
-      padUp.SetLogy(1);
-    }
-    else {
-      canvas.SetLogy(1);
-    }
+  if ( drawOpt.GetLogY() ) {
+    if ( doRatio ) padUp.SetLogy(1);
+    else canvas.SetLogy(1);
     if ( DEBUG ) cout << "logy done" << endl;
   }
+  
 
   // =========== PRINT LEGENDS AND LATEX
   canvas.cd();
-  DrawText( inHist, inLegend, inLatex, mapOptionsInt, legendCoord, latexPos);
+  DrawText( inHist, drawOpt );
   if ( DEBUG ) cout << "latex drawn" << endl;
 
   //===============  CREATE RATIO PLOTS
-  if ( mapOptionsInt["doRatio"] ) {
+  if ( doRatio ) {
     padDown.cd();
     double minValRatio = 0;
     double maxValRatio = 0;
@@ -1275,21 +1287,21 @@ void ChrisLib::DrawPlot( vector< TObject* > &inHist,
 
       string yTitle;
       //Decide how to pair histogram for ratio
-      switch ( mapOptionsInt["drawStyle"] ) {
+      switch ( drawOpt.GetDrawStyle() ) {
       case 1 :
   	if ( !(iHist % 2) || !inHist[iHist-1]) continue;
   	ratio.push_back( 0 );
   	ratio.back() = static_cast<TH1*>(inHist[iHist]->Clone());
   	ratio.back()->Add( static_cast<TH1*>(inHist[iHist-1]), -1 );
-  	if ( mapOptionsInt["doRatio"] == 1 ) ratio.back()->Divide( static_cast<TH1*>(inHist[iHist-1]) );
-  	yTitle = ( mapOptionsInt["doRatio"]==1 ) ? "#frac{h_{2n+1}-h_{2n}}{h_{2n}}" : "h_{2n+1}-h_{2n}";
+  	if ( doRatio == 1 ) ratio.back()->Divide( static_cast<TH1*>(inHist[iHist-1]) );
+  	yTitle = ( doRatio==1 ) ? "#frac{h_{2n+1}-h_{2n}}{h_{2n}}" : "h_{2n+1}-h_{2n}";
   	break;
       default : 
   	ratio.push_back( 0 );
   	ratio.back() = static_cast<TH1*>(inHist[iHist]->Clone());
   	ratio.back()->Add( static_cast<TH1*>(inHist[refHist]), -1 );
-  	if ( mapOptionsInt["doRatio"] == 1 ) ratio.back()->Divide( static_cast<TH1*>(inHist[refHist]) );
-  	yTitle = ( mapOptionsInt["doRatio"]==1 ) ? "#frac{h_{n}-h_{0}}{h_{0}}" : "h_{n}-h_{0}";
+  	if ( doRatio == 1 ) ratio.back()->Divide( static_cast<TH1*>(inHist[refHist]) );
+  	yTitle = ( doRatio==1 ) ? "#frac{h_{n}-h_{0}}{h_{0}}" : "h_{n}-h_{0}";
       }
       if ( DEBUG ) cout << "ratio created" << endl;
       //Set graphics properties of first hitogram
@@ -1319,7 +1331,8 @@ void ChrisLib::DrawPlot( vector< TObject* > &inHist,
       //Plot all the ratio plots
       ratio.front()->GetYaxis()->SetRangeUser( minValRatio - (maxValRatio-minValRatio)*0.05, maxValRatio+(maxValRatio-minValRatio)*0.05 );
       if ( rangeUserX.size() == 2 ) ratio.front()->GetXaxis()->SetRangeUser( rangeUserX[0], rangeUserX[1] );
-      else if ( mapOptionsInt["centerZoom"] ) ratio.front()->GetXaxis()->SetRangeUser( minX, maxX );
+      // centerzoom option removed. Must check if comment breaks the code
+      //      else if ( drawOptmapOptionsInt["centerZoom"] ) ratio.front()->GetXaxis()->SetRangeUser( minX, maxX );
       if ( DEBUG ) cout << "plot ratio" << endl;
       for ( unsigned int iHist = 0; iHist < ratio.size(); iHist++ ) {
   	ratio[iHist]->Draw( ( iHist ) ? "e,same" : "e" );
@@ -1331,7 +1344,7 @@ void ChrisLib::DrawPlot( vector< TObject* > &inHist,
   }//end doRatio
 
   if ( DEBUG ) cout << "saving" << endl;
-  string canOutName = outName + "." + mapOptionsString["extension"];
+  string canOutName = drawOpt.GetOutName() + "." + drawOpt.GetExtension();
   canvas.SaveAs( canOutName.c_str() );
 
 }

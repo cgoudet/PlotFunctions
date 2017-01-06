@@ -49,7 +49,6 @@ void ChrisLib::MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, lis
     
     ( (TBranch*) (*branches)[iBranch])->GetExpectedType( expectedClass, expectedType );
     string name=(*branches)[iBranch]->GetName();
-
     if ( branchesToLink.size() && find( branchesToLink.begin(), branchesToLink.end(), name ) == branchesToLink.end() ) continue;
     inTree->SetBranchStatus( name.c_str(), 1 );
 
@@ -62,6 +61,14 @@ void ChrisLib::MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, lis
 	if ( outTree ) {
 	  if ( !outTree->FindBranch( name.c_str()) ) outTree->Branch( name.c_str(), &m_mapInt[name] );
 	  else outTree->SetBranchAddress( name.c_str(), &m_mapInt[name] );
+	}
+	break;}
+      case 5 : {//float
+	m_mapFloat[name] = 0;
+	inTree->SetBranchAddress( name.c_str(), &m_mapFloat[name] );
+	if ( outTree ) {
+	  if ( !outTree->FindBranch( name.c_str()) ) outTree->Branch( name.c_str(), &m_mapFloat[name] );
+	  else outTree->SetBranchAddress( name.c_str(), &m_mapFloat[name] );
 	}
 	break;}
       case 8 : {//double
@@ -108,6 +115,7 @@ void ChrisLib::MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, lis
 //==============================================
 void ChrisLib::MapBranches::ClearMaps() {
   m_mapInt.clear();
+  m_mapFloat.clear();
   m_mapDouble.clear();
   m_mapLongLong.clear();
   m_mapULongLong.clear();
@@ -144,6 +152,7 @@ void ChrisLib::MapBranches::ClearMaps() {
 void ChrisLib::MapBranches::Print() const {
 
   for ( auto it = m_mapInt.begin(); it!= m_mapInt.end(); ++it  ) cout << it->first << " " << it->second << endl;
+  for ( auto it = m_mapFloat.begin(); it!= m_mapFloat.end(); ++it  ) cout << it->first << " " << it->second << endl;
   for ( auto it = m_mapDouble.begin(); it!= m_mapDouble.end(); ++it  ) cout << it->first << " " << it->second << endl;
   for ( auto it = m_mapULongLong.begin(); it!= m_mapULongLong.end(); ++it  ) cout << it->first << " " << it->second << endl;
   for ( auto it = m_mapLongLong.begin(); it!= m_mapLongLong.end(); ++it  ) cout << it->first << " " << it->second << endl;
@@ -155,6 +164,7 @@ void ChrisLib::MapBranches::Print() const {
 void ChrisLib::MapBranches::GetKeys( list<string> &keys ) const {
   keys.clear();
   for ( auto it = m_mapInt.begin(); it!= m_mapInt.end(); ++it  ) keys.push_back( it->first );
+  for ( auto it = m_mapFloat.begin(); it!= m_mapFloat.end(); ++it  ) keys.push_back( it->first );
   for ( auto it = m_mapDouble.begin(); it!= m_mapDouble.end(); ++it  ) keys.push_back( it->first );
   for ( auto it = m_mapULongLong.begin(); it!= m_mapULongLong.end(); ++it  ) keys.push_back( it->first );
   for ( auto it = m_mapLongLong.begin(); it!= m_mapLongLong.end(); ++it  ) keys.push_back( it->first );
@@ -282,9 +292,12 @@ string ChrisLib::MapBranches::GetLabel( const string &name ) const {
   auto itInt = m_mapInt.find( name );
   if ( itInt != m_mapInt.end() ) return to_string(itInt->second);
 
+  auto itFloat = m_mapFloat.find( name );
+  if ( itFloat != m_mapFloat.end() ) return to_string(itFloat->second);
+
   auto itDouble = m_mapDouble.find( name );
   if ( itDouble != m_mapDouble.end() ) return to_string(itDouble->second);
-
+  
   auto itULongLong = m_mapULongLong.find( name );
   if ( itULongLong != m_mapULongLong.end() ) return to_string(itULongLong->second);
 
@@ -301,6 +314,7 @@ string ChrisLib::MapBranches::GetLabel( const string &name ) const {
 bool ChrisLib::MapBranches::IsLinked() const {
 
   return ( m_mapInt.size() ||
+	   m_mapFloat.size() ||
 	   m_mapDouble.size() ||
 	   m_mapULongLong.size() ||
 	   m_mapLongLong.size() ||
@@ -308,4 +322,17 @@ bool ChrisLib::MapBranches::IsLinked() const {
 	   m_mapString.size()
 	   );
 
+}
+
+
+//========================================================
+double ChrisLib::MapBranches::GetDouble( string name ) const {
+  
+  auto itDouble = m_mapDouble.find( name );
+  if ( itDouble != m_mapDouble.end() ) return itDouble->second;
+
+  auto itFloat = m_mapFloat.find( name );
+  if ( itFloat != m_mapFloat.end() ) return itFloat->second;
+  
+  throw range_error( "MapBranches::GetDouble : " + name + " is neither a double or a float." );
 }

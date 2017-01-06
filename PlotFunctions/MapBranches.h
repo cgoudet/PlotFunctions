@@ -17,7 +17,7 @@ namespace ChrisLib {
      By default the csv format is implied but delimiter can be changed.
      It also removes the painful adressage when configuring TTrees.
 
-     The class accepts 5 types from TTree : int, double, unsigned, unsigned long long, long.
+     The class accepts 6 types from TTree : int, double, float, unsigned, unsigned long long, long.
      2 types are supported from csv files : double and string.
 
      ### Reading TTree
@@ -58,7 +58,9 @@ namespace ChrisLib {
     MapBranches();
     ~MapBranches();
     
-    double GetDouble( std::string name ) const { return m_mapDouble.at( name ); }
+    //double GetDouble( std::string name ) const { return m_mapDouble.at( name ); }
+    double GetDouble( std::string name ) const;
+    double GetFloat( std::string name ) const { return m_mapFloat.at( name ); }
     int GetInt( std::string name ) const { return m_mapInt.at( name ); }
     unsigned long long GetULongLong( std::string name ) const { return m_mapULongLong.at( name ); }
     unsigned GetUnsigned( std::string name ) const { return m_mapUnsigned.at( name ); }
@@ -87,6 +89,7 @@ namespace ChrisLib {
 
     std::map< std::string, int > m_mapInt;
     std::map< std::string, double > m_mapDouble;
+    std::map< std::string, float > m_mapFloat;
     std::map< std::string, long long > m_mapLongLong;
     std::map< std::string, unsigned long long > m_mapULongLong;
     std::map< std::string, unsigned int > m_mapUnsigned;

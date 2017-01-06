@@ -55,6 +55,8 @@ namespace ChrisLib {
    - extendUp=<double> : allows for an increase of <double>(%) of blank space between the top of the curve and the border of the plot.
    
    - line=<double> : draw a line accross the main pad at constant y=<double>
+
+   - shiftColor=<int> : Translate the color of histograms by <int> unit.
  */
 class DrawOptions {
  public :

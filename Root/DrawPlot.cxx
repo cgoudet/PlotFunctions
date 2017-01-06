@@ -1040,14 +1040,7 @@ void DrawText( vector<TObject*> &inHist,
       color = hist ? hist->GetFillColor() : graph->GetFillColor();
       myBoxText( legendCoord[0], legendCoord[1]-0.04*iLegend, color, inLegend[iLegend].c_str() ); 
     }
-    else if ( drawStyle ) {
-      cout << "marker" << endl;
-      cout << "legendCoord.size() : " << legendCoord.size() << endl;
-      cout << "inLegend : " << iLegend << "/" << inLegend.size() << endl;
-      cout << inLegend[iLegend] << endl;
-      myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, markerStyle, inLegend[iLegend].c_str()  );
-      cout << "end marker" << endl;
-    }
+    else if ( drawStyle ) myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, markerStyle, inLegend[iLegend].c_str()  );
     else myLineText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, lineStyle, inLegend[iLegend].c_str()  );
     //Added by Antinea but don't know the impact
     // if (drawStyle==4) {
@@ -1252,12 +1245,6 @@ void ChrisLib::DrawPlot( vector< TObject* > &inHist,  DrawOptions &drawOpt ) {
       hist ? hist->SetFillColor( fillColors[iHist] ) : graph->SetFillColor( fillColors[iHist] );
     }
 
-    double lineVal = drawOpt.GetLine();
-    if( !iHist && lineVal != -99 ) {
-      double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : minX;
-      double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : maxX;
-      line.DrawLine( rangeMin , lineVal, rangeMax, lineVal);
-    }
 
     inHist[iHist]->Draw( drawOption.c_str() );
     //========== ADD HISTOGRAM TO LEGEND
@@ -1272,6 +1259,13 @@ void ChrisLib::DrawPlot( vector< TObject* > &inHist,  DrawOptions &drawOpt ) {
   
 
   // =========== PRINT LEGENDS AND LATEX
+  double lineVal = drawOpt.GetLine();
+  if( lineVal != -99 ) {
+    double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : minX;
+    double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : maxX;
+    line.DrawLine( rangeMin , lineVal, rangeMax, lineVal);
+  }
+
   canvas.cd();
   DrawText( inHist, drawOpt );
   if ( DEBUG ) cout << "latex drawn" << endl;

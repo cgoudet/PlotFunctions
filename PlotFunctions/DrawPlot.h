@@ -21,51 +21,11 @@ using boost::multi_array;
 
 namespace ChrisLib {
 
-  /** \brief Plot a set of histograms on the same pad.
-    
-     Common algorithm to perform simple plotting of histograms, TProfile and TGraphErrors. 
-     There should be no mixing of TGraph's with TH1's in the same vector.
-     
-     The available options accepted by the algorithm are documented in ChrisLib::DrawOptions. 
-     A wrong option will create a printed warning and be ignored for the remaining of the algorithm.
-     
-     
-     To add an option to a DrawOption object, see ChrisLib::DrawOption::AddOption.
-  */
-  //  void DrawPlot( std::vector< TObject* > &inHist, ChrisLib::DrawOptions &drawOpt );
-  
-  /** \brief Plot a set of histograms on the same pad.
-      
-      This function allows for the passing of options through a vector of string.
-      The vector of options is converted into a ChrisLib::DrawOptions and ChrisLib::DrawPlot is called.
-      
-      Options must be strings with the following nomenclature
-      ```
-      optionName=optionValue
-      ```
-  */
-  /* void DrawPlot( std::vector< TObject* > &inHist,   */
-  /* 		 std::string outName,  */
-  /* 		 std::vector<std::string> inOptions=std::vector<std::string>() */
-  /* 		 ); */
-  
-  /* int DrawPlot( std::vector< TH1* > &inHist, */
-  /* 		std::string outName, */
-  /* 		std::vector<std::string> inOptions=std::vector<std::string>() */
-  /* 		); */
-
-  /* int DrawPlot( std::vector< TGraphErrors* > &inGraph, */
-  /* 		std::string outName, */
-  /* 		std::vector<std::string> inOptions=std::vector<std::string>() */
-  /* 		); */
-  
   int DrawPlot( RooRealVar *frameVar,
 		std::vector<TObject*> inObj,
 		std::string outName,
 		std::vector<std::string> inOptions=std::vector<std::string>()
 		);
-
-
 
 
   std::vector<std::string> PlotPerCategory( //RooRealVar *varFrame, 

@@ -1,20 +1,24 @@
-#include <iostream>
+#include "PlotFunctions/DrawPlot.h"
+#include "PlotFunctions/DrawOptions.h"
+#include "PlotFunctions/InvertMatrix.h"
+#include "PlotFunctions/SideFunctions.h"
+
 #include "TFile.h"
 #include "TTree.h"
-#include <vector>
 #include "TH1F.h"
 #include "TString.h"
 #include "TCanvas.h"
 #include "TLegend.h"
-#include "PlotFunctions/DrawPlot.h"
-#include "PlotFunctions/InvertMatrix.h"
-#include <vector>
-#include <string>
-#include "PlotFunctions/SideFunctions.h"
-#include <boost/program_options.hpp>
 
+#include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
+#include <vector>
+#include <string>
+#include <iostream>
+#include <exception>
+#include <vector>
+using std::invalid_argument;
 using std::string;
 using std::vector;
 using std::cout;
@@ -50,10 +54,7 @@ int main( int argc, char* argv[] ) {
   
   if (vm.count("help")) {cout << desc; return 0;}
   //===========================================
-  if ( inFileName == "" ) {
-    cout << "no input file" << endl;
-    exit(0);
-  }
+  if ( inFileName == "" ) throw invalid_argument( "InversionStudy : No input filename provided." );
 
   double inputConstantValue = 0.0062348;
   double inputConstantError = 0.001;
@@ -141,6 +142,7 @@ int main( int argc, char* argv[] ) {
     options.push_back( "latexOpt=0.4 0.9" );
     //  options.push_back("doRatio=1");
     //  options.push_back( "rangeUserY=0 0.035" );
+    
     DrawPlot( histVect, StripString( outFileName, 0, 1 ) , options );
   }
   return 0;

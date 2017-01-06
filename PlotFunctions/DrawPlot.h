@@ -49,16 +49,16 @@ namespace ChrisLib {
 		 std::vector<std::string> inOptions=std::vector<std::string>()
 		 );
   
-  int DrawPlot( std::vector< TH1* > &inHist,  
-		std::string outName, 
-		std::vector<std::string> inOptions=std::vector<std::string>()
-		);
+  int DrawPlot( std::vector< TH1* > &inHist,
+  		std::string outName,
+  		std::vector<std::string> inOptions=std::vector<std::string>()
+  		);
 
   int DrawPlot( std::vector< TGraphErrors* > &inGraph,
-		std::string outName, 
-		std::vector<std::string> inOptions=std::vector<std::string>()
-		);
-
+  		std::string outName,
+  		std::vector<std::string> inOptions=std::vector<std::string>()
+  		);
+  
   int DrawPlot( RooRealVar *frameVar,
 		std::vector<TObject*> inObj,
 		std::string outName,

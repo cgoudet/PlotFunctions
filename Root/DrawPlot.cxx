@@ -1267,7 +1267,6 @@ void ChrisLib::DrawPlot( vector< TObject* > &inHist,  DrawOptions &drawOpt ) {
   if ( DEBUG ) cout << "saving" << endl;
   string canOutName = drawOpt.GetOutName() + "." + drawOpt.GetExtension();
   canvas.SaveAs( canOutName.c_str() );
-
 }
 
 

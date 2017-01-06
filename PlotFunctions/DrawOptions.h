@@ -1,6 +1,11 @@
 #ifndef DRAWOPTIONS_H
 #define DRAWOPTIONS_H
 
+#include "TObject.h"
+#include "TH1.h"
+#include "TLine.h"
+#include "TLatex.h"
+
 #include <string>
 #include <vector>
 #include <list>
@@ -79,9 +84,7 @@ class DrawOptions {
   DrawOptions();
 
   bool GetDoChi2() const { return m_bools.at("doChi2"); }
-
   bool GetLogY() const { return m_bools.at("logy"); }
-
   bool GetOrderX() const { return m_bools.at("orderX"); }
 
   int GetGrid() const { return m_ints.at("grid"); }
@@ -110,6 +113,8 @@ class DrawOptions {
   
   const std::vector<std::vector<double>> &GetLatexPos() const { return m_latexPos; }
 
+  void SetDebug( bool debug ) { m_debug = debug; }
+  
   void SetLegends( const std::vector<std::string> &legends ) { m_legends=legends; }
 
   /**\brief Fill the class options 
@@ -126,10 +131,28 @@ class DrawOptions {
    */
   void AddOption( const std::string &option );
 
+  /** \brief Plot a set of histograms on the same pad.
+    
+     Common algorithm to perform simple plotting of histograms, TProfile and TGraphErrors. 
+     There should be no mixing of TGraph's with TH1's in the same vector.
+     
+     The available options accepted by the algorithm are documented in ChrisLib::DrawOptions. 
+     A wrong option will create a printed warning and be ignored for the remaining of the algorithm.
+     
+     
+     To add an option to a DrawOption object, see ChrisLib::DrawOption::AddOption.
+  */
+  void Draw( std::vector< TObject* > &inHist );
   
  private :
 
+  void SetHistProperties( TH1* hist );
+  bool IsHist( TObject* obj );
+  void SetProperties( TObject* obj, int iHist );
   void CheckLegendCoord();
+  void GetMaxValue( TObject *obj, double &minVal, double &maxVal, double &minX, double &maxX, bool takeError, bool isRef );
+  void DrawText( std::vector<TObject*> &inHist );
+  
   
   std::map<std::string,bool> m_bools;
   std::map<std::string,int> m_ints;
@@ -144,7 +167,12 @@ class DrawOptions {
   std::vector<std::string> m_latex;
 
   std::vector<std::vector<double>> m_latexPos;
-    
+
+  bool m_debug;
+
+  const std::vector<int> m_colors {1, 632, 600, 616, 416, 800, 921, 629, 597, 613, 413, 797, 635, 603, 619, 419, 807 };
+  const std::vector<int> m_fillColors { 3, 5 };
+
 };
 
 }

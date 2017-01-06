@@ -17,7 +17,7 @@ using namespace ChrisLib;
 
 ChrisLib::DrawOptions::DrawOptions() : m_legendCoord {0.7,0.9} {
 
-  std::list<string> keys { "doChi2", "logy", "offset", "orderX" };
+  std::list<string> keys { "doChi2", "logy", "orderX" };
   for ( auto vKey : keys ) m_bools[vKey]=0;
 
   keys = { "doRatio", "drawStyle", "shiftColor", "grid" };
@@ -26,6 +26,7 @@ ChrisLib::DrawOptions::DrawOptions() : m_legendCoord {0.7,0.9} {
   keys = { "scale", "line", "clean", "normalize" };
   for ( auto vKey : keys ) m_doubles[vKey]=-99;
   m_doubles["extendUp"]=0;
+  m_doubles["offset"]=0;
 
   keys = { "xTitle", "yTitle" };
   for ( auto vKey : keys ) m_strings[vKey]="";

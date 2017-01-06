@@ -43,6 +43,15 @@ namespace ChrisLib {
    Option is matched to the object with the same index in the file.
    If the string is empty or no legend provided, the name of the object is displayed in the legend.
    The legend option can be either not specified, or specified the exact number of object present in the plot.
+   Legend accepts some special code : 
+   Additional key woords can be put into the legend : \n
+   - __MEAN is replaced with the mean of the histogram
+   - __STDEV is replaced with the histogram standard deviation
+   - __FILL will modify the plotting options of histogram to fill between error bars
+   - __NOPOINT will make the histogram plotted without marker
+   - __HASHTAG is replaced with a # otherwise comment caracter
+   - __ENTRIES is replaced by the number of entries in the histo
+   - __INTEGRAL is replaced by the integral
    
    - legendPos=<int>X <int>X : Top left relative coordinate (x,y) of the legend box.
    By default it is set to (0.7, 0.9).
@@ -57,6 +66,14 @@ namespace ChrisLib {
    - line=<double> : draw a line accross the main pad at constant y=<double>
 
    - shiftColor=<int> : Translate the color of histograms by <int> unit.
+
+   - clean<double> : remove from histograms all bins with value <double> that they all have in common.
+
+   - offset=<double> : Translate a graph points by the value <double>. 
+   If the value is set to -99, the graph is translated so its minimum is at 0.
+
+   - orderX=<int> : Order the points of graph in increasing order. 
+   <int> is interpreted as boolean.
  */
 class DrawOptions {
  public :
@@ -65,7 +82,7 @@ class DrawOptions {
   bool GetDoChi2() const { return m_bools.at("doChi2"); }
 
   bool GetLogY() const { return m_bools.at("logy"); }
-  bool GetOffset() const { return m_bools.at("offset"); }
+
   bool GetOrderX() const { return m_bools.at("orderX"); }
 
   int GetGrid() const { return m_ints.at("grid"); }
@@ -78,6 +95,7 @@ class DrawOptions {
   double GetScale() const { return m_doubles.at("scale"); }
   double GetLine() const { return m_doubles.at("line"); }
   double GetClean() const { return m_doubles.at("clean"); }
+  double GetOffset() const { return m_doubles.at("offset"); }
   
   const std::string &GetXTitle() const { return m_strings.at("xTitle"); }
   const std::string &GetYTitle() const { return m_strings.at("yTitle"); }

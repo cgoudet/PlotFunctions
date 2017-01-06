@@ -49,92 +49,69 @@ int colors[] = {1,
 
 int fillColors[] = { 3, 5 };
 
-/**
-   Draw a set of histograms on the same plots.
-   \param inHist Vector of histograms.
-   \param outName name of the output plot without the suffix (plot will be in .pdf).
-   \param inOptions list of options using the convention : option=value.
+//==================================================
+void ChrisLib::ReadOptions( unsigned nHist,
+			    const vector<string> &inOptions,
+			    map<string,double> &mapDouble,
+			    map<string,int> &mapInt,
+			    map<string,string> &mapString,
+			    vector<string> &inLegend,
+			    vector<string> &inLatex,
+			    vector<vector<double>> &latexPos,
+			    vector<double> &legendCoord,
+			    vector<double> &rangeUserX,
+			    vector<double> &rangeUserY
+			    ) {
 
-   Supported options : \n
-   - legend= value \n
-   Content of the legend to use for a given histogram. 
-   The number of legend options must be either 0 or the size of inHist.
-   Legend accepts some special code detailed lower.
-   \n
-   \n
-   - legendPos= valueX valueY \n
-   Position in relative coordinates of the top left corner of the legend box.\n
-   \n
-   - rangeUserY(X)= valueMin valueMax \n
-   Ranges to use for the Y(X) axis. \n
-   \n
-   doRatio= value \n
-   Switch to a given type of ratio between plots of inHist. 
-   0 : no ratio, 
-   1 : (h1-h0)/h0,
-   2 : h1-h0\n
-   \n
-   normalize=value \n
-   Normalize all histograms to the integral given by value.\n
-   \n
-   doChi2=1 \n
-   Compte the chi2 test between two histograms. The value will be added to the legend.\n
-   \n
-   centerZoom=1 \n
-   Plot removing the empty bins at the extremities of all histograms. \n
-   \n
-   latex= text \n
-   Add text to your plot with the latex convention of root. Special caracters must bu introduced with #
-   Latex accept the special syntax detailed lower.
-   The position of the text is defined by latexOpt of the same index.
-   Several texts can be displayed using multiple occurences of the latex options.
-   \n
-   \n
-   latexOpt=value1 value2\n
-   Coordiantes in relative values of the top left corner of the latex box.
-   \n
-   \n
-   drawStyle=value\n
-   Decides how to group multiples histograms.
-   0 : all histograms have different colors and same markers. Ratio is performed for each histogram relative to the first one.
-   1 : histograms are group by pair. Each pair has a different color. Markers are different within a pair. Ratio is performed between histograms of the same pair.
-   \n
-   \n
-   shiftColor=value\n
-   Colors of histograms follow an order. shiftColor allows to change the origin of the color vector given above.
-   \n
-   \n
-   line = value\n
-   Draw an horizontal line at Y=value
-   \n
-   \n
-   extendUp=value \n
-   Increase the range on the Y axis by value%, at fixed lower range.
-   \n
-   \n
-   x(y)Title= name \n
-   change the title of the x(y) axis.
-   \n
-   \n
-   logy=1 \n
-   Set the Y axis to log scale
-   \n
-   \n
-   stack=1\n
-   Stack histograms instead of superimposing them. 
-   Does not work with logy yet.
+  if ( DEBUG ) cout << "ChrisLib::ReaOptions" << endl;
 
-   Additional key woords can be put into the legend : \n
-   __MEAN is replaced with the mean of the histogram
-   __STDEV is replaced with the histogram standard deviation
-   __FILL will modify the plotting options of histogram to fill between error bars
-   __NOPOINT will make the histogram plotted without marker
-   __HASHTAG is replaced with a # otherwise comment caracter
-   __ENTRIES is replaced by the number of entries in the histo
-   __INTEGRAL is replaced by the integral
- */
+  list<string> allowedInt = { "doRatio", "shiftColor", "doChi2", "centerZoom", "drawStyle", "logy", "stack", "offset", "orderX", "grid" };
+  for ( auto it=allowedInt.begin(); it!=allowedInt.end(); ++it ) mapInt[*it]=0;
 
+  mapDouble["extendUp"]=0;
+  mapDouble["normalize"]=0;
+  mapDouble["scale"]=0;
+  mapDouble["line"]=-99;
+  mapDouble["clean"]=-99;
 
+  mapString["xTitle"]="";
+  mapString["yTitle"]="";
+  mapString["extension"]="pdf";
+
+  for ( auto iOption : inOptions ) {
+    string option = iOption.substr( 0, iOption.find_first_of('=' ) );
+    string value = iOption.substr( iOption.find_first_of("=")+1);
+    if ( mapInt.find(option) != mapInt.end() ) mapInt[option] = atoi( value.c_str() );
+    else if ( mapString.find(option) != mapString.end() ) mapString[option] = value;
+    else if ( mapDouble.find(option) != mapDouble.end() ) {
+      mapDouble[option] = std::stod( value.c_str() );
+    }
+    else if ( option == "legend" ) inLegend.push_back( value );
+    else if ( option == "latex" ) inLatex.push_back( value );
+    else if ( option == "latexOpt" ) {
+      latexPos.push_back( vector<double>() );
+      ParseVector( value, latexPos.back() );
+    }
+    else if ( option == "legendPos" ) ParseVector( value, legendCoord );
+    else if ( option == "rangeUserX" ) ParseVector( value, rangeUserX );
+    else if ( option == "rangeUserY" ) ParseVector( value, rangeUserY );
+    else {
+      cout << "DrawPlotOption : " << option << " not known" << endl;
+    }
+  }
+
+  if ( inLegend.size() && inLegend.size()!=nHist ) throw invalid_argument( "ChrisLib::ReadOptions : Legend do not match input" );
+  if ( inLatex.size() != latexPos.size() ) throw invalid_argument( "ChrisLib::ReadOptions : Number of latex names and positions do not match" );
+
+  if ( nHist == 1 ) mapInt["drawStyle"] = 0;
+  if ( nHist < 2 ) mapInt["doRatio"] = 0;
+
+  list<string> allowedExtension = { "pdf", "root", "png" };
+  if ( find(allowedExtension.begin(), allowedExtension.end(), mapString["extension"] ) == allowedExtension.end() ) throw runtime_error( "DrawPlot : Wrong output file extension provided" );
+
+  if ( DEBUG ) cout << "ChrisLib::ReaOptions end" << endl;
+}
+//=========================================================
 int ChrisLib::DrawPlot( vector< TH1* > &inHist,  
 			string outName, 
 			vector<string> inOptions
@@ -851,68 +828,6 @@ vector<string> ChrisLib::PlotPerCategory( vector<TObject*> vectObj, RooCategory 
 //   return 0;
 // }
 
-//==================================================
-void ChrisLib::ReadOptions( unsigned nHist, 
-		  const vector<string> &inOptions,
-		  map<string,double> &mapDouble,
-		  map<string,int> &mapInt,
-		  map<string,string> &mapString,
-		  vector<string> &inLegend,
-		  vector<string> &inLatex,
-		  vector<vector<double>> &latexPos,
-		  vector<double> &legendCoord,
-		  vector<double> &rangeUserX,
-		  vector<double> &rangeUserY
-		  ) {
-  
-  if ( DEBUG ) cout << "ChrisLib::ReaOptions" << endl;
-
-  list<string> allowedInt = { "doRatio", "shiftColor", "doChi2", "centerZoom", "drawStyle", "logy", "stack", "offset", "orderX", "grid" };
-  for ( auto it=allowedInt.begin(); it!=allowedInt.end(); ++it ) mapInt[*it]=0;
-
-  mapDouble["extendUp"]=0;
-  mapDouble["normalize"]=0;
-  mapDouble["scale"]=0;
-  mapDouble["line"]=-99;
-  mapDouble["clean"]=-99;
-
-  mapString["xTitle"]="";
-  mapString["yTitle"]="";
-  mapString["extension"]="pdf";
-
-  for ( auto iOption : inOptions ) {
-    string option = iOption.substr( 0, iOption.find_first_of('=' ) );
-    string value = iOption.substr( iOption.find_first_of("=")+1);
-    if ( mapInt.find(option) != mapInt.end() ) mapInt[option] = atoi( value.c_str() );
-    else if ( mapString.find(option) != mapString.end() ) mapString[option] = value;
-    else if ( mapDouble.find(option) != mapDouble.end() ) {
-      mapDouble[option] = std::stod( value.c_str() );
-    }
-    else if ( option == "legend" ) inLegend.push_back( value );
-    else if ( option == "latex" ) inLatex.push_back( value );
-    else if ( option == "latexOpt" ) {
-      latexPos.push_back( vector<double>() );
-      ParseVector( value, latexPos.back() );
-    }
-    else if ( option == "legendPos" ) ParseVector( value, legendCoord );
-    else if ( option == "rangeUserX" ) ParseVector( value, rangeUserX );
-    else if ( option == "rangeUserY" ) ParseVector( value, rangeUserY );
-    else {
-      cout << "DrawPlotOption : " << option << " not known" << endl;
-    }
-  }
-
-  if ( inLegend.size() && inLegend.size()!=nHist ) throw invalid_argument( "ChrisLib::ReadOptions : Legend do not match input" );
-  if ( inLatex.size() != latexPos.size() ) throw invalid_argument( "ChrisLib::ReadOptions : Number of latex names and positions do not match" );
-
-  if ( nHist == 1 ) mapInt["drawStyle"] = 0;
-  if ( nHist < 2 ) mapInt["doRatio"] = 0;
-
-  list<string> allowedExtension = { "pdf", "root", "png" };
-  if ( find(allowedExtension.begin(), allowedExtension.end(), mapString["extension"] ) == allowedExtension.end() ) throw runtime_error( "DrawPlot : Wrong output file extension provided" );
-
-  if ( DEBUG ) cout << "ChrisLib::ReaOptions end" << endl;
-}
 //==============================================
 void SetHistProperties( TH1* hist ) {
   vector<string> functionNames = { "cubicFit", "quadraticFit" };
@@ -968,7 +883,31 @@ void SetProperties( TObject* obj, const DrawOptions &drawOpt, int iHist ) {
     attMarker->SetMarkerStyle( 8 ); 
   }
 
-  if ( hist ) SetHistProperties( hist );
+  if ( hist ) {
+    SetHistProperties( hist );
+    double normalize = drawOpt.GetNormalize();
+    double scale = drawOpt.GetScale();
+    if ( hist && normalize!=-99 && hist->Integral() )  {
+      hist->Sumw2();
+      hist->Scale( normalize/hist->Integral() );
+    }
+    else if ( hist && scale!=-99 ) {
+      hist->Sumw2();
+      hist->Scale( scale );
+    }
+  }
+  else {
+    double offset = drawOpt.GetOffset();
+    if ( offset ) {
+      double minY=graph->GetMinimum();
+      for ( int bin = 0; bin < graph->GetN(); bin++ ) {
+	double x, y;
+	graph->GetPoint( bin, x, y );
+	graph->SetPoint( bin, x, y-( offset==-99 ? minY : offset ) );
+      }
+    }
+  }
+
 
 }
 //==============================================
@@ -1145,18 +1084,6 @@ void ChrisLib::DrawPlot( vector< TObject* > &inHist,  DrawOptions &drawOpt ) {
 
     SetProperties( inHist[iHist], drawOpt, iHist-refHist );
 
-    
-
-    double normalize = drawOpt.GetNormalize();
-    double scale = drawOpt.GetScale();
-    if ( hist && normalize!=-99 && hist->Integral() )  {
-      hist->Sumw2();
-      hist->Scale( normalize/hist->Integral() );
-    }
-    else if ( hist && scale!=-99 ) {
-      hist->Sumw2();
-      hist->Scale( scale );
-    }
 
     GetMaxValue( inHist[iHist], minVal, maxVal, minX, maxX, 0, static_cast<int>(iHist)==refHist );
 

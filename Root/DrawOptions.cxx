@@ -38,9 +38,13 @@ ChrisLib::DrawOptions::DrawOptions() : m_legendCoord {0.7,0.9} {
 
 //==========================================================
 void ChrisLib::DrawOptions::AddOption( const string &option ) {
-
   string key = option.substr( 0, option.find_first_of('=' ) );
   string value = option.substr( option.find_first_of("=")+1);
+  AddOption( key, value);
+}
+
+//==========================================================
+void ChrisLib::DrawOptions::AddOption( const string &key, const string &value ) {
   if ( m_bools.find(key) != m_bools.end() ) m_bools[key] = std::atoi( value.c_str() );
   else if ( m_ints.find(key) != m_ints.end() ) m_ints[key] = std::atoi( value.c_str() );
   else if ( m_strings.find(key) != m_strings.end() ) m_strings[key] = value;
@@ -59,7 +63,6 @@ void ChrisLib::DrawOptions::AddOption( const string &option ) {
     ParseVector( value, m_latexPos.back() );
   }
   else cout << "DrawPlotOption : " << key << " not known" << endl;
-
 }
 
 //==========================================================

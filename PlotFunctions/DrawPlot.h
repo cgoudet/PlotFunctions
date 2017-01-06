@@ -19,42 +19,36 @@ using boost::multi_array;
 #include <vector>
 #include <map>
 
-namespace ChrisLib { 
-  /**\brief Plot histograms and save them in png format
-     \param inHist vector of histograms to be superimposed
-     \param outName name of the output png plot without extension
-     \param inLegend vector of legend texts to print for each histogram
-     \param switch ratio mode
-     \param normalize normalize all input histograms
-     \param doChi2 switch chi2 mode
-     \param centerZoom center the X axis on non empty bins
-     \param rangeUser vector of low and high limit of Y axis range
-     \param legendCoord vector containing coordinate of the legend
-     \param inLate vector of latex text to be drawn
-     \param latexPos Coordinates of latex texts to be drawn
-     \drawStyle swith drawStyle mode
+namespace ChrisLib {
 
-     There is some correlation between the variables. Effects can be added.
-
-     doChi2 mode :
-     Compute the chi2 between two histograms (depending on drawStyole) and add it to the legend
-     if drawStyle=1, should make chi2 between paired histograms
-     Not working properly yet
-
-     ratio mode :
-     Create a low pad to hold ratio or difference plot. 
-     default mode : compare the histogram i with the histogram 0
-     1 : (h1-h0)/h0
-     2 : (h1-h0)
-
-     drawStyle mode :
-     default mode : give one different colour per histogram
-     1 : pair histogram by 2 and give same colour with different marker. IOn case of ratio, make ratio of second pair compared to first
-
-     latexPos :
-
-
+  /** \brief Plot a set of histograms on the same pad.
+    
+     Common algorithm to perform simple plotting of histograms, TProfile and TGraphErrors. 
+     There should be no mixing of TGraph's with TH1's in the same vector.
+     
+     The available options accepted by the algorithm are documented in ChrisLib::DrawOptions. 
+     A wrong option will create a printed warning and be ignored for the remaining of the algorithm.
+     
+     
+     To add an option to a DrawOption object, see ChrisLib::DrawOption::AddOption.
   */
+  void DrawPlot( std::vector< TObject* > &inHist, ChrisLib::DrawOptions &drawOpt );
+  
+  /** \brief Plot a set of histograms on the same pad.
+   
+    This function allows for the passing of options through a vector of string.
+    The vector of options is converted into a ChrisLib::DrawOptions and ChrisLib::DrawPlot is called.
+    
+    Options must be strings with the following nomenclature
+    ```
+    optionName=optionValue
+    ```
+  */
+  void DrawPlot( std::vector< TObject* > &inHist,  
+		 std::string outName, 
+		 std::vector<std::string> inOptions=std::vector<std::string>()
+		 );
+  
   int DrawPlot( std::vector< TH1* > &inHist,  
 		std::string outName, 
 		std::vector<std::string> inOptions=std::vector<std::string>()
@@ -71,12 +65,7 @@ namespace ChrisLib {
 		std::vector<std::string> inOptions=std::vector<std::string>()
 		);
 
-  void DrawPlot( std::vector< TObject* > &inHist,  
-		std::string outName, 
-		std::vector<std::string> inOptions=std::vector<std::string>()
-		);
 
-  void DrawPlot( std::vector< TObject* > &inHist, ChrisLib::DrawOptions &drawOpt );
 
 
   std::vector<std::string> PlotPerCategory( //RooRealVar *varFrame, 

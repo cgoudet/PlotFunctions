@@ -10,8 +10,7 @@ namespace ChrisLib {
   
 /**\brief Class containing drawing options
 
-   ### General information
-   
+   This documentation details the options that can be used in ChrisLib::DrawPlot.
 
    ### Options Description
    
@@ -112,9 +111,21 @@ class DrawOptions {
   const std::vector<std::vector<double>> &GetLatexPos() const { return m_latexPos; }
 
   void SetLegends( const std::vector<std::string> &legends ) { m_legends=legends; }
-  
+
+  /**\brief Fill the class options 
+   */
   void FillOptions( const std::vector<std::string> &options );
+
+  /**\brief Add an option to the object
+   */
+  void AddOption( const std::string &key, const std::string &value );
+
+  /**\brief Add an option to the object through the use of string.
+     The option name and value must be separated by a space such as : "optionName=optionLabel"
+     
+   */
   void AddOption( const std::string &option );
+
   
  private :
 

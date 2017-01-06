@@ -32,7 +32,7 @@ namespace ChrisLib {
      
      To add an option to a DrawOption object, see ChrisLib::DrawOption::AddOption.
   */
-  void DrawPlot( std::vector< TObject* > &inHist, ChrisLib::DrawOptions &drawOpt );
+  //  void DrawPlot( std::vector< TObject* > &inHist, ChrisLib::DrawOptions &drawOpt );
   
   /** \brief Plot a set of histograms on the same pad.
       
@@ -44,20 +44,20 @@ namespace ChrisLib {
       optionName=optionValue
       ```
   */
-  void DrawPlot( std::vector< TObject* > &inHist,  
-		 std::string outName, 
-		 std::vector<std::string> inOptions=std::vector<std::string>()
-		 );
+  /* void DrawPlot( std::vector< TObject* > &inHist,   */
+  /* 		 std::string outName,  */
+  /* 		 std::vector<std::string> inOptions=std::vector<std::string>() */
+  /* 		 ); */
   
-  int DrawPlot( std::vector< TH1* > &inHist,
-  		std::string outName,
-  		std::vector<std::string> inOptions=std::vector<std::string>()
-  		);
+  /* int DrawPlot( std::vector< TH1* > &inHist, */
+  /* 		std::string outName, */
+  /* 		std::vector<std::string> inOptions=std::vector<std::string>() */
+  /* 		); */
 
-  int DrawPlot( std::vector< TGraphErrors* > &inGraph,
-  		std::string outName,
-  		std::vector<std::string> inOptions=std::vector<std::string>()
-  		);
+  /* int DrawPlot( std::vector< TGraphErrors* > &inGraph, */
+  /* 		std::string outName, */
+  /* 		std::vector<std::string> inOptions=std::vector<std::string>() */
+  /* 		); */
   
   int DrawPlot( RooRealVar *frameVar,
 		std::vector<TObject*> inObj,

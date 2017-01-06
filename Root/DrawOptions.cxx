@@ -260,7 +260,18 @@ void ChrisLib::DrawOptions::DrawText( vector<TObject*> &inHist ) {
   if ( m_debug ) cout << "latex drawn" << endl;
 
 }
-
+//==============================================
+void ChrisLib::DrawOptions::Draw( const vector< TH1* > &inHist ) {
+  vector<TObject*> histObj(inHist.size());
+  copy( inHist.begin(), inHist.end(), histObj.begin());
+  Draw( histObj );
+}
+//==============================================
+void ChrisLib::DrawOptions::Draw( const vector< TGraphErrors* > &inHist ) {
+  vector<TObject*> histObj(inHist.size());
+  copy( inHist.begin(), inHist.end(), histObj.begin());
+  Draw( histObj );
+}
 //==============================================
 void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
 

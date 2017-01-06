@@ -1,6 +1,8 @@
 #ifndef DRAWOPTIONS_H
 #define DRAWOPTIONS_H
 
+#include "TH1.h"
+#include "TGraphErrors.h"
 #include "TObject.h"
 #include "TH1.h"
 #include "TLine.h"
@@ -133,7 +135,8 @@ namespace ChrisLib {
     void SetDebug( bool debug ) { m_debug = debug; }
   
     void SetLegends( const std::vector<std::string> &legends ) { m_legends=legends; }
-
+    void ResetLegends() { m_legends.clear(); }
+    
     /**\brief Fill the class options 
      */
     void FillOptions( const std::vector<std::string> &options );
@@ -160,6 +163,8 @@ namespace ChrisLib {
 	To add an option to a DrawOption object, see ChrisLib::DrawOption::AddOption.
     */
     void Draw( std::vector< TObject* > &inHist );
+    void Draw( const std::vector< TH1* > &inHist );
+    void Draw( const std::vector< TGraphErrors* > &inHist );
 
   private :
     

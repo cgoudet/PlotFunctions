@@ -1,17 +1,19 @@
 #ifndef INPUTCOMPARE_H
 #define INPUTCOMPARE_H
 
+#include "PlotFunctions/DrawOptions.h"
+
 #include <vector>
 #include <string>
 #include <map>
 
 
 namespace ChrisLib {
-
+  
   /**
      \class InputCompare
      \brief Stores the content of boost configuration files.
-
+     
      ## Plot framework
      The interface of the plot framework is limited to a single configuration file in the boost::program_options format.
      The user can enter information about the source files, the desired input and the plotting options in a sinngle file.
@@ -199,10 +201,7 @@ namespace ChrisLib {
     std::string GetOption( std::string option ) const { return m_mapOptions.at(option); }    
     std::string GetOutName() const { return m_outName; }
 
-    /**
-       \brief Create the vector of options to be read by ChrisLib::DrawPlot
-    */
-    std::vector<std::string> CreateVectorOptions() const;
+    DrawOptions CreateDrawOptions() const;
 
     void  LoadFile( std::string fileName );
   

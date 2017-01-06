@@ -109,12 +109,13 @@ void ChrisLib::DrawVect( vector<vector<TObject*>> &vectObj, const InputCompare &
 
   const string plotPath = inputCompare.GetOption( "plotDirectory" ) + inputCompare.GetOutName();
   const vector< vector<string> > varName = inputCompare.GetVarName();
-  const vector<string> vectorOptions = inputCompare.CreateVectorOptions();
+  DrawOptions drawOpt = inputCompare.CreateDrawOptions();
 
   for ( unsigned iHist=0; iHist<vectObj.size(); ++iHist ) {
     string outPlotName = plotPath;
     if ( !varName.empty() && varName.size()>iHist ) outPlotName += "_" + varName[0][iHist];
-    DrawPlot( vectObj[iHist], outPlotName, vectorOptions );
+    drawOpt.AddOption( "outName", outPlotName );
+    drawOpt.Draw( vectObj[iHist] );
 
     const int doTabular = atoi(inputCompare.GetOption("doTabular").c_str());
     if ( doTabular ) PrintHist( vectObj[iHist], outPlotName, doTabular );

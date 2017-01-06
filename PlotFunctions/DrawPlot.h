@@ -35,14 +35,14 @@ namespace ChrisLib {
   void DrawPlot( std::vector< TObject* > &inHist, ChrisLib::DrawOptions &drawOpt );
   
   /** \brief Plot a set of histograms on the same pad.
-   
-    This function allows for the passing of options through a vector of string.
-    The vector of options is converted into a ChrisLib::DrawOptions and ChrisLib::DrawPlot is called.
-    
-    Options must be strings with the following nomenclature
-    ```
-    optionName=optionValue
-    ```
+      
+      This function allows for the passing of options through a vector of string.
+      The vector of options is converted into a ChrisLib::DrawOptions and ChrisLib::DrawPlot is called.
+      
+      Options must be strings with the following nomenclature
+      ```
+      optionName=optionValue
+      ```
   */
   void DrawPlot( std::vector< TObject* > &inHist,  
 		 std::string outName, 

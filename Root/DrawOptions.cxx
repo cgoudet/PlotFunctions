@@ -27,7 +27,10 @@ using std::string;
 
 using namespace ChrisLib;
 
-ChrisLib::DrawOptions::DrawOptions() : m_legendCoord {0.7,0.9}, m_debug(0) {
+ChrisLib::DrawOptions::DrawOptions() : m_legendCoord {0.7,0.9}, m_debug(0),
+				       m_colors {1, 632, 600, 616, 416, 800, 921, 629, 597, 613, 413, 797, 635, 603, 619, 419, 807 },
+				       m_fillColors { 3, 5 }
+{
 
   std::list<string> keys { "doChi2", "logy", "orderX" };
   for ( auto vKey : keys ) m_bools[vKey]=0;

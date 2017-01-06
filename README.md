@@ -11,7 +11,7 @@
 
 PlotFunctions is a library designed in the ROOT framework to :
 - Provide a user friendly general procedure to plot data from TTree or CSV files ChrisLib::InputCompare.
-- A generalist object plotting algorithm : ChrisLib::DrawPlot.
+- A generalist plotting class : ChrisLib::DrawOptions.
 - Provide a class to ease the process of TTree linking, reading and copying : ChrisLib::MapBranches
 - Provide a tree class which can be used to create and or parse xml files : ChrisLib::Arbre
 - A set of C++ functions : SideFunctions.h SideFunctionsTpp.h

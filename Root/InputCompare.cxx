@@ -182,29 +182,23 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   if ( DEBUG ) cout << "latex" << endl;
   for ( auto vLatex = latex.begin(); vLatex!= latex.end(); vLatex++ ) m_latex.push_back( *vLatex );
   for ( auto vLatexOpt = latexOpt.begin(); vLatexOpt!= latexOpt.end(); vLatexOpt++ ) m_latexOpt.push_back( *vLatexOpt );
-  if ( m_latex.size() != m_latexOpt.size() ) {
-    cout << "laetx names and options have different sizes" << endl;
-    exit(0);
-  }
+  if ( m_latex.size() != m_latexOpt.size() ) throw runtime_error( "InputCompare::LoadFile : latex names and options have different sizes");
 }
 
 //==========================================
-vector<string> ChrisLib::InputCompare::CreateVectorOptions() const {
-
-    list<string> nonDrawOptions = { "", "inputType", "diagonalize", "doTabular", "plotDirectory", "saveRoot", "nEvents", "nBins", "doLabels" };
-
+DrawOptions ChrisLib::InputCompare::CreateDrawOptions() const {
+  list<string> nonDrawOptions { "", "inputType", "diagonalize", "doTabular", "plotDirectory", "saveRoot", "nEvents", "nBins", "doLabels" };
+  DrawOptions drawOpt;
   vector<string> outVect;
-  for ( map<string, string>::const_iterator it = m_mapOptions.begin(); it != m_mapOptions.end(); it++) {
+  for ( map<string, string>::const_iterator it = m_mapOptions.begin(); it != m_mapOptions.end(); ++it) {
     if ( it->second == "" ) continue;
     if ( find ( nonDrawOptions.begin(), nonDrawOptions.end(), it->first ) != nonDrawOptions.end() ) continue;
-    outVect.push_back( it->first +"=" + it->second );
+    drawOpt.AddOption( it->first, it->second );
   }
+  
+  for ( auto legend : m_legend ) drawOpt.AddOption("legend", legend );
+  for ( auto latex : m_latex ) drawOpt.AddOption( "latex", latex );
+  for ( auto latexOpt : m_latexOpt ) drawOpt.AddOption( "latexOpt", latexOpt );
 
-  for ( auto legend : m_legend ) outVect.push_back( "legend=" + legend );
-  for ( auto latex : m_latex ) outVect.push_back( "latex=" + latex );
-  for ( auto latexOpt : m_latexOpt ) outVect.push_back( "latexOpt=" + latexOpt );
-
-  return outVect;
-
-
+  return drawOpt;
 }

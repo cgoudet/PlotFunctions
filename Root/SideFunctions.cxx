@@ -45,6 +45,39 @@ using boost::extents;
 using namespace ChrisLib;
 using std::swap;
 
+//==============================================
+bool ChrisLib::IsHist( TObject* obj ) {
+  if (  string(obj->ClassName()) == "TGraphErrors" ) return false;
+  else return true;
+}
+
+//##########################################################
+double ChrisLib::CompareVal( double nom, double par ) {
+  if ( nom==0 && par==0 ) return 0;
+  if ( nom==0 ) {
+    cout << "nominal value is null switching roles" << endl;
+    swap( nom, par );
+  }
+  return ( par-nom )/ nom;
+}
+
+//##########################################################
+double ChrisLib::CompareErr( double nom, double par, double errNom, double errPar ) {
+
+  if ( nom==0 && par==0 ) return 0;
+  if ( nom==0 ) {
+    cout << "nominal value is null switching roles" << endl;
+    swap( nom, par );
+  }
+
+  //  double val = CompareVal( nom, par );
+
+  double diffErrNom = par / nom / nom;
+  double diffErrPar = 1. / nom;
+  double err = sqrt( diffErrPar *diffErrPar * errPar * errPar + diffErrNom * diffErrNom * errNom * errNom );
+  return err;
+}
+
 //=====================================
 /**\brief Create a name from levels of components
  */
@@ -366,15 +399,53 @@ void ChrisLib::RemoveExtremalEmptyBins( TH1 *hist ) {
 }
 
 //========================================================
-string ChrisLib::ParseLegend( TGraphErrors *graph, const string &legend ) {
-  TString dumString = legend;
-  if ( graph ) { 
-    dumString.ReplaceAll( "__ENTRIES", TString::Format( "%1.0d", graph->GetN() ) );
-    dumString.ReplaceAll( "__MEAN", TString::Format( "%1.3e", graph->GetMean() ) );
-    dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", graph->GetRMS() ) );
+/**\brief Replace keywords by corresponding object properties.
+   Works only with TH1 and TGraphErrors.
+ */
+string ChrisLib::ParseLegend( TObject* obj, const string &legend ) {
+  TH1* hist=0;
+  TGraphErrors *graph=0;
+  if ( !IsHist( obj ) ) graph = static_cast<TGraphErrors*>(obj);
+  else hist=static_cast<TH1*>(obj);
+
+  double mean, rms, integral{0}, sumSq{0};
+  int nEntries;
+  if ( graph ) {
+    mean = graph->GetMean();
+    rms = graph->GetRMS();
+    nEntries = graph->GetN();
+    sumSq = SumSq(hist->GetStdDev(2), hist->GetMean(3))*nEntries;
   }
+  else {
+    mean = hist->GetMean();
+    rms = hist->GetRMS();
+    nEntries = hist->GetEntries();
+    integral = hist->Integral();
+    sumSq = SumSq(hist->GetStdDev(2), hist->GetMean(3))*nEntries;
+  }
+
+
+  
+  TString dumString = legend;
+  dumString.ReplaceAll( "__ENTRIES", TString::Format( "%1.0d", nEntries ) );
+  dumString.ReplaceAll( "__MEAN", TString::Format( "%1.3e", mean ) );
+  dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", rms ) );
+  dumString.ReplaceAll( "__SUMSQ", TString::Format( "%1.3e", sumSq ) );
+  dumString.ReplaceAll( "__INTEGRAL", TString::Format( "%1.3e", integral ) );
+
   return ParseLegend( static_cast<string>(dumString) );
 }
+
+// //========================================================
+// string ChrisLib::ParseLegend( TGraphErrors *graph, const string &legend ) {
+//   TString dumString = legend;
+//   if ( graph ) { 
+//     dumString.ReplaceAll( "__ENTRIES", TString::Format( "%1.0d", graph->GetN() ) );
+//     dumString.ReplaceAll( "__MEAN", TString::Format( "%1.3e", graph->GetMean() ) );
+//     dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", graph->GetRMS() ) );
+//   }
+//   return ParseLegend( static_cast<string>(dumString) );
+// }
 //================================
 string ChrisLib::ParseLegend( const string &legend ) {
   TString dumString = legend;
@@ -387,18 +458,18 @@ string ChrisLib::ParseLegend( const string &legend ) {
   return static_cast<string>( dumString );
 }
 
-//============================
-string ChrisLib::ParseLegend( TH1* hist, const string &legend ) {
+// //============================
+// string ChrisLib::ParseLegend( TH1* hist, const string &legend ) {
 
-  TString dumString = legend;
-  if ( hist ) { 
-    dumString.ReplaceAll( "__ENTRIES", TString::Format( "%1.0f", hist->GetEntries() ) );
-    dumString.ReplaceAll( "__MEAN", TString::Format( "%1.3e", hist->GetMean() ) );
-    dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", hist->GetStdDev() ) );
-    dumString.ReplaceAll( "__INTEGRAL", TString::Format( "%1.3e", hist->GetSumOfWeights() ) );
-  }
-  return ParseLegend( static_cast<string>(dumString) );
-}
+//   TString dumString = legend;
+//   if ( hist ) { 
+//     dumString.ReplaceAll( "__ENTRIES", TString::Format( "%1.0f", hist->GetEntries() ) );
+//     dumString.ReplaceAll( "__MEAN", TString::Format( "%1.3e", hist->GetMean() ) );
+//     dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", hist->GetStdDev() ) );
+//     dumString.ReplaceAll( "__INTEGRAL", TString::Format( "%1.3e", hist->GetSumOfWeights() ) );
+//   }
+//   return ParseLegend( static_cast<string>(dumString) );
+// }
 
 //============================================
 TTree* ChrisLib::Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long int seed, int mode ) {

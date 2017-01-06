@@ -169,7 +169,6 @@ namespace ChrisLib {
   private :
     
     void SetHistProperties( TH1* hist );
-    bool IsHist( TObject* obj );
     void SetProperties( TObject* obj, int iHist );
     void CheckLegendCoord();
     void GetMaxValue( TObject *obj, double &minVal, double &maxVal, double &minX, double &maxX, bool takeError, bool isRef );
@@ -186,6 +185,7 @@ namespace ChrisLib {
     std::vector<double> m_rangeUserY;
   
     std::vector<std::string> m_legends;
+    std::vector<std::string> m_tmpLegends;
     std::vector<std::string> m_latex;
 
     std::vector<std::vector<double>> m_latexPos;

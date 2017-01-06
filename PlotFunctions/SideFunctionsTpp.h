@@ -9,6 +9,8 @@
 #include <map>
 #include <iterator>
 #include <algorithm>
+#include <list>
+#include <functional>
 
 namespace ChrisLib {
   //============================================
@@ -134,5 +136,15 @@ Tested.
     }
   }
 
+  //=============================================
+  template<typename T> T SumSq( const std::list<T> &inList ) {
+    std::transform( inList.begin(), inList.end(), [](T a){return a*a;} );
+    std::transform( ++inList.begin(), inList.end(), inList.begin(), inList.end(), inList.begin(), std::plus<T>() );
+    return inList.back();
+  }
+
+  template<typename T> T Oplus( const std::list<T> &inList ) {
+    return sqrt( SumSq( inList ) );
+  }
 }
 #endif

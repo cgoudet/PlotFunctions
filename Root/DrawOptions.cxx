@@ -94,17 +94,12 @@ void ChrisLib::DrawOptions::SetHistProperties( TH1* hist ) {
   vector<string> functionNames = { "cubicFit", "quadraticFit" };
   TIter next(hist->GetListOfFunctions());
   while (TObject *obj = next()) {
-  if ( strcmp( hist->GetFunction( obj->GetName() )->ClassName(), "TF1" ) ) continue;
-  hist->GetFunction( obj->GetName() )->SetLineColor( hist->GetLineColor() );
+    if ( strcmp( hist->GetFunction( obj->GetName() )->ClassName(), "TF1" ) ) continue;
+    hist->GetFunction( obj->GetName() )->SetLineColor( hist->GetLineColor() );
   }
   
 }
 //================================================
-bool ChrisLib::DrawOptions::IsHist( TObject* obj ) {
-  if (  string(obj->ClassName()) == "TGraphErrors" ) return false;
-  else return true;
-}
-//==============================================
 void ChrisLib::DrawOptions::SetProperties( TObject* obj, int iHist ) {
   TH1* hist=0;
   TGraphErrors *graph=0;
@@ -197,31 +192,30 @@ void ChrisLib::DrawOptions::GetMaxValue( TObject *obj, double &minVal, double &m
   //Update the maximum range of the plot with extremum of current plot
   int nBins = hist ? hist->GetNbinsX() : graph->GetN();
   for ( int bin = 0; bin < nBins; ++bin ) {
-      double val = 0, err=0;
-      if ( hist ) {
-	val = hist->GetBinContent( bin+1 );
-	if ( takeError ) err = hist->GetBinError( bin+1 );
-      }
-      else {
-	double xGraph=0;
-	graph->GetPoint(bin, xGraph, val);
-	if ( takeError ) err = graph->GetErrorY(bin);
-	double errX = takeError ? graph->GetErrorX(bin) : 0;
-	minX = min( minX, xGraph - errX );
-	maxX = max( maxX, xGraph + errX );
-      }
-      minVal = min( val - err , minVal );
-      maxVal = max( val + err , maxVal );
+    double val = 0, err=0;
+    if ( hist ) {
+      val = hist->GetBinContent( bin+1 );
+      if ( takeError ) err = hist->GetBinError( bin+1 );
     }
+    else {
+      double xGraph=0;
+      graph->GetPoint(bin, xGraph, val);
+      if ( takeError ) err = graph->GetErrorY(bin);
+      double errX = takeError ? graph->GetErrorX(bin) : 0;
+      minX = min( minX, xGraph - errX );
+      maxX = max( maxX, xGraph + errX );
+    }
+    minVal = min( val - err , minVal );
+    maxVal = max( val + err , maxVal );
+  }
 }
 //==============================================
 void ChrisLib::DrawOptions::DrawText( vector<TObject*> &inHist ) {
 
-  vector<string> inLegend { GetLegends() };
   const vector<double> legendCoord = GetLegendCoord();
   int drawStyle = GetDrawStyle();
   
-  for ( unsigned int iLegend=0; iLegend<inLegend.size(); iLegend++ ) {
+  for ( unsigned int iLegend=0; iLegend<m_legends.size(); iLegend++ ) {
     if ( !inHist[iLegend] ) continue;
     TH1* hist=0;
     TGraphErrors *graph=0;
@@ -232,14 +226,14 @@ void ChrisLib::DrawOptions::DrawText( vector<TObject*> &inHist ) {
     int color = attLine->GetLineColor();
     int lineStyle = attLine->GetLineStyle();
     int markerStyle = attMarker->GetMarkerStyle();
-    bool doFill = inLegend.size() > iLegend && inLegend[iLegend].find("__FILL")!=string::npos;
-    inLegend[iLegend] =  hist ? ParseLegend( hist, inLegend[iLegend] ) : ParseLegend( graph, inLegend[iLegend] );
+    bool doFill = m_legends.size() > iLegend && m_legends[iLegend].find("__FILL")!=string::npos;
+    m_legends[iLegend] =  hist ? ParseLegend( hist, m_legends[iLegend] ) : ParseLegend( graph, m_legends[iLegend] );
     if ( doFill ) {
       color = hist ? hist->GetFillColor() : graph->GetFillColor();
-      myBoxText( legendCoord[0], legendCoord[1]-0.04*iLegend, color, inLegend[iLegend].c_str() ); 
+      myBoxText( legendCoord[0], legendCoord[1]-0.04*iLegend, color, m_legends[iLegend].c_str() ); 
     }
-    else if ( drawStyle ) myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, markerStyle, inLegend[iLegend].c_str()  );
-    else myLineText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, lineStyle, inLegend[iLegend].c_str()  );
+    else if ( drawStyle ) myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, markerStyle, m_legends[iLegend].c_str()  );
+    else myLineText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, lineStyle, m_legends[iLegend].c_str()  );
     //Added by Antinea but don't know the impact
     // if (drawStyle==4) {
     // 	myLineText( legendCoord[0]-0.005, legendCoord[1]-0.05*iLegend, color, lineStyle, ""  ); 
@@ -248,7 +242,7 @@ void ChrisLib::DrawOptions::DrawText( vector<TObject*> &inHist ) {
   }
   if ( m_debug )  cout << "legend drawn" << endl;
 
-  vector<string> inLatex { GetLatex() };
+  vector<string> inLatex(GetLatex());
   const vector<vector<double>> latexPos = GetLatexPos();
   for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {
     if ( latexPos[iLatex].size() != 2 ) continue;
@@ -320,8 +314,7 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
     copy( hists.begin(), hists.end(), inHist.begin() );
   }
 
-  vector<string> inLegend { GetLegends() };
-  if ( !inLegend.empty() && inLegend.size() != inHist.size() ) throw invalid_argument( "DrawPlot : Number of legend must match the one of histograms." );
+  if ( !m_legends.empty() && m_legends.size() != inHist.size() ) throw invalid_argument( "DrawPlot : Number of legend must match the one of histograms." );
   const vector<double> legendCoord = GetLegendCoord();
 
   
@@ -343,26 +336,25 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
 
     GetMaxValue( inHist[iHist], minVal, maxVal, minX, maxX, 0, static_cast<int>(iHist)==refHist );
 
-    if ( hist && GetDoChi2() && inLegend.size() && iHist ){
+    if ( hist && GetDoChi2() && m_legends.size() && iHist ){
+      m_tmpLegends = m_legends;
       TH1* refObj=0;
       switch ( GetDrawStyle() ) {
       case 1 : 
 	if ( !IsHist(inHist[iHist-1]) ) throw runtime_error( "DrawOptions::DrawPlot : Chi2 on different types" );
 	refObj  = static_cast<TH1*>( inHist[iHist-1] );
-	if ( iHist % 2 ) inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( hist, static_cast<TH1*>(inHist[iHist-1]) )/hist->GetNbinsX() );
+	if ( iHist % 2 ) m_legends[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( hist, static_cast<TH1*>(inHist[iHist-1]) )/hist->GetNbinsX() );
 	break;
       default :
 	
 	if ( !IsHist( inHist[refHist] ) ) throw runtime_error( "DrawOptions::DrawPlot : Chi2 on different types" );
 	refObj  = static_cast<TH1*>( inHist[refHist] );
-	inLegend[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( hist, refObj)/refObj->GetNbinsX() );
+	m_legends[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( hist, refObj)/refObj->GetNbinsX() );
 	
       }
     }
 
   }//end for iHist
-
-  if ( GetDoChi2() && inLegend.size() ) SetLegends( inLegend );
 
   if ( m_debug ) cout << "setting range" << endl;
   vector<double> rangeUserY { GetRangeUserY() };
@@ -403,15 +395,15 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
     switch ( GetDrawStyle() ){
     case 2 : drawOption += "HIST"; break;
     case 3 : drawOption += "HISTL"; break;
-    // case 4 : 
-    //   inHist[0]->SetMarkerStyle(8);
-    //   inHist[1]->SetMarkerStyle(25);
-    //   inHist[iHist]->SetMarkerSize(1.3);
-    //   break;
+      // case 4 : 
+      //   inHist[0]->SetMarkerStyle(8);
+      //   inHist[1]->SetMarkerStyle(25);
+      //   inHist[iHist]->SetMarkerSize(1.3);
+      //   break;
     default : drawOption += "E"; 
     }
 
-    if ( inLegend.size() > iHist && TString( inLegend[iHist].c_str() ).Contains( "__NOPOINT" ) ) {
+    if ( m_legends.size() > iHist && m_legends[iHist].find("__NOPOINT")!=string::npos ) {
       cout << "transparent" << endl;
       if ( hist ) {
 	hist->SetLineColorAlpha( 0, 0 );
@@ -423,7 +415,7 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
       }
     }
 
-    if ( inLegend.size() > iHist && TString( inLegend[iHist].c_str() ).Contains( "__FILL" ) ) {
+    if ( m_legends.size() > iHist && m_legends[iHist].find("__FILL")!=string::npos ) {
       drawOption += "2";
       hist ? hist->SetFillColor( m_fillColors[iHist] ) : graph->SetFillColor( m_fillColors[iHist] );
     }
@@ -466,39 +458,39 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
       //Decide how to pair histogram for ratio
       switch ( GetDrawStyle() ) {
       case 1 :
-  	if ( !(iHist % 2) || !inHist[iHist-1]) continue;
-  	ratio.push_back( 0 );
-  	ratio.back() = static_cast<TH1*>(inHist[iHist]->Clone());
-  	ratio.back()->Add( static_cast<TH1*>(inHist[iHist-1]), -1 );
-  	if ( doRatio == 1 ) ratio.back()->Divide( static_cast<TH1*>(inHist[iHist-1]) );
-  	yTitle = ( doRatio==1 ) ? "#frac{h_{2n+1}-h_{2n}}{h_{2n}}" : "h_{2n+1}-h_{2n}";
-  	break;
+	if ( !(iHist % 2) || !inHist[iHist-1]) continue;
+	ratio.push_back( 0 );
+	ratio.back() = static_cast<TH1*>(inHist[iHist]->Clone());
+	ratio.back()->Add( static_cast<TH1*>(inHist[iHist-1]), -1 );
+	if ( doRatio == 1 ) ratio.back()->Divide( static_cast<TH1*>(inHist[iHist-1]) );
+	yTitle = ( doRatio==1 ) ? "#frac{h_{2n+1}-h_{2n}}{h_{2n}}" : "h_{2n+1}-h_{2n}";
+	break;
       default : 
-  	ratio.push_back( 0 );
-  	ratio.back() = static_cast<TH1*>(inHist[iHist]->Clone());
-  	ratio.back()->Add( static_cast<TH1*>(inHist[refHist]), -1 );
-  	if ( doRatio == 1 ) ratio.back()->Divide( static_cast<TH1*>(inHist[refHist]) );
-  	yTitle = ( doRatio==1 ) ? "#frac{h_{n}-h_{0}}{h_{0}}" : "h_{n}-h_{0}";
+	ratio.push_back( 0 );
+	ratio.back() = static_cast<TH1*>(inHist[iHist]->Clone());
+	ratio.back()->Add( static_cast<TH1*>(inHist[refHist]), -1 );
+	if ( doRatio == 1 ) ratio.back()->Divide( static_cast<TH1*>(inHist[refHist]) );
+	yTitle = ( doRatio==1 ) ? "#frac{h_{n}-h_{0}}{h_{0}}" : "h_{n}-h_{0}";
       }
       if ( m_debug ) cout << "ratio created" << endl;
       //Set graphics properties of first hitogram
       if ( !setTitle ) {
-  	ratio.front()->GetXaxis()->SetTitle( refXAxis->GetTitle() );
-  	ratio.front()->GetXaxis()->SetLabelSize( 0.1 );
-  	ratio.front()->GetXaxis()->SetTitleSize( 0.1 );
-  	ratio.front()->GetYaxis()->SetLabelSize( 0.05 );
-  	ratio.front()->GetYaxis()->SetTitleSize( 0.1 );
-  	ratio.front()->GetYaxis()->SetTitleOffset( 0.3 );
-  	ratio.front()->GetXaxis()->SetTitleOffset( 0.7 );
-  	ratio.front()->SetTitle("");
-        ratio.front()->GetYaxis()->SetTitle( yTitle.c_str() );
-  	setTitle = 1;
+	ratio.front()->GetXaxis()->SetTitle( refXAxis->GetTitle() );
+	ratio.front()->GetXaxis()->SetLabelSize( 0.1 );
+	ratio.front()->GetXaxis()->SetTitleSize( 0.1 );
+	ratio.front()->GetYaxis()->SetLabelSize( 0.05 );
+	ratio.front()->GetYaxis()->SetTitleSize( 0.1 );
+	ratio.front()->GetYaxis()->SetTitleOffset( 0.3 );
+	ratio.front()->GetXaxis()->SetTitleOffset( 0.7 );
+	ratio.front()->SetTitle("");
+	ratio.front()->GetYaxis()->SetTitle( yTitle.c_str() );
+	setTitle = 1;
       }
       if ( m_debug ) cout << "ratio front title done" << endl;
       //Update the values of Y axis range
       for ( int bin = 1; bin <= ratio.front()->GetNbinsX(); bin++ ) {
-  	minValRatio = min( ratio.back()->GetBinContent(bin) - ratio.back()->GetBinError( bin), minValRatio );
-  	maxValRatio = max( ratio.back()->GetBinContent(bin)+ ratio.back()->GetBinError( bin ), maxValRatio );
+	minValRatio = min( ratio.back()->GetBinContent(bin) - ratio.back()->GetBinError( bin), minValRatio );
+	maxValRatio = max( ratio.back()->GetBinContent(bin)+ ratio.back()->GetBinError( bin ), maxValRatio );
       }
 
     }// end iHist
@@ -512,7 +504,7 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
       //      else if ( drawOptmapOptionsInt["centerZoom"] ) ratio.front()->GetXaxis()->SetRangeUser( minX, maxX );
       if ( m_debug ) cout << "plot ratio" << endl;
       for ( unsigned int iHist = 0; iHist < ratio.size(); iHist++ ) {
-  	ratio[iHist]->Draw( ( iHist ) ? "e,same" : "e" );
+	ratio[iHist]->Draw( ( iHist ) ? "e,same" : "e" );
       }
       //Create a line at 0 to visualize deviations
       //      line.DrawLine( rangeUserXratio.front()->GetXaxis()->GetXmin(), 0, ratio.front()->GetXaxis()->GetXmax(), 0);
@@ -523,4 +515,10 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
   if ( m_debug ) cout << "saving" << endl;
   string canOutName = GetOutName() + "." + GetExtension();
   canvas.SaveAs( canOutName.c_str() );
+
+  //Restoring legend if necessary
+  if ( !m_tmpLegends.empty() ) {
+    std::swap(m_legends,m_tmpLegends);
+    m_tmpLegends.clear();
+  }
 }

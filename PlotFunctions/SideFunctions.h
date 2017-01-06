@@ -122,8 +122,9 @@ namespace ChrisLib {
   */
   void RemoveExtremalEmptyBins( TH1 *hist );
 
-  std::string ParseLegend( TH1* hist, const std::string &legend );
-  std::string ParseLegend( TGraphErrors *graph, const std::string &legend );
+  string ParseLegend( TObject* obj, const string &legend );
+  /* std::string ParseLegend( TH1* hist, const std::string &legend ); */
+  /* std::string ParseLegend( TGraphErrors *graph, const std::string &legend ); */
   std::string ParseLegend( const std::string &legend );
 
   /**\brief Create a boostraped Tree out of inputTrees
@@ -207,6 +208,13 @@ namespace ChrisLib {
   /**\brief Write a vector of histogram into a TFile
    */
   void WriteVect( const std::vector<TObject*> &vectHist, const std::string &outName );
+
+  inline double SumSq( double a, double b ) { return a*a+b*b; }
+  inline double Oplus( double a, double b ) { return sqrt( SumSq(a, b)); }
+
+  double CompareVal( double nom, double par );
+  double CompareErr( double nom, double par, double errNom, double errPar );
+  bool IsHist( TObject* obj );
 }
 
 #endif

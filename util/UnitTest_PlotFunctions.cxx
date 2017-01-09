@@ -1,3 +1,5 @@
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE Master 
+//#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MAIN
+#define BOOST_TEST_MODULE Master
+
 #include <boost/test/unit_test.hpp>

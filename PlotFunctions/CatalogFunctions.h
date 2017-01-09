@@ -1,0 +1,5 @@
+namespace ChrisLib {
+
+  void  CompareSystModel();
+  
+}

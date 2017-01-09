@@ -334,7 +334,7 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
     SetProperties( inHist[iHist], iHist-refHist );
 
 
-    GetMaxValue( inHist[iHist], minVal, maxVal, minX, maxX, 0, static_cast<int>(iHist)==refHist );
+    GetMaxValue( inHist[iHist], minVal, maxVal, minX, maxX, 1, static_cast<int>(iHist)==refHist );
 
     if ( hist && GetDoChi2() && m_legends.size() && iHist ){
       m_tmpLegends = m_legends;

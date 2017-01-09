@@ -1,24 +1,32 @@
 #include "PlotFunctions/Arbre.h"
 #include "PlotFunctions/SideFunctions.h"
-using std::sort;
-using std::map;
-#include <iostream>
-using std::cout;
-using std::endl;
 #include "TList.h"
 #include "TIterator.h"
 #include "TXMLAttr.h"
 #include "TXMLDocument.h"
 #include "TDOMParser.h"
+
+#include <iostream>
+using std::cout;
+using std::endl;
+using std::sort;
+using std::map;
+using std::list;
+using std::string;
 using std::vector;
 using namespace ChrisLib;
+
+
+using std::ostream;
+#include <fstream>
+using std::fstream;
 
 //===================================
 ChrisLib::Arbre::Arbre() {
   m_attributes["nodeName"] = "Arbre";
 }
 //===================================
-ChrisLib::Arbre::Arbre( string nodeName, list<string> attrConstraints, list<string> childrenConstraints) {
+ChrisLib::Arbre::Arbre( string nodeName, list<string> attrConstraints, list<string> childrenConstraints) : Arbre() {
   m_attributes["nodeName"] = nodeName;
   m_attrConstraints = attrConstraints;
   m_childrenConstraints = childrenConstraints;
@@ -81,21 +89,13 @@ void ChrisLib::Arbre::Dump( string prefix ) {
 }
 //===================================
 void ChrisLib::Arbre::SetAttribute( string key, string value ) {
+
   bool isAutorized = false;
-  for ( auto vAttr : m_attrConstraints ) {
-    if ( vAttr == key ) {
-      isAutorized = true;
-      m_attributes[key] = value;
-      break;
-    }
-    else if ( vAttr > key ) break;
-  }
+  if( m_attrConstraints.empty() && key != "nodeName" ) isAutorized = true;
+  else if ( find( m_attrConstraints.begin(), m_attrConstraints.end(), key ) != m_attrConstraints.end() ) isAutorized = true;
 
-    if ( !m_attrConstraints.size() ) isAutorized = true;
-    if ( key == "nodeName" ) isAutorized = false;
-    if ( !isAutorized ) { cout << key << " is not a valid attribute" << endl; return; }
-
-    m_attributes[key] = value;
+  if ( !isAutorized ) { cout << key << " is not a valid attribute" << endl; return; }
+  m_attributes[key] = value;
 }
 //===================================
 Arbre ChrisLib::Arbre::CopyNode( TXMLNode * node ) {
@@ -164,3 +164,23 @@ int  ChrisLib::Arbre::GetArbresPath( Arbre &arbre, vector<Arbre> &outVect, vecto
   return 0;
 }
 //===================================
+void ChrisLib::Arbre::WriteXML( ostream &stream, const string &prefix ) {
+  stream << prefix << "<" + m_attributes["nodeName"] << " ";
+  for ( auto attr : m_attributes ) {
+    if ( attr.first == "nodeName" ) continue;
+    stream <<  attr.first + " " + attr.second +" ";
+  }
+  stream << ">\n";
+  string newPrefix = "\t" + prefix;
+  for ( auto it = m_children.begin(); it!=m_children.end(); ++it ) it->WriteXML( stream, newPrefix );
+  stream << "<\\" << m_attributes["nodeName"] << ">\n";
+}
+  
+//===================================
+void ChrisLib::Arbre::WriteToFile( const string &outFileName, const string &docType ) {
+  fstream outFile( outFileName, fstream::out );
+  outFile << "<?xml version=\"1.0\" ?>\n";
+  if ( docType!="" ) outFile << "<!DOCTYPE NPCorrelation  SYSTEM \"" << docType << "\">\n";
+  WriteXML( outFile );
+  outFile.close();
+}

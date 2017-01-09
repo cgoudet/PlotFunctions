@@ -1,5 +1,4 @@
 #define BOOST_TEST_MODULE SideFunctionsTestSuite
-
 #include "PlotFunctions/SideFunctions.h"
 
 #include "TH1D.h"

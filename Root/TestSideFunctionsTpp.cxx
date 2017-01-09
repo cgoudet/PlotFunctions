@@ -176,4 +176,9 @@ BOOST_AUTO_TEST_CASE(SumSqTest) {
   BOOST_REQUIRE_EQUAL( SumSq(inputs), 50 );
 }
 
+BOOST_AUTO_TEST_CASE(OplusTest) {
+  list<double> inputs { 3, 4, 5 };
+  BOOST_REQUIRE_EQUAL( Oplus(inputs), sqrt(50) );
+}
+
 BOOST_AUTO_TEST_SUITE_END()

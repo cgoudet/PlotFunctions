@@ -4,6 +4,7 @@
 using namespace ChrisLib;
 using std::vector;
 using std::string;
+using std::list;
 // The name of the suite must be a different name to your class                                                                                                                                      
 BOOST_AUTO_TEST_SUITE( SideFunctionsTppSuite )
 
@@ -164,6 +165,15 @@ BOOST_AUTO_TEST_CASE(DeleteContainerTest) {
 
   delete h1;
 
+}
+
+
+BOOST_AUTO_TEST_CASE(SumSqTest) {
+  list<double> inputs { 3, 4, 5 };
+  BOOST_REQUIRE_EQUAL( SumSq(inputs), 50 );
+  
+  inputs = { 3, -4, 5 };
+  BOOST_REQUIRE_EQUAL( SumSq(inputs), 50 );
 }
 
 BOOST_AUTO_TEST_SUITE_END()

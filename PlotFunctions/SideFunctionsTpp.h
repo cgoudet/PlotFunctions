@@ -138,11 +138,12 @@ Tested.
 
   //=============================================
   template<typename T> T SumSq( const std::list<T> &inList ) {
-    std::transform( inList.begin(), inList.end(), [](T a){return a*a;} );
-    std::transform( ++inList.begin(), inList.end(), inList.begin(), inList.end(), inList.begin(), std::plus<T>() );
-    return inList.back();
+    std::list<T> outList;
+    std::transform( inList.begin(), inList.end(), std::back_inserter(outList), [](T a){return a*a;} );
+    std::transform( ++outList.begin(), outList.end(), outList.begin(), ++outList.begin(), std::plus<T>() );
+    return outList.back();
   }
-
+  //=============================================
   template<typename T> T Oplus( const std::list<T> &inList ) {
     return sqrt( SumSq( inList ) );
   }

@@ -232,3 +232,16 @@ def AbsPath( inFile ) :
     output+=inFile
     return output
     
+#=================================================
+def prettify(elem):
+    """Return a pretty-printed XML string for the Element.
+    """
+
+    rough_string = ET.tostring(elem, 'utf-8')
+    reparsed = minidom.parseString(rough_string)
+    return reparsed.toprettyxml(indent="  ")
+#================================================
+def CreateNode( nodeName, options={} ) :
+    xmlObj = ET.Element( nodeName ) 
+    for opt in options : xmlObj.set( opt, options[opt] )
+    return xmlObj

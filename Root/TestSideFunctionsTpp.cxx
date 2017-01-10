@@ -5,7 +5,7 @@ using namespace ChrisLib;
 using std::vector;
 using std::string;
 // The name of the suite must be a different name to your class                                                                                                                                      
-BOOST_AUTO_TEST_SUITE( SideFunctionsTppSuite )
+//BOOST_AUTO_TEST_SUITE( SideFunctionsTppSuite )
 
 //====================================================
 BOOST_AUTO_TEST_CASE( DeltaTest ) {
@@ -166,4 +166,4 @@ BOOST_AUTO_TEST_CASE(DeleteContainerTest) {
 
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+//BOOST_AUTO_TEST_SUITE_END()

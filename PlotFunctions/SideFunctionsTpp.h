@@ -63,19 +63,23 @@ Tested.
   /**\brief Parse a string into a vector of a given type elements
      \param string string to be parsed
      \param result vector
+     \param delim Delimiter for string parsing
      Tested.
   */
-  template< typename Type1 > void ParseVector( const std::string &stringVector, std::vector< Type1 > &outVector, bool doClear=1 );
-  template< typename Type1 > void ParseVector( const std::string &stringVector, std::vector< Type1 > &outVector, bool doClear ) {
+  template< typename Type1 > void ParseVector( const std::string &s, std::vector< Type1 > &outVector, char delim = ' ' );
+  template< typename Type1 > void ParseVector( const std::string &s, std::vector< Type1 > &outVector, char delim ) {
 
-    if ( doClear )  outVector.clear();
-  
-    std::stringstream stream;
-    stream << stringVector;  
+    std::stringstream strstr(s);
 
-    Type1 value;
-    while ( stream >> value ) {
-      outVector.push_back( value );
+    
+    std::istream_iterator<Type1> end;
+    char line[500];
+    std::stringstream ss;
+    ss.str(s);
+    while( ss.getline(line, 500, delim ) ) {
+      std::stringstream ss2( line );
+      std::istream_iterator<Type1> it(ss2);
+      std::copy( it, end, back_inserter(outVector) );
     }
   }
 

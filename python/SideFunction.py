@@ -4,6 +4,8 @@ import subprocess as sub
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+from xml.dom import minidom
+import xml.etree.cElementTree as ET
 
 ## @namespace SideFunction  Namespace wrapping all python library
 #
@@ -243,5 +245,5 @@ def prettify(elem):
 #================================================
 def CreateNode( nodeName, options={} ) :
     xmlObj = ET.Element( nodeName ) 
-    for opt in options : xmlObj.set( opt, options[opt] )
+    [ xmlObj.set( opt, options[opt] ) for opt in options ]
     return xmlObj

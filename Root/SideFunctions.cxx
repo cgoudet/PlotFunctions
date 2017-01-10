@@ -819,7 +819,6 @@ void ChrisLib::CleanHist( vector<TH1*> &vect, const double removeVal ) {
 
   for ( auto itHist = vect.begin(); itHist!=vect.end(); ++itHist ) {
     if ( *itHist == 0 ) {
-      cout << "erasing " << endl;
       vect.erase( itHist );
       --itHist;
     }

@@ -68,14 +68,10 @@ Tested.
   */
   template< typename Type1 > void ParseVector( const std::string &s, std::vector< Type1 > &outVector, char delim = ' ' );
   template< typename Type1 > void ParseVector( const std::string &s, std::vector< Type1 > &outVector, char delim ) {
-
-    std::stringstream strstr(s);
-
     
     std::istream_iterator<Type1> end;
     char line[500];
-    std::stringstream ss;
-    ss.str(s);
+    std::stringstream ss {s};
     while( ss.getline(line, 500, delim ) ) {
       std::stringstream ss2( line );
       std::istream_iterator<Type1> it(ss2);

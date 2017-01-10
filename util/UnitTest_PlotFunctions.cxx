@@ -1,7 +1,6 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE Main
 
-
 #include "PlotFunctions/SideFunctionsTpp.h"
 #include "PlotFunctions/SideFunctions.h"
 using namespace ChrisLib;
@@ -199,6 +198,20 @@ BOOST_AUTO_TEST_CASE( ParseVectorTest ) {
   BOOST_CHECK( equal( testVectD.begin(), testVectD.end(), outVectD.begin() ) );
 
 }
+
+BOOST_AUTO_TEST_CASE(SumSqTest) {
+  list<double> inputs { 3, 4, 5 };
+  BOOST_REQUIRE_EQUAL( SumSq(inputs), 50 );
+  
+  inputs = { 3, -4, 5 };
+  BOOST_REQUIRE_EQUAL( SumSq(inputs), 50 );
+}
+
+BOOST_AUTO_TEST_CASE(OplusTest) {
+  list<double> inputs { 3, 4, 5 };
+  BOOST_REQUIRE_EQUAL( Oplus(inputs), sqrt(50) );
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 //#######################################################
@@ -517,6 +530,18 @@ BOOST_AUTO_TEST_CASE( RemoveWordsTest ) {
   BOOST_CHECK_EQUAL( RemoveWords( "babarnty", words ), "rnty" );
 }
 
+//===============================
+BOOST_AUTO_TEST_CASE( ParseLegendTest ) {
+  string legend { "" };
+  BOOST_CHECK_EQUAL( ParseLegend(legend), "" );
+
+  legend = "rty_uio";
+  BOOST_CHECK_EQUAL( ParseLegend(legend), legend );
+
+  legend = "rty_uio__HASHTAG__FILL_____NOPOINT__ATLAS__STACK__ETA_CALOETA_CALO_______";
+  BOOST_CHECK_EQUAL( ParseLegend(legend), "rty_uio#_____#eta_{CALO}#eta_{CALO}_______" );
+
+}
 BOOST_AUTO_TEST_SUITE_END()
 
 //######################################################

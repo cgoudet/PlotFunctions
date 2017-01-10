@@ -9,7 +9,7 @@
 
 namespace ChrisLib {
 
-  int robustMinimize(RooAbsReal &nll, RooMinimizer &minim, int const verbosity=0);
+  int robustMinimize(RooAbsReal &nll, RooMinimizer &minim, int const verbosity=-1);
   void FitData( RooAbsData* data, RooAbsPdf* pdf, int const verbosity=0 );
 }
 

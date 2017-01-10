@@ -437,18 +437,15 @@ string ChrisLib::ParseLegend( TObject* obj, const string &legend ) {
 
   return ParseLegend( static_cast<string>(dumString) );
 }
-
-// //========================================================
-// string ChrisLib::ParseLegend( TGraphErrors *graph, const string &legend ) {
-//   TString dumString = legend;
-//   if ( graph ) { 
-//     dumString.ReplaceAll( "__ENTRIES", TString::Format( "%1.0d", graph->GetN() ) );
-//     dumString.ReplaceAll( "__MEAN", TString::Format( "%1.3e", graph->GetMean() ) );
-//     dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", graph->GetRMS() ) );
-//   }
-//   return ParseLegend( static_cast<string>(dumString) );
-// }
 //================================
+/**\brief Replace keywords with content in a string
+
+   Accepted keywords and modifications : \n
+   - __HASHTAG -> #
+   - ETA_CALO -> #eta_{CALO}
+
+   Following options are replaced by an empty string : __FILL __NOPOINT __ATLAS __STACK
+ */
 string ChrisLib::ParseLegend( const string &legend ) {
   TString dumString = legend;
   dumString.ReplaceAll( "__HASHTAG", "#" );
@@ -459,19 +456,6 @@ string ChrisLib::ParseLegend( const string &legend ) {
   dumString.ReplaceAll("ETA_CALO", "#eta_{CALO}" );
   return static_cast<string>( dumString );
 }
-
-// //============================
-// string ChrisLib::ParseLegend( TH1* hist, const string &legend ) {
-
-//   TString dumString = legend;
-//   if ( hist ) { 
-//     dumString.ReplaceAll( "__ENTRIES", TString::Format( "%1.0f", hist->GetEntries() ) );
-//     dumString.ReplaceAll( "__MEAN", TString::Format( "%1.3e", hist->GetMean() ) );
-//     dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", hist->GetStdDev() ) );
-//     dumString.ReplaceAll( "__INTEGRAL", TString::Format( "%1.3e", hist->GetSumOfWeights() ) );
-//   }
-//   return ParseLegend( static_cast<string>(dumString) );
-// }
 
 //============================================
 TTree* ChrisLib::Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsigned long int seed, int mode ) {

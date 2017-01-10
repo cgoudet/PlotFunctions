@@ -414,14 +414,16 @@ string ChrisLib::ParseLegend( TObject* obj, const string &legend ) {
     mean = graph->GetMean();
     rms = graph->GetRMS();
     nEntries = graph->GetN();
-    sumSq = SumSq(hist->GetStdDev(2), hist->GetMean(3))*nEntries;
+    // list<double> sumSqVar {graph->GetStdDev(2), graph->GetMean(3) };
+    // sumSq = SumSq(sumSqVar)*nEntries;
   }
   else {
     mean = hist->GetMean();
     rms = hist->GetRMS();
     nEntries = hist->GetEntries();
     integral = hist->Integral();
-    sumSq = SumSq(hist->GetStdDev(2), hist->GetMean(3))*nEntries;
+    list<double> sumSqVar {hist->GetStdDev(2), hist->GetMean(3) };
+    sumSq = SumSq(sumSqVar)*nEntries;
   }
 
 

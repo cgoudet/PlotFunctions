@@ -209,9 +209,6 @@ namespace ChrisLib {
    */
   void WriteVect( const std::vector<TObject*> &vectHist, const std::string &outName );
 
-  inline double SumSq( double a, double b ) { return a*a+b*b; }
-  inline double Oplus( double a, double b ) { return sqrt( SumSq(a, b)); }
-
   double CompareVal( double nom, double par );
   double CompareErr( double nom, double par, double errNom, double errPar );
   bool IsHist( TObject* obj );

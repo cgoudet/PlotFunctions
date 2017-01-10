@@ -516,6 +516,7 @@ BOOST_AUTO_TEST_CASE( RemoveWordsTest ) {
   BOOST_CHECK_EQUAL( RemoveWords( "zzzzbabaty", words ), "ty" );
   BOOST_CHECK_EQUAL( RemoveWords( "babarnty", words ), "rnty" );
 }
+
 BOOST_AUTO_TEST_SUITE_END()
 
 //######################################################

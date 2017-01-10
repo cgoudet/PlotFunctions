@@ -169,6 +169,7 @@ void ChrisLib::Arbre::WriteXML( ostream &stream, const string &prefix ) const {
     if ( attr.first == "nodeName" ) continue;
     stream << "" <<  attr.first + "=\"" + attr.second +"\" ";
   }
+  if ( m_children.empty() ) stream << "/";
   stream << ">\n";
   string newPrefix = "\t" + prefix;
   for ( auto it = m_children.begin(); it!=m_children.end(); ++it ) it->WriteXML( stream, newPrefix );

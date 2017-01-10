@@ -77,9 +77,8 @@ Arbre ChrisLib::Arbre::ParseXML( string inFileName ) {
   return outArbre;
 }
 //===================================
-void ChrisLib::Arbre::Dump( string prefix ) {
-
-  cout << prefix << m_attributes["nodeName"] << endl;
+void ChrisLib::Arbre::Dump( string prefix ) const {
+  cout << prefix << GetNodeName() << endl;
   for ( auto vKey : m_attributes ) {
     if ( vKey.first == "nodeName" ) continue;
     cout << prefix << "  " << vKey.first << " : " << vKey.second << endl;
@@ -164,8 +163,8 @@ int  ChrisLib::Arbre::GetArbresPath( Arbre &arbre, vector<Arbre> &outVect, vecto
   return 0;
 }
 //===================================
-void ChrisLib::Arbre::WriteXML( ostream &stream, const string &prefix ) {
-  stream << prefix << "<" + m_attributes["nodeName"] << " ";
+void ChrisLib::Arbre::WriteXML( ostream &stream, const string &prefix ) const {
+  stream << prefix << "<" + GetNodeName() << " ";
   for ( auto attr : m_attributes ) {
     if ( attr.first == "nodeName" ) continue;
     stream << "" <<  attr.first + "=\"" + attr.second +"\" ";
@@ -173,11 +172,11 @@ void ChrisLib::Arbre::WriteXML( ostream &stream, const string &prefix ) {
   stream << ">\n";
   string newPrefix = "\t" + prefix;
   for ( auto it = m_children.begin(); it!=m_children.end(); ++it ) it->WriteXML( stream, newPrefix );
-  if ( !m_children.empty() ) stream << prefix << "<\\" << m_attributes["nodeName"] << ">\n";
+  if ( !m_children.empty() ) stream << prefix << "<\\" << GetNodeName() << ">\n";
 }
   
 //===================================
-void ChrisLib::Arbre::WriteToFile( const string &outFileName, const string &docType ) {
+void ChrisLib::Arbre::WriteToFile( const string &outFileName, const string &docType ) const{
   fstream outFile( outFileName, fstream::out );
   outFile << "<?xml version=\"1.0\" ?>\n";
   if ( docType!="" ) outFile << "<!DOCTYPE NPCorrelation  SYSTEM \"" << docType << "\">\n";

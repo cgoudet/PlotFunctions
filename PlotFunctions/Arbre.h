@@ -24,14 +24,15 @@ namespace ChrisLib {
 
     int AddChild( Arbre &child );
 
-    void Dump( std::string prefix = "");
+    void Dump( std::string prefix = "") const;
 
-    std::string GetNodeName() { return m_attributes["nodeName"]; }
-    const std::map<std::string, std::string> &GetAttributes() { return m_attributes; }
-    const std::list<std::string> &GetAttributesConstraints() { return m_attrConstraints; }
-    const std::list<std::string> &GetChildrenConstraints()  { return m_childrenConstraints; }
-    const std::list<Arbre> &GetChildren() { return m_children; }
-    std::string GetAttribute( std::string attribute ) { return m_attributes.at(attribute); }
+    std::string GetNodeName() const { return m_attributes.at("nodeName"); }
+    std::string GetText() const { return m_attributes.at("text"); }
+    const std::map<std::string, std::string> &GetAttributes() const { return m_attributes; }
+    const std::list<std::string> &GetAttributesConstraints() const { return m_attrConstraints; }
+    const std::list<std::string> &GetChildrenConstraints() const { return m_childrenConstraints; }
+    const std::list<Arbre> &GetChildren() const { return m_children; }
+    std::string GetAttribute( std::string attribute ) const { return m_attributes.at(attribute); }
 
     void SetAttribute( std::string key, std::string value );
 
@@ -39,7 +40,7 @@ namespace ChrisLib {
        \param outFileName 
        \param docType Name of the dtd file for structure check of the xml.
     */
-    void WriteToFile( const std::string &outFileName, const std::string &docType = "" );
+    void WriteToFile( const std::string &outFileName, const std::string &docType = "" ) const;
 
 
     static Arbre ParseXML( std::string inFileName );
@@ -49,7 +50,7 @@ namespace ChrisLib {
 
   private :
   
-    void WriteXML( std::ostream &stream, const std::string &prefix = "" );
+    void WriteXML( std::ostream &stream, const std::string &prefix = "" ) const;
 
     std::map<std::string, std::string> m_attributes;
     std::list< Arbre > m_children;

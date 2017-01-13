@@ -49,11 +49,14 @@ BOOST_AUTO_TEST_CASE( SetValTest) {
   BOOST_CHECK_EQUAL( mapBr.GetFloat("float"), valF );
   BOOST_CHECK_EQUAL( mapBr.GetDouble("double"), valD );
   BOOST_CHECK_EQUAL( mapBr.GetDouble("float"), static_cast<double>(valF) );
-
+  
   list<string> keys;
   list<string> testKeys { "int", "float", "double", "string" };
   mapBr.GetKeys( keys );
   BOOST_CHECK( keys==testKeys );
+
+  mapBr.SetVal( "testFloat", 3. );
+  cout << "testFloat" << mapBr.GetFloat(testFloat) << endl;
 }
 
 //=======================================
@@ -70,7 +73,7 @@ BOOST_AUTO_TEST_CASE( LinkTreeBranchesTest ) {
   list<string> linkedBranches { "branch11" };
 
   //Testing cas of simple linking
-  mapBr.LinkTreeBranches(tree1, 0, linkedBranches );
+  BOOST_CHECK_NO_THROW(mapBr.LinkTreeBranches(tree1, 0, linkedBranches ));
   tree1->GetEntry(0);
   BOOST_CHECK( mapBr.IsLinked() );
   BOOST_CHECK_THROW( mapBr.GetDouble("branch12"), std::range_error );
@@ -87,6 +90,14 @@ BOOST_AUTO_TEST_CASE( LinkTreeBranchesTest ) {
 
   delete tree1;
   delete tree2;
+
+  TTree *tree2 = new TTree( "tree2", "tree2" );
+  list<string> emptyList;
+  BOOST_CHECK_THROW( mapBr.LinkTreeBranches( 0, tree2, emptyList ), invalid_argument );
+  BOOST_CHECK_NO_THROW( mapBr.LinkTreeBranches( 0, tree2, linkedBranches ) );
+  BOOST_CHECK( mapBr.IsLinked() );
+
+  mapBr.SetVal( "branch11", 3. );
 }
 
 BOOST_AUTO_TEST_SUITE_END()

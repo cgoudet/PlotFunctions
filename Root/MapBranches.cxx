@@ -35,7 +35,10 @@ ChrisLib::MapBranches::MapBranches() {
 ChrisLib::MapBranches::~MapBranches(){}
 //===================================================
 void ChrisLib::MapBranches::LinkOutputFromEmpty( TTree *outTree, const list<string> &branchesToLink ) {
-
+  if ( branchesToLink.empty() ) throw invalid_argument( "MapBranches::LinkOutputFromEmpty : empty list." );
+  if ( outTree->GetEntries() ) throw invalid_argument( "MapBranches::LinkOutputFromEmpty : TTree must be empty." );
+  if ( outTree->GetListOfBranches()->GetEntries() ) throw invalid_argument( "MapBranches::LinkOutputFromEmpty : TTree must have no branch" );
+  for_each( branchesToLink.begin(), branchesToLink.end(), [this, outTree]( const string &s ) { outTree->Branch( s.c_str(), &this->m_mapDouble[s] ); } );
 }
 //=================================================
 void ChrisLib::MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, list< string > branchesToLink ) {
@@ -131,31 +134,6 @@ void ChrisLib::MapBranches::ClearMaps() {
   m_mapUnsigned.clear();
   m_mapString.clear();
 }
-
-//============================================
-// const void* ChrisLib::MapBranches::GetVal( string name ) const {
-
-//   auto itInt = m_mapInt.find( name );
-//   if ( itInt != m_mapInt.end() ) return &itInt->second;
-
-//   auto itDouble = m_mapDouble.find( name );
-//   if ( itDouble != m_mapDouble.end() ) return &itDouble->second;
-
-//   auto itULongLong = m_mapULongLong.find( name );
-//   if ( itULongLong != m_mapULongLong.end() ) return &itULongLong->second;
-
-//   auto itLongLong = m_mapLongLong.find( name );
-//   if ( itLongLong != m_mapLongLong.end() ) return &itLongLong->second;
-
-//   auto itUnsigned = m_mapUnsigned.find( name );
-//   if ( itUnsigned != m_mapUnsigned.end() ) return &itUnsigned->second;
-
-//   auto itString = m_mapString.find( name );
-//   if ( itString != m_mapString.end() ) return &itString->second;
-
-
-//   throw runtime_error( "MapBranches::GetVal : No branch named " + name );
-// }
 
 //=============================================
 void ChrisLib::MapBranches::Print() const {

@@ -54,9 +54,7 @@ BOOST_AUTO_TEST_CASE( SetValTest) {
   list<string> testKeys { "int", "float", "double", "string" };
   mapBr.GetKeys( keys );
   BOOST_CHECK( keys==testKeys );
-
-  mapBr.SetVal( "testFloat", 3. );
-  cout << "testFloat" << mapBr.GetFloat(testFloat) << endl;
+  
 }
 
 //=======================================
@@ -91,13 +89,19 @@ BOOST_AUTO_TEST_CASE( LinkTreeBranchesTest ) {
   delete tree1;
   delete tree2;
 
-  TTree *tree2 = new TTree( "tree2", "tree2" );
+  tree2 = new TTree( "tree2", "tree2" );
   list<string> emptyList;
   BOOST_CHECK_THROW( mapBr.LinkTreeBranches( 0, tree2, emptyList ), invalid_argument );
   BOOST_CHECK_NO_THROW( mapBr.LinkTreeBranches( 0, tree2, linkedBranches ) );
   BOOST_CHECK( mapBr.IsLinked() );
 
+  BOOST_CHECK_THROW( mapBr.LinkTreeBranches( 0, tree2, linkedBranches ), invalid_argument );
+  
   mapBr.SetVal( "branch11", 3. );
+  tree2->Fill();
+  BOOST_CHECK_EQUAL( TestDoubleTree(tree2, "branch11" ), 3 );
+  BOOST_CHECK_THROW( mapBr.LinkTreeBranches( 0, tree2, linkedBranches ), invalid_argument );
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()

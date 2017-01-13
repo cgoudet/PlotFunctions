@@ -3,6 +3,7 @@
 
 #include "PlotFunctions/SideFunctionsTpp.h"
 #include "PlotFunctions/SideFunctions.h"
+#include "PlotFunctions/MapBranches.h"
 using namespace ChrisLib;
 
 #include "TH1D.h"
@@ -76,5 +77,16 @@ BOOST_AUTO_TEST_CASE( ReplaceStringTest ) {
   BOOST_CHECK_EQUAL( rep4( "azb" ), "ayzb" );
 
   BOOST_CHECK_THROW( ReplaceString( "", "y" ), std::invalid_argument );
+}
+BOOST_AUTO_TEST_SUITE_END()
+//##########################################################
+BOOST_AUTO_TEST_SUITE( MapBranchesSuite )
+BOOST_AUTO_TEST_CASE( IsLinkedTest) {
+  MapBranches mapBr;
+  BOOST_CHECK( !mapBr.IsLinked() );
+  mapBr.SetVal( "string", "string" );  
+  BOOST_CHECK( mapBr.IsLinked() );
+  mapBr.ClearMaps();
+  BOOST_CHECK( !mapBr.IsLinked() );
 }
 BOOST_AUTO_TEST_SUITE_END()

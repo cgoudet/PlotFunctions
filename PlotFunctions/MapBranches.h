@@ -74,7 +74,9 @@ namespace ChrisLib {
     void Print() const;
 
     void SetVal( std::string label, int val ) { m_mapInt[label]=val; }
+    void SetVal( std::string label, std::string val ) { m_mapString[label]=val; }
     void SetVal( std::string label, double val ) { m_mapDouble[label] = val; }
+    void SetVal( std::string label, float val ) { m_mapFloat[label] = val; }
     void SetVal( std::string label, unsigned long long val ) { m_mapLongLong[label] = val; }
     void SetVal( std::string label, unsigned int val ) { m_mapUnsigned[label] = val; }
 
@@ -87,6 +89,9 @@ namespace ChrisLib {
 
   private : 
 
+    void LinkBranches( TTree *inTree, TTree *outTree, const std::list<std::string> &branchesToLink );
+    void LinkOutputFromEmpty( TTree *outTree, const std::list<std::string> &branchesToLink );
+	
     std::map< std::string, int > m_mapInt;
     std::map< std::string, double > m_mapDouble;
     std::map< std::string, float > m_mapFloat;

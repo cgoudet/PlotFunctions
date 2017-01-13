@@ -33,13 +33,22 @@ ChrisLib::MapBranches::MapBranches() {
 }
 
 ChrisLib::MapBranches::~MapBranches(){}
+//===================================================
+void ChrisLib::MapBranches::LinkOutputFromEmpty( TTree *outTree, const list<string> &branchesToLink ) {
 
+}
 //=================================================
 void ChrisLib::MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, list< string > branchesToLink ) {
   ClearMaps();
 
-  if ( !inTree ) throw invalid_argument( "MapBranches::LinkTreeBranches : Null input TTree." );
-  if ( branchesToLink.size() ) inTree->SetBranchStatus( "*", 0);
+  if ( !inTree && !outTree ) throw invalid_argument( "MapBranches::LinkTreeBranches : Null inputs TTree." );
+  else if ( !inTree ) LinkOutputFromEmpty( outTree, branchesToLink );
+  else LinkBranches( inTree, outTree, branchesToLink );
+}
+//=================================================
+void ChrisLib::MapBranches::LinkBranches( TTree *inTree, TTree *outTree, const list< string > &branchesToLink ) {
+
+  if ( !branchesToLink.empty() ) inTree->SetBranchStatus( "*", 0);
 
   TObjArray *branches = inTree->GetListOfBranches();
   for ( unsigned int iBranch = 0; iBranch < (unsigned int) branches->GetEntries(); iBranch++ ) {

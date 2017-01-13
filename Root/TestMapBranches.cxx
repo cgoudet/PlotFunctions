@@ -77,13 +77,16 @@ BOOST_AUTO_TEST_CASE( LinkTreeBranchesTest ) {
   BOOST_CHECK_NO_THROW( mapBr.GetDouble("branch11") );
   BOOST_CHECK_EQUAL( mapBr.GetDouble("branch11"), 1 );
 
-  
-  // tree2->Fill();
-  // BOOST_CHECK_EQUAL( tree2->GetEntries(), 1 );
-  // BOOST_CHECK_EQUAL( TestDoubleTree(tree2, "branch11" ), 1 );
-  // BOOST_CHECK_THROW( TestDoubleTree(tree2, "branch12" ), runtime_error );
-  delete tree1;
+  TTree *tree2 = new TTree( "tree2", "tree2" );
+  //Can technically throw if one type of variable is in tree1 and not coded.
+  BOOST_CHECK_NO_THROW( mapBr.LinkTreeBranches( tree1, tree2, linkedBranches ) );
+  tree1->GetEntry(0);
+  tree2->Fill();
+  BOOST_CHECK_EQUAL( TestDoubleTree(tree2, "branch11" ), 1 );
+  BOOST_CHECK_THROW( TestDoubleTree(tree2, "branch12" ), runtime_error );
 
+  delete tree1;
+  delete tree2;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

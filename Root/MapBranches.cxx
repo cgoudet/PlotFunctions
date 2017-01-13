@@ -138,13 +138,13 @@ void ChrisLib::MapBranches::ClearMaps() {
 //=============================================
 void ChrisLib::MapBranches::Print() const {
 
-  for ( auto it = m_mapInt.begin(); it!= m_mapInt.end(); ++it  ) cout << it->first << " " << it->second << endl;
-  for ( auto it = m_mapFloat.begin(); it!= m_mapFloat.end(); ++it  ) cout << it->first << " " << it->second << endl;
-  for ( auto it = m_mapDouble.begin(); it!= m_mapDouble.end(); ++it  ) cout << it->first << " " << it->second << endl;
-  for ( auto it = m_mapULongLong.begin(); it!= m_mapULongLong.end(); ++it  ) cout << it->first << " " << it->second << endl;
-  for ( auto it = m_mapLongLong.begin(); it!= m_mapLongLong.end(); ++it  ) cout << it->first << " " << it->second << endl;
-  for ( auto it = m_mapUnsigned.begin(); it!= m_mapUnsigned.end(); ++it  ) cout << it->first << " " << it->second << endl;
-  for ( auto it = m_mapString.begin(); it!= m_mapString.end(); ++it  ) cout << it->first << " " << it->second << endl;
+  for ( auto it = m_mapInt.begin(); it!= m_mapInt.end(); ++it  ) cout << "int " << it->first << " " << it->second << endl;
+  for ( auto it = m_mapFloat.begin(); it!= m_mapFloat.end(); ++it  ) cout << "float " << it->first << " " << it->second << endl;
+  for ( auto it = m_mapDouble.begin(); it!= m_mapDouble.end(); ++it  ) cout << "double "<< it->first << " " << it->second << endl;
+  for ( auto it = m_mapULongLong.begin(); it!= m_mapULongLong.end(); ++it  ) cout << "ULongLong " << it->first << " " << it->second << endl;
+  for ( auto it = m_mapLongLong.begin(); it!= m_mapLongLong.end(); ++it  ) cout << "LongLong " << it->first << " " << it->second << endl;
+  for ( auto it = m_mapUnsigned.begin(); it!= m_mapUnsigned.end(); ++it  ) cout << "Unsigned " << it->first << " " << it->second << endl;
+  for ( auto it = m_mapString.begin(); it!= m_mapString.end(); ++it  ) cout << "string " << it->first << " " << it->second << endl;
 }
 
 //============================================

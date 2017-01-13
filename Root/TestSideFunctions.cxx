@@ -345,6 +345,25 @@ BOOST_AUTO_TEST_CASE( ParseLegendTest ) {
   BOOST_CHECK_EQUAL( ParseLegend(legend), "rty_uio#_____#eta_{CALO}#eta_{CALO}_______" );
 
 }
+
+//===============================
+BOOST_AUTO_TEST_CASE( TestDoubleTreeTest ) {
+
+  double val1{1};
+  int val2{2};
+  TTree *tree1= new TTree( "tree1", "tree1" );
+  tree1->Branch( "branch11", &val1 );
+  tree1->Branch( "branch12", &val2 );
+
+  BOOST_CHECK_THROW( TestDoubleTree( 0, "" ), invalid_argument );
+  BOOST_CHECK_THROW( TestDoubleTree( tree1, "branch11" ), runtime_error );
+  tree1->Fill();
+  BOOST_CHECK_THROW( TestDoubleTree( tree1, "dummy" ), runtime_error );
+  BOOST_CHECK_THROW( TestDoubleTree( tree1, "branch12" ), runtime_error );
+
+  BOOST_CHECK_EQUAL( TestDoubleTree( tree1, "branch11" ), val1 );
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 

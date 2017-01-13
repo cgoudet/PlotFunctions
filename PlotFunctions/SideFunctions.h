@@ -212,6 +212,16 @@ namespace ChrisLib {
   double CompareVal( double nom, double par );
   double CompareErr( double nom, double par, double errNom, double errPar );
   bool IsHist( TObject* obj );
+
+  /**\brief Function to test the content of TTree
+     \param tree TTree under test
+     \param branch Name of branch under test
+     \return Value of first entry in branch under test
+
+     This function throws invalid_argument for null TTree and runtime_error for empty TTree or wrong branch name.
+   */
+  
+  double TestDoubleTree( TTree *tree, const string &branch );
 }
 
 #endif

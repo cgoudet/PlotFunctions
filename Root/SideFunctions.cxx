@@ -1049,3 +1049,14 @@ void ChrisLib::WriteVect( const vector<TObject*> &vectHist, const string &outNam
   for ( auto it = vectHist.begin(); it != vectHist.end(); ++it ) (*it)->Write( "", TObject::kOverwrite );
   outFile.Close();
 }
+//==============================================
+double ChrisLib::TestDoubleTree( TTree *tree, const string &branch ) {
+  if ( !tree ) throw invalid_argument( "TestDoubleTree : Null TTree." );
+  if ( !tree->GetEntries() ) throw runtime_error( "TestDoubleTree : No entries in TTree." );
+
+  double val{-99};
+  int err = tree->SetBranchAddress( branch.c_str(), &val );
+  if ( err ) throw runtime_error( "TestDoubleTree : BranchName does not designate a double branch" );
+  tree->GetEntry(0);
+  return val;
+}

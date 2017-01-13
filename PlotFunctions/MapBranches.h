@@ -93,7 +93,7 @@ namespace ChrisLib {
      */
     void LinkTreeBranches( TTree *inTree, TTree *outTree = 0, std::list<std::string> branchesToLink = std::list<std::string>() );
     void LinkCSVFile(  std::istream &stream, const char delim = ',' );
-    void ReadCSVEntry( std::istream &stream, const char delim = ',' );
+    bool ReadCSVEntry( std::istream &stream, const char delim = ',' );
 
     void Print() const;
 

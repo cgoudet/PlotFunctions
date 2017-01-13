@@ -364,6 +364,55 @@ BOOST_AUTO_TEST_CASE( TestDoubleTreeTest ) {
   BOOST_CHECK_EQUAL( TestDoubleTree( tree1, "branch11" ), val1 );
 }
 
+//===============================
+BOOST_AUTO_TEST_CASE( CreateSystHistTest ) {
+  TH1D *hist1 = new TH1D( "hist1", "hist1", 1, 0, 1 );
+  hist1->SetBinContent( 1, 1 );
+
+  TH1D *hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
+  hist2->SetBinContent( 1, 2 );
+  CreateSystHist( hist2, hist1, 0 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), sqrt(5));
+
+  delete hist2;
+  hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
+  hist2->SetBinContent( 1, -2 );
+  CreateSystHist( hist2, hist1, 1 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 3);
+
+  delete hist2;
+  hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
+  hist2->SetBinContent( 1, -2 );
+  CreateSystHist( hist2, hist1, 2 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 1);
+
+  delete hist2;
+  hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
+  hist2->SetBinContent( 1, -2 );
+  CreateSystHist( hist2, hist1, 3 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 3);
+
+  delete hist2;
+  hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
+  hist2->SetBinContent( 1, -2 );
+  CreateSystHist( hist2, hist1, 13 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 3);
+
+  delete hist1;
+  hist1 = new TH1D( "hist1", "hist1", 2, 0, 1 );
+  hist1->SetBinContent( 1, 1 );
+  hist1->SetBinContent( 2, 2 );
+  delete hist2;
+  hist2 = new TH1D( "hist2", "hist2", 2, 0, 1 );
+  hist2->SetBinContent( 1, 3 );
+  hist2->SetBinContent( 2, 4 );
+  CreateSystHist( hist2, hist1, 12 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 5);
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(2), 5);
+
+ 
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 

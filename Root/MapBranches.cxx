@@ -237,13 +237,14 @@ void ChrisLib::MapBranches::LinkCSVFile( istream &stream, const char delim ) {
 
 
 //============================================================
-void ChrisLib::MapBranches::ReadCSVEntry( istream &stream, const char delim ) {
+bool ChrisLib::MapBranches::ReadCSVEntry( istream &stream, const char delim ) {
 
   //  int iValue=0;
   double dValue=0;
 
   char line[500];
   stream.getline( line, 500 );
+  if ( stream.eof() ) return false;
   stringstream firstLine(line);
   unsigned nCols = m_CSVColsIndex.size();
   if ( !nCols ) throw runtime_error( "MapBranches::ReadCSVEntry : No column have been linked." );
@@ -265,13 +266,13 @@ void ChrisLib::MapBranches::ReadCSVEntry( istream &stream, const char delim ) {
     }
     else if ( m_CSVTypes[iCol]==CSVType::String ) {
       firstLine.getline(line, 500, delim );
-      if ( firstLine.eof() ) return;
+      if ( firstLine.eof() ) return false;
       if ( firstLine.fail() ) throw runtime_error( "MapBranches::ReadCSVEntry : Can not read string in column " + m_CSVColsIndex[iCol]);
       m_mapString.at(m_CSVColsIndex[iCol]) = line;      
       //      cout << "string : " << m_CSVColsIndex[iCol] << " " << line << endl;
     }
   }
-
+  return true;
 }
 //========================================
 string ChrisLib::MapBranches::GetLabel( const string &name ) const {
@@ -323,3 +324,5 @@ double ChrisLib::MapBranches::GetDouble( string name ) const {
   
   throw range_error( "MapBranches::GetDouble : " + name + " is neither a double or a float." );
 }
+
+//===================================================

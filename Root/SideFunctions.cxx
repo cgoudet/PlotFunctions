@@ -574,126 +574,122 @@ void ChrisLib::SaveTree( TTree *inTree, string prefix) {
 //================================
 void ChrisLib::DiffSystematics( string inFileName, bool update ) {
 
-  TFile *outFile = 0;
-  TH1D *totSyst = 0;
-  TH1D* baseValue = 0;
-  unsigned int mode = 0;
-  //Variables to create uncertainties
-  fstream inStream;
-  inStream.open( inFileName, fstream::in );
-  if ( !inStream.is_open() ) {
-    cout << inFileName << " does not exist." << endl;
-    exit(0);
-  }
+  // TFile *outFile = 0;
+  // TH1D *totSyst = 0;
+  // TH1D* baseValue = 0;
+  // unsigned int mode = 0;
+  // //Variables to create uncertainties
+  // fstream inStream;
+  // inStream.open( inFileName, fstream::in );
+  // if ( !inStream.is_open() ) throw invalid_argument( "DiffSystematics : Unknown input file." );
   
-  string rootFileName, histName, systName, outSystName;
-  unsigned int counterSyst=0;
-  string other;
-  while ( inStream >> rootFileName >> histName >> systName >> mode ) {
-    //    cout << rootFileName << endl;
-    if ( TString( rootFileName).Contains("#") ) continue;
-    if ( !outFile ) {
-      outFile = new TFile( rootFileName.c_str(), update ? "UPDATE" : "RECREATE" );
-      outSystName = histName;
-      totSyst = (TH1D*) outFile->Get( histName.c_str() );
-      continue; //counterSyst remains at 0 
-    }
-    unsigned int tempMode = mode;
+  // MapBranches mb;
+  // mb.LinkCSVFile( inStream, ' ' );
 
-    TFile *inFile = new TFile( rootFileName.c_str() );
-    if ( !inFile ) { cout << rootFileName << " does not exist." << endl; exit(0); }
-    inFile->cd();
+  // unsigned int counterSyst=0;
+  // while ( mb.ReadCSVEntry( inStream ) ) {
+  //   string rootFileName = mb.GetString("cat0");
+  //   if ( rootFileName.find("#") != string::npos ) continue;
 
+  //   string histName = mb.GetString("cat1" );
+  //   if ( !outFile ) {
+  //     outFile = new TFile( rootFileName.c_str(), update ? "UPDATE" : "RECREATE" );
+  //     outSystName = histName;
+  //     totSyst = static_cast<TH1D*>(outFile->Get(histName.c_str()));
+  //     continue; //counterSyst remains at 0 
+  //   }
+    
+  //   unsigned int mode = mb.GetDouble("cat3");
+  //   string systName = mb.GetString("cat2");
+  //   unsigned int tmpMode = mode;
 
-    if ( !counterSyst && ( tempMode/10==0 || tempMode/10==2 ) ) {
-	//Get nominal Value
-	baseValue = (TH1D*) inFile->Get( histName.c_str() )->Clone();
-	baseValue->SetDirectory(0);
-	outFile->cd();
-	if ( systName != "dum" ) baseValue->Write( systName.c_str(), TObject::kOverwrite );
-       	if ( DEBUG ) cout << "baseValue defined : " << baseValue << endl;	
-      }
-    else {
-      TH1D* inHist = (TH1D*) inFile->Get( histName.c_str() );
-      if ( !inHist ) { cout << histName << " does not exist within " << inFile->GetName() << endl; exit(0); }
-      //If stat appears in the name, use the error bars as the systematic
-      if ( TString( systName ).Contains( "__STAT" ) ) {
-	systName = string(TString( systName ).ReplaceAll( "__STAT", "" ));
-	for ( int iBin=1; iBin<=inHist->GetNbinsX(); iBin++ ) inHist->SetBinContent( iBin, inHist->GetBinError( iBin ) );
-	tempMode = 10 + ( mode % 10 );
-      }
+  //   TFile *inFile = new TFile( rootFileName.c_str() );
+  //   if ( !inFile ) throw runtime_error( "DiffSystematics : Unknown ROOT file " + rootFileName );
+  //   inFile->cd();
 
+  //   TH1D *inHist = static_cast<TH1D*>(inFile->Get( histName.c_str() ));
+  //   if ( !inHist ) throw runtime_error( "DiffSyst : Unknown hist " + inFile->GetName() + " " + histName );
+  //   inHist->SetDirectory(0);
+    
+  //   if ( !counterSyst && ( tempMode/10==0 || tempMode/10==2 ) ) {
+  //     baseValue = static_cast<TH1D*>(inHist->Clone());
+  //     baseValue->SetDirectory(0);
+  //     outFile->cd();
+  //     if ( systName != "dum" ) baseValue->Write( systName.c_str(), TObject::kOverwrite );
+  //   }
+  //   else if ( systName.find("__STAT") != string::npos ) {
+  //     //If stat appears in the name, use the error bars as the systematic
+  //     systName = ReplaceString("__STAT", "" )(systName);
+  //     for ( int iBin=1; iBin<=inHist->GetNbinsX(); ++iBin ) inHist->SetBinContent( iBin, inHist->GetBinError( iBin ) );
+  //     tmpMode = 10 + ( mode % 10 );
+  //   }
 
-      systName = "syst_" + systName;
-      inHist->SetName( systName.c_str() );
-      inHist->SetTitle( inHist->GetName() );
-      inHist->SetDirectory(0);
-      if ( DEBUG ) cout << "inHist found : " << inFile->GetName() << " " << inHist->GetName() << endl;
+  //   systName = "syst_" + systName;
+  //   inHist->SetName( systName.c_str() );
+  //   inHist->SetTitle( inHist->GetName() );
+    
+  //   //Create the systematic histogram to add
+  //   switch ( tempMode/10 ) {
+  //   case 0 : //Simple difference
+  //     inHist->Add( baseValue, -1 );
+  //     break;
+  //   case 2 : { //Differnceof the symmetrized eta
+  //     for ( int iBin = 1; iBin<= inHist->GetNbinsX()/2; ++iBin ) {
+  // 	double symDiff = ( inHist->GetBinContent(iBin) + inHist->GetBinContent( inHist->GetNbinsX() - iBin+1 ) - baseValue->GetBinContent(iBin) - baseValue->GetBinContent( baseValue->GetNbinsX() - iBin+1 ) )/2.;
+  // 	inHist->SetBinContent( iBin, symDiff );
+  // 	inHist->SetBinContent( inHist->GetNbinsX() - iBin+1, symDiff );
+  //     }
+  //     break;
+  //   }//end case 2
+  //   }//end switch
 
-      //Create the systematic histogram to add
-      switch ( tempMode/10 ) {
-      case 0 :
-	inHist->Add( baseValue, -1 );
-	break;
-      case 2 : {
-	for ( int iBin = 1; iBin<= inHist->GetNbinsX()/2; iBin++ ) {
-	  double symDiff = ( inHist->GetBinContent(iBin) + inHist->GetBinContent( inHist->GetNbinsX() - iBin+1 ) - baseValue->GetBinContent(iBin) - baseValue->GetBinContent( baseValue->GetNbinsX() - iBin+1 ) )/2.;
-	  //	  if ( DEBUG ) cout << "symDiff " << iBin << " : " << symDiff << " " << inHist->GetBinContent(iBin) << " " << inHist->GetBinContent( inHist->GetNbinsX() - iBin+1 ) << " "  << baseValue->GetBinContent(iBin) << " " << baseValue->GetBinContent( baseValue->GetNbinsX() - iBin+1 ) << endl;
-	  inHist->SetBinContent( iBin, symDiff );
-	  inHist->SetBinContent( inHist->GetNbinsX() - iBin+1, symDiff );
-	}
-	break;
-      }//end case 2
-      }//end switch
+    
+  //   for ( int iBin = 1; iBin<inHist->GetNbinsX()+1; ++iBin ) inHist->SetBinError(iBin, 0 );
+  //   outFile->cd();
+  //   inHist->Write( "", TObject::kOverwrite );
 
-     
-      for ( int iBin = 1; iBin<inHist->GetNbinsX()+1; iBin++ ) inHist->SetBinError(iBin, 0 );
-      outFile->cd();
-      //      inHist->Write( "", TObject::kOverwrite );
+  //   //in case totSyst does not exists in the output file, create it
+  //   if ( !totSyst ) {
+  //     totSyst = static_cast<TH1D*>(inHist->Clone());
+  //     for ( int iBin = 1; iBin<totSyst->GetNbinsX()+1; ++iBin ) totSyst->SetBinContent( iBin, 0 );
+  //     totSyst->SetName( outSystName.c_str()) ;
+  //     totSyst->SetTitle( totSyst->GetName() );
+  //     //      totSyst->GetYaxis()->SetTitle( "#delta" + TString(inHist->GetYaxis()->GetTitle() ) );
+  //   }
 
-      if ( DEBUG ) cout << "Add systematic to the model" << endl;
-      //in case totSyst does not exists in the output file, create it
-      if ( !totSyst ) {
-	totSyst = (TH1D*) inHist->Clone();
-	for ( int iBin = 1; iBin<totSyst->GetNbinsX()+1; iBin++ ) totSyst->SetBinContent( iBin, 0 );
-	totSyst->SetName( outSystName.c_str()) ;
-	totSyst->SetTitle( totSyst->GetName() );
-	totSyst->GetYaxis()->SetTitle( "#delta" + TString(inHist->GetYaxis()->GetTitle() ) );
-      }
-      vector<TH1*> hists = { totSyst, inHist };
-      RebinHist( hists );
-      inHist = (TH1D*) hists[1];
-      totSyst = (TH1D*) hists[0];
-      if ( !TString( inHist->GetYaxis()->GetTitle() ).Contains("#delta") ) inHist->GetYaxis()->SetTitle( "#delta" + TString( inHist->GetYaxis()->GetTitle() ) );
-      inHist->Write( "", TObject::kOverwrite );
-      for ( int iBin = 1; iBin<totSyst->GetNbinsX()+1; iBin++ ) {
-	switch( tempMode % 10 ) {
-	case 1 :
-	  totSyst->SetBinContent( iBin,
-				  totSyst->GetBinContent( iBin ) + fabs( inHist->GetBinContent( iBin ) ) );
-	  break;
-	default :
-	  totSyst->SetBinContent( iBin,
-				  sqrt(totSyst->GetBinContent( iBin )*totSyst->GetBinContent( iBin ) + inHist->GetBinContent( iBin )*inHist->GetBinContent( iBin ) ) );
-	  break;
-
-	}//end switch
-	totSyst->SetBinError( iBin, 0 );
-      }//end for iBin
-
-      delete inHist; inHist=0;
-    }//end else
-
-    outFile->cd();
-    if ( totSyst ) totSyst->Write( "", TObject::kOverwrite );
-    if ( inFile ) delete inFile; inFile =0;
-    counterSyst++;
-  }//end while
-  if ( totSyst ) delete totSyst; totSyst=0;
-  if ( baseValue ) delete baseValue; baseValue=0;
-  cout << "outFile : " << outFile->GetName() << endl;
-  delete outFile;
-}//EndDiffSystematic
+  //   vector<TH1*> hists = { totSyst, inHist };
+  //   RebinHist( hists );
+  //   inHist = static_cast<TH1D*>(hists[1]);
+  //   totSyst = static_cast<TH1D*>(hists[0]);
+  //   if ( !TString( inHist->GetYaxis()->GetTitle() ).Contains("#delta") ) inHist->GetYaxis()->SetTitle( "#delta" + TString( inHist->GetYaxis()->GetTitle() ) );
+  //   inHist->Write( "", TObject::kOverwrite );
+  //   for ( int iBin = 1; iBin<totSyst->GetNbinsX()+1; iBin++ ) {
+  //     switch( tempMode % 10 ) {
+  //     case 1 :
+  // 	totSyst->SetBinContent( iBin,
+  // 				totSyst->GetBinContent( iBin ) + fabs( inHist->GetBinContent( iBin ) ) );
+  // 	break;
+  //     default :
+  // 	totSyst->SetBinContent( iBin,
+  // 				Oplus(totSyst->GetBinContent( iBin ), inHist->GetBinContent( iBin ) ) );
+  // 	break;
+	
+  //     }//end switch
+  //     totSyst->SetBinError( iBin, 0 );
+  //   }//end for iBin
+    
+  //   delete inHist; inHist=0;
+  
+  //   outFile->cd();
+  //   if ( totSyst ) totSyst->Write( "", TObject::kOverwrite );
+  //   if ( inFile ) delete inFile; inFile =0;
+  //   ++counterSyst;
+  // }//end while
+  // if ( totSyst ) delete totSyst; totSyst=0;
+  // if ( baseValue ) delete baseValue; baseValue=0;
+  // cout << "outFile : " << outFile->GetName() << endl;
+  // delete outFile;
+ }//EndDiffSystematic
 
 //===================================================
 void ChrisLib::VarOverTime( string inFileName, bool update) {
@@ -1059,4 +1055,34 @@ double ChrisLib::TestDoubleTree( TTree *tree, const string &branch ) {
   if ( err ) throw runtime_error( "TestDoubleTree : BranchName does not designate a double branch" );
   tree->GetEntry(0);
   return val;
+}
+
+//==============================================
+void ChrisLib::CreateSystHist( TH1 *inHist, TH1* baseValue, unsigned mode ) {
+  if ( !inHist || !baseValue ) throw invalid_argument( "CreateSystHist : Null inputs" );
+  if ( !ComparableHists( inHist, baseValue ) ) throw invalid_argument( "CreateSyst : Not comparable histograms." );
+
+  int nBins = baseValue->GetNbinsX();
+  int maxIBin = baseValue->GetNbinsX()+1;
+  if ( mode /10 ) maxIBin = maxIBin/2;
+  for ( int iBin=1; iBin<=maxIBin; ++iBin ) {
+    double valHist = inHist->GetBinContent( iBin );
+    double valBase = baseValue->GetBinContent( iBin );
+    if ( mode/10 ==1 ) {
+      valHist = ( valHist + inHist->GetBinContent(nBins-iBin+1))/2;
+      valBase = ( valBase + baseValue->GetBinContent(nBins-iBin+1))/2;
+    }
+
+    int restMode = mode%10;
+    if ( !restMode ) {
+      list<double> vals { valHist, valBase};
+      valHist = Oplus( vals );
+    }
+    else if ( restMode==1 ) valHist = fabs(valHist) + fabs(valBase);
+    else if ( restMode==2 ) valHist = fabs( valBase+valHist );
+    else if ( restMode==3 ) valHist = fabs( valBase-valHist );
+
+    inHist->SetBinContent( iBin, valHist );
+    inHist->SetBinContent( nBins-iBin+1, valHist );
+  }
 }

@@ -142,6 +142,9 @@ namespace ChrisLib {
   void AddTree( TTree *treeAdd, TTree *treeAdded );
   void SaveTree( TTree *inTree, std::string prefix );
 
+  /**\create a systematics using configFile from text file
+     
+   */
   void DiffSystematics( std::string inFileName, bool update=0 );
   void VarOverTime( std::string inFileName, bool update=0);
 
@@ -220,8 +223,24 @@ namespace ChrisLib {
 
      This function throws invalid_argument for null TTree and runtime_error for empty TTree or wrong branch name.
    */
-  
   double TestDoubleTree( TTree *tree, const string &branch );
+
+  /**\brief Modify inHist into a systematic with respect to baseValue
+     
+     mode%/10 :
+     - 0 : quadratic sum
+     - 1 : sum of absolute values
+     - 2 : absolute value of sum
+     - 3 : absolute value of difference
+
+     mode/10 :
+     - 0 : Bin by bin
+     - 1 : symmetrized bin
+     
+     Histograms must be comparable ( ComparableHists ).
+   */
+  void CreateSystHist( TH1 *inHist, TH1* baseValue, unsigned mode =0 );
+  
 }
 
 #endif

@@ -74,5 +74,7 @@ BOOST_AUTO_TEST_CASE( ReplaceStringTest ) {
   ReplaceString rep4( "z", "yz" );
   BOOST_CHECK_EQUAL( rep4( "z" ), "yz" );
   BOOST_CHECK_EQUAL( rep4( "azb" ), "ayzb" );
+
+  BOOST_CHECK_THROW( ReplaceString( "", "y" ), std::invalid_argument );
 }
 BOOST_AUTO_TEST_SUITE_END()

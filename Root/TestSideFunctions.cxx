@@ -20,7 +20,6 @@ using std::vector;
 using std::runtime_error;
 
 BOOST_AUTO_TEST_SUITE( SideFunctionsSuite )
-
 //====================================================
 BOOST_AUTO_TEST_CASE( StripStringTest ) {
   BOOST_CHECK_EQUAL( StripString( "/path/file.ext", 1, 1), "file" );

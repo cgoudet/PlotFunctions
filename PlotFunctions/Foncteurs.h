@@ -2,12 +2,19 @@
 #define FONCTERURS_H
 #include <string>
 #include <iostream>
+#include <exception>
 
 namespace ChrisLib {
   class ReplaceString {
   public :
-  ReplaceString( std::string toRemove ) : m_toRemove(toRemove),m_toReplace("") {}
-  ReplaceString( std::string toRemove, std::string toReplace ) : m_toRemove(toRemove),m_toReplace(toReplace) {}
+  ReplaceString( std::string toRemove ) : m_toRemove(toRemove),m_toReplace("") {
+      if ( toRemove == "" ) throw std::invalid_argument( "ReplaceString::ReplaceString : Forbidden ot remove empty string" );
+    }
+    
+  ReplaceString( std::string toRemove, std::string toReplace ) : ReplaceString(toRemove) {
+      m_toReplace = toReplace;
+    }
+    
     std::string operator()( std::string name ) { 
 
       std::string newString;

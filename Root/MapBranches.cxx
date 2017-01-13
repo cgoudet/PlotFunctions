@@ -38,7 +38,7 @@ ChrisLib::MapBranches::~MapBranches(){}
 void ChrisLib::MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, list< string > branchesToLink ) {
   ClearMaps();
 
-  if ( !inTree ) throw invalid_argument( "MapBranches::LInkTreeBranches : Null input TTree." );
+  if ( !inTree ) throw invalid_argument( "MapBranches::LinkTreeBranches : Null input TTree." );
   if ( branchesToLink.size() ) inTree->SetBranchStatus( "*", 0);
 
   TObjArray *branches = inTree->GetListOfBranches();

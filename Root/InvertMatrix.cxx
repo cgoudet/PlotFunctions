@@ -148,7 +148,7 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
     	TString alphaName;
 
     	switch ( inversionProcedure%10 ) {
-    	case 0 : //alpha
+    	case 0 : case 3 : //alpha
     	  if ( !alphaBin[iLine][0] ) {
     	    alphaName = TString::Format( "alpha_%d", iLine );
     	    alphaBin[iLine][0] = new RooRealVar( alphaName, alphaName, 0, -0.1, 0.1 );
@@ -162,7 +162,7 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
     	  alpha->setVal( combinMatrix(iLine, iCol) );
     	  break;
 
-    	case 1 : {//constant term
+    	case 1 : case 4 :{//constant term
     	  if ( !alphaBin[iLine][0] ) {
     	    alphaName = TString::Format( "C_%d", iLine );
     	    alphaBin[iLine][0] = new RooRealVar( alphaName, alphaName, combinMatrix( iLine, iCol ), 0, 0.1 );
@@ -188,35 +188,6 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
     	  alpha->setVal( combinMatrix(iLine, iCol)*combinMatrix(iLine, iCol) );
     	  break;
     	}
-
-    	case 3 : {//constant term
-    	  if ( !alphaBin[iLine][iCol] ) {
-    	    alphaName = TString::Format( "alpha_%d_%d", iLine, iCol );
-    	    alphaBin[iLine][iCol] = new RooRealVar( alphaName, alphaName, combinMatrix( iLine, iCol ), -0.1, 0.1 );
-    	  }
-	  alphaBin[iLine][iCol]->setVal( 2*combinMatrix[iLine][iCol] );	
-    	  alphaName = TString::Format( "alphaConf_%d_%d", iLine, iCol );
-    	  alphaConfig[iLine][iCol] = new RooFormulaVar( alphaName, alphaName, "(@0+@1)/2.", RooArgList( *alphaBin[iLine][iCol], *alphaTot ) );
-
-    	  alphaName = TString::Format( "alphaErrConf_%d_%d", iLine, iCol );
-    	  alphaErrConfig[iLine][iCol] = new RooConstVar( alphaName, alphaName, combinErrMatrix( iLine, iCol ) );
-    	  alpha->setVal( combinMatrix(iLine, iCol) );
-	  cout << alphaConfig[iLine][iCol]->GetName() << " " << alphaConfig[iLine][iCol]->getVal() << " " << alphaErrConfig[iLine][iCol]->getVal() << " " << alpha->getVal() << endl;
-    	  break;}
-
-    	case 4 : {//constant term
-    	  if ( !alphaBin[iLine][0] ) {
-    	    alphaName = TString::Format( "C_%d", iLine );
-    	    alphaBin[iLine][0] = new RooRealVar( alphaName, alphaName, combinMatrix( iLine, iCol ), 0, 0.1 );
-    	  }
-	  alphaBin[iLine][iCol]->setVal( combinMatrix[iLine][iLine] );	
-	  alphaName = TString::Format( "CConf_%d_%d", iLine, iCol );
-    	  alphaConfig[iLine][iCol] = new RooFormulaVar( alphaName, alphaName, "TMath::Sqrt((@0*@0+@1*@1)/2.)", RooArgList( *alphaBin[iLine][iCol], *alphaTot ) );
-    	  alphaName = TString::Format( "CErrConf_%d_%d", iLine, iCol );
-    	  alphaErrConfig[iLine][iCol] = new RooConstVar( alphaName, alphaName, combinErrMatrix( iLine, iCol ) );
-    	  alpha->setVal( combinMatrix(iLine, iCol) );
-
-    	  break;}
 
     	default :
     	  cout << "Not supporting inversionProcedure : " << inversionProcedure << endl;

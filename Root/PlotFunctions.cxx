@@ -203,12 +203,12 @@ TObject* ChrisLib::InitHist( const InputCompare &inputCompare, unsigned iPlot, u
     name << "_" << varYName[iPlot][iHist];
     if ( doLabels ) object = new TProfile( name.str().c_str(), name.str().c_str(), 1, -0.5, 0.5 );
     else if ( xBinning.empty() || xBinning[iHist].empty() ) object = new TProfile( name.str().c_str(), name.str().c_str(), nBins, varMin[iHist], varMax[iHist] );
-    else object = new TProfile( name.str().c_str(), name.str().c_str(), (int) xBinning[iPlot].size()-1, &xBinning[iPlot][0] );
+    else object = new TProfile( name.str().c_str(), name.str().c_str(), static_cast<int>(xBinning[iPlot].size())-1, &xBinning[iPlot][0] );
   }
   else {
     if ( doLabels ) object = new TH1D( name.str().c_str(), name.str().c_str(), 1, -0.5, 0.5 );
     else if ( xBinning.empty() || xBinning[iHist].empty() ) object = new TH1D( name.str().c_str(), name.str().c_str(), nBins, varMin[iHist], varMax[iHist] );
-    else object = new TH1D( name.str().c_str(), name.str().c_str(), (int) xBinning[iHist].size()-1, &xBinning[iHist][0] );
+    else object = new TH1D( name.str().c_str(), name.str().c_str(), static_cast<int>(xBinning[iHist].size())-1, &xBinning[iHist][0] );
   }
 
 

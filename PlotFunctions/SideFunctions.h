@@ -142,10 +142,27 @@ namespace ChrisLib {
   void AddTree( TTree *treeAdd, TTree *treeAdded );
   void SaveTree( TTree *inTree, std::string prefix );
 
-  /**\create a systematics using configFile from text file
-     
+  /**\create a systematics using configFile from boost file
+     Mandatory variables :
+     - outFileName : Name of the output file
+     - totSystName : Name of the ouput total systematic. 
+
+     Systematic variables : all described options must be entered the same number of time.
+     - rootFileName : Name of the file whe an histogram of interest lies
+     - histName : Name of the histogram of interest
+     - systName : Name for the considered systematic
+     - mode : Mode of the contribution of the histogram to the total uncertainty
+
+     Modes :
+     - 0XX : The systematic must be compared to another histogram. 
+     This other histogram is taken as the first given in the configuration file.
+     The comparison is a signed difference.
+     - 1XX : The histogram is directly a systematic
+     - XX : options from CreateSystHist for combination with total systematic.
+     For example 10 will make the symmetrized root mean squatre between bins.
    */
   void DiffSystematics( std::string inFileName, bool update=0 );
+  
   void VarOverTime( std::string inFileName, bool update=0);
 
   void RescaleStack( THStack *stack, double integral );
@@ -230,8 +247,10 @@ namespace ChrisLib {
      mode%/10 :
      - 0 : quadratic sum
      - 1 : sum of absolute values
-     - 2 : absolute value of sum
-     - 3 : absolute value of difference
+     - 2 : sum
+     - 3 : difference
+     - 4 : absolute value of sum
+     - 5 : absolute value of difference
 
      mode/10 :
      - 0 : Bin by bin
@@ -240,7 +259,10 @@ namespace ChrisLib {
      Histograms must be comparable ( ComparableHists ).
    */
   void CreateSystHist( TH1 *inHist, TH1* baseValue, unsigned mode =0 );
-  
+
+  /**\brief REverse errors and content value
+   */
+  void ReverseErrVal( TH1* hist );
 }
 
 #endif

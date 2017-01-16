@@ -575,11 +575,12 @@ void ChrisLib::SaveTree( TTree *inTree, string prefix) {
 }
 
 //================================
-void ChrisLib::DiffSystematics( string inFileName, bool update ) {
+void ChrisLib::DiffSystematics( string inFileName ) {
 
   string outFileName, totSystName;
   vector<string> histsName, rootFilesName, systsName;
   vector<int> modes;
+  bool update{0};
   po::options_description configOptions("configOptions");
   configOptions.add_options()
     ( "outFileName", po::value<string>( &outFileName )->required(), "" )
@@ -588,6 +589,7 @@ void ChrisLib::DiffSystematics( string inFileName, bool update ) {
     ( "histName", po::value<vector<string>>(&histsName)->multitoken(), "" )
     ( "systName", po::value<vector<string>>(&systsName)->multitoken(), "" )
     ( "rootFileName", po::value<vector<string>>(&rootFilesName)->multitoken(), "" )
+    ( "update", po::value<bool>(&update)->default_value(0), "" )
     ;
 
   po::variables_map vm;
@@ -595,7 +597,6 @@ void ChrisLib::DiffSystematics( string inFileName, bool update ) {
   if ( !ifs.good() ) throw invalid_argument( "InputCompare::LoadFile : Unknown file " + inFileName );
   po::store(po::parse_config_file(ifs, configOptions), vm);
   po::notify( vm );
-
   unsigned nSyst = modes.size();
   if ( histsName.size()!=nSyst || systsName.size()!=nSyst || rootFilesName.size() !=nSyst ) throw invalid_argument( "DiffSystematics : Inputs sizes do not match" );
   
@@ -618,10 +619,9 @@ void ChrisLib::DiffSystematics( string inFileName, bool update ) {
       ReverseErrVal(inHist);
     }
     
-    if ( !iSyst && modes[iSyst]/100!=1 ) {
+    if ( !baseValue && modes[iSyst]/100!=1 ) {
       baseValue = static_cast<TH1D*>(inHist->Clone( systsName[iSyst].c_str() ));
       baseValue->SetDirectory(0);
-      baseValue->SetName( systsName[iSyst].c_str() );
       continue;
     }
 
@@ -1049,7 +1049,8 @@ void ChrisLib::CreateSystHist( TH1 *inHist, TH1* baseValue, unsigned mode ) {
     else if ( restMode==5 ) valHist = fabs( valBase-valHist );
 
     inHist->SetBinContent( iBin, valHist );
-    inHist->SetBinContent( nBins-iBin+1, valHist );
+    if ( mode/10==1) inHist->SetBinContent( nBins-iBin+1, valHist );
+
   }
 }
 

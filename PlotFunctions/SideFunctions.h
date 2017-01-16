@@ -162,7 +162,7 @@ namespace ChrisLib {
      - XX : options from ChrisLib::CreateSystHist for combination with total systematic.
      For example 10 will make the symmetrized root mean squatre between bins.
    */
-  void DiffSystematics( std::string inFileName, bool update=0 );
+  void DiffSystematics( std::string inFileName );
   
   void VarOverTime( std::string inFileName, bool update=0);
 

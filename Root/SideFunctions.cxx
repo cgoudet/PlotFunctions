@@ -1023,6 +1023,7 @@ double ChrisLib::TestDoubleTree( TTree *tree, const string &branch ) {
 
 //==============================================
 void ChrisLib::CreateSystHist( TH1 *inHist, TH1* baseValue, unsigned mode ) {
+
   if ( !inHist || !baseValue ) throw invalid_argument( "CreateSystHist : Null inputs" );
   if ( !ComparableHists( inHist, baseValue ) ) throw invalid_argument( "CreateSyst : Not comparable histograms." );
 

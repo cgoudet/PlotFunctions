@@ -612,6 +612,7 @@ void ChrisLib::DiffSystematics( string inFileName ) {
     inHist->SetDirectory(0);
     inFile->Close();
     delete inFile;
+    inHist->SetName( systsName[iSyst].c_str() );
     
     if ( systsName[iSyst].find("__ERR") != string::npos ) {
       //If stat appears in the name, use the error bars as the systematic

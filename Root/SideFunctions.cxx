@@ -660,13 +660,15 @@ void ChrisLib::DiffSystematics( string inFileName ) {
   }
 
   outFile->cd();
+  cout << "totSyst : " << totSyst << endl;
   if ( totSyst ) {
     totSyst->Write( "", TObject::kOverwrite );
     delete totSyst;
   }
-  
+
+  cout << "baseValue : " << baseValue << " " << baseValue->GetName() << endl;
   if ( baseValue ) {
-    if ( string(baseValue->GetName()) == "dum" ) baseValue->Write( "", TObject::kOverwrite );
+    if ( string(baseValue->GetName()) != "dum" ) baseValue->Write( "", TObject::kOverwrite );
     delete baseValue;
   }
   delete outFile;

@@ -1,0 +1,10 @@
+outFileName=TestDiffSyst_3.root
+totSystName=totSyst
+
+rootFileName=PlotFunctions/confTest/TestDiffSystematic.root
+histName=hist1
+systName=baseValue__ERR
+mode=000
+
+
+#Ssytematic must be the quadratic sum of both histogram's uncertainties

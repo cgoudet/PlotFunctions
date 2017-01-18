@@ -52,7 +52,6 @@ void ChrisLib::InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, 
   switch ( inversionProcedure/10 ) {
 
   case 0 : { // Exact linear matrix inversion
-    cout << "linear matrix inversion" << endl;
     //Create the B matrix for alpha
     TMatrixD *bMatrix = new TMatrixD( nBins, 1);
     TMatrixD *UMatrix = new TMatrixD( nBins, nBins );  
@@ -91,7 +90,6 @@ void ChrisLib::InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, 
 	}
 
       }}
-    cout << "inverting" << endl;
     UMatrix->Invert();
     //    UMatrix=2*UMatrix;
     outMatrix = TMatrixD( nBins, 1);
@@ -112,7 +110,6 @@ void ChrisLib::InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, 
   }//end case 0 inversionProcedure/10
 
   case 1 : { //inversionProcedure/10
-    cout << "fitMethod" << endl;
     // method with likeliood fit
     //Defining observables
     RooRealVar *alpha = new RooRealVar( "alpha", "alpha", -0.1, 0.1 );

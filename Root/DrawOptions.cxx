@@ -34,7 +34,8 @@ ChrisLib::DrawOptions::DrawOptions() : m_legendCoord {0.7,0.9}, m_debug(0),
 
   std::list<string> keys { "doChi2", "logy", "orderX" };
   for ( auto vKey : keys ) m_bools[vKey]=0;
-
+  m_bools["forceStyle"]=1;
+  
   keys = { "doRatio", "drawStyle", "shiftColor", "grid" };
   for ( auto vKey : keys ) m_ints[vKey]=0;  
 
@@ -106,7 +107,7 @@ void ChrisLib::DrawOptions::SetProperties( TObject* obj, int iHist ) {
   if (  !IsHist( obj ) ) graph = static_cast<TGraphErrors*>(obj);
   else hist=static_cast<TH1*>(obj);
   
-  obj->UseCurrentStyle();
+  if ( m_bools["forceStyle" ] ) obj->UseCurrentStyle();
   if ( !iHist ) {
     for ( unsigned iAxis=0; iAxis<2; ++iAxis ) {
       string title = iAxis ? GetYTitle() : GetXTitle();

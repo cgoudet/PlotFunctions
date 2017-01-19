@@ -425,30 +425,25 @@ string ChrisLib::ParseLegend( TObject* obj, const string &legend ) {
     rms = hist->GetRMS();
     nEntries = hist->GetEntries();
     integral = hist->Integral();
-    list<double> sumSqVar {hist->GetStdDev(2), hist->GetMean(3) };
-    sumSq = SumSq(sumSqVar)*nEntries;
+    list<double> lSumSq;
+    for ( int iBin=1; iBin<=hist->GetNbinsX(); ++iBin ) {
+      lSumSq.push_back( hist->GetBinContent(iBin));
+    }
+
+    sumSq = SumSq(lSumSq);
   }
 
-
-  
   TString dumString = legend;
   dumString.ReplaceAll( "__ENTRIES", TString::Format( "%1.0d", nEntries ) );
   dumString.ReplaceAll( "__MEAN", TString::Format( "%1.3e", mean ) );
   dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", rms ) );
   dumString.ReplaceAll( "__SUMSQ", TString::Format( "%1.3e", sumSq ) );
+  dumString.ReplaceAll( "__OPLUS", TString::Format( "%1.3e", sqrt(sumSq) ) );
   dumString.ReplaceAll( "__INTEGRAL", TString::Format( "%1.3e", integral ) );
 
   return ParseLegend( static_cast<string>(dumString) );
 }
 //================================
-/**\brief Replace keywords with content in a string
-
-   Accepted keywords and modifications : \n
-   - __HASHTAG -> #
-   - ETA_CALO -> #eta_{CALO}
-
-   Following options are replaced by an empty string : __FILL __NOPOINT __ATLAS __STACK
- */
 string ChrisLib::ParseLegend( const string &legend ) {
   TString dumString = legend;
   dumString.ReplaceAll( "__HASHTAG", "#" );
@@ -456,7 +451,7 @@ string ChrisLib::ParseLegend( const string &legend ) {
   dumString.ReplaceAll("__NOPOINT", "" );
   dumString.ReplaceAll("__ATLAS", "" );
   dumString.ReplaceAll("__STACK", "" );
-  dumString.ReplaceAll("ETA_CALO", "#eta_{CALO}" );
+  dumString.ReplaceAll("__ETA_CALO", "#eta_{CALO}" );
   return static_cast<string>( dumString );
 }
 

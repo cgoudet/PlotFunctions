@@ -122,9 +122,29 @@ namespace ChrisLib {
   */
   void RemoveExtremalEmptyBins( TH1 *hist );
 
+  /**\brief Replace keywords with content in a string
+
+     Two kind of keyword exist : object related and not object-related.
+     The latters are documented in ChrisLib::ParseLegend( const std::string &legend ).
+
+     - __MEAN is replaced with the mean of the histogram
+     - __STDEV is replaced with the histogram standard deviation
+     - __HASHTAG is replaced with a # otherwise comment caracter
+     - __ENTRIES is replaced by the number of entries in the histo
+     - __INTEGRAL is replaced by the integral
+     - __SUMSQ is replaced with the sum of the square values of the bins.
+     - __OPLUS is replaced with the quadratic sum of the bins value
+
+  */
   string ParseLegend( TObject* obj, const string &legend );
-  /* std::string ParseLegend( TH1* hist, const std::string &legend ); */
-  /* std::string ParseLegend( TGraphErrors *graph, const std::string &legend ); */
+
+  /**\brief replace keyword with another content in a string
+     Accepted keywords and modifications : \n
+   - __HASHTAG -> #
+   - __ETA_CALO -> #eta_{CALO}
+
+   Following options are replaced by an empty string : __FILL __NOPOINT __ATLAS __STACK
+   */
   std::string ParseLegend( const std::string &legend );
 
   /**\brief Create a boostraped Tree out of inputTrees

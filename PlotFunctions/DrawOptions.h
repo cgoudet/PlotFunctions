@@ -33,6 +33,9 @@ namespace ChrisLib {
 
      Adding a wrong option to the class will print a message but procedure will continue witout the option.
 
+     Keywords exist to put dynamic content in latex labels or legends such as histogram properties.
+     These keywords are described in ChrisLib::ParseLegend.
+
      ### Options Description
      - outName=<string> : name of the output plot
    
@@ -64,15 +67,9 @@ namespace ChrisLib {
      Option is matched to the object with the same index in the file.
      If the string is empty or no legend provided, the name of the object is displayed in the legend.
      The legend option can be either not specified, or specified the exact number of object present in the plot.
-     Legend accepts some special code : 
-     Additional key woords can be put into the legend : \n
-     - __MEAN is replaced with the mean of the histogram
-     - __STDEV is replaced with the histogram standard deviation
-     - __FILL will modify the plotting options of histogram to fill between error bars
-     - __NOPOINT will make the histogram plotted without marker
-     - __HASHTAG is replaced with a # otherwise comment caracter
-     - __ENTRIES is replaced by the number of entries in the histo
-     - __INTEGRAL is replaced by the integral
+     Legend accepts some special code to include histograms properties (see ChrisLib::ParseLegend).
+     Some keywords change the plotting options : __FILL will fill the area between error bars,  __NOPOINT will make the histogram plotted without marker.
+
    
      - legendPos=<int>X <int>X : Top left relative coordinate (x,y) of the legend box.
      By default it is set to (0.7, 0.9).
@@ -95,6 +92,8 @@ namespace ChrisLib {
 
      - orderX=<int> : Order the points of graph in increasing order. 
      <int> is interpreted as boolean.
+
+     - forceStyle=<int> : Force the style of the inputs into the default one. True by default.
   */
   class DrawOptions {
   public :

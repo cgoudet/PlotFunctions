@@ -273,8 +273,9 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
   if ( m_debug ) cout << "ChrisLib::DrawOptions::Draw" << endl;
   SetAtlasStyle();
 
+  if ( inHist.size()==1 ) m_ints["shiftColor"] = 1;
   vector< TH1* > ratio;
-  int doRatio = GetDoRatio();
+
   
   //================ PAD DEFINITION
   TCanvas canvas;
@@ -286,7 +287,8 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
   TPad padDown( "padDown", "padDown", 0, 0, 1, 0.3 );
   padDown.SetTopMargin( 0 );
   padDown.SetBottomMargin( 0.2 );
-  
+
+  int doRatio = GetDoRatio();  
   if ( doRatio ) {
     padUp.Draw();
     padUp.SetGrid( doGrid%2, doGrid/2 );

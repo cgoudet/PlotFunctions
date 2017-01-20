@@ -2,14 +2,11 @@
 #define ARBRE_H
 
 #include <list>
-using std::list;
 #include <map>
-using std::map;
 #include <string>
-using std::string;
 #include "TXMLNode.h"
 #include <vector>
-using std::vector;
+#include <ostream>
 
 namespace ChrisLib {
   class Arbre 
@@ -17,37 +14,49 @@ namespace ChrisLib {
 
   public : 
     Arbre();
-    Arbre( string nodeName, list<string> attrConstraints = list<string>(), list<string> childrenConstraints = list<string>() );
+    
+    /**\brief Constructor with constraints on structure.
+       \param nodeName Name of the created node
+       \param attrConstraints Allowed names for the attribute of the object.
+       \param childrenConstraints Allowed nodeNames for the children.
+    */
+    Arbre( std::string nodeName, std::list<std::string> attrConstraints = std::list<std::string>(), std::list<std::string> childrenConstraints = std::list<std::string>() );
 
     int AddChild( Arbre &child );
 
-    void Dump( string prefix = "");
+    void Dump( std::string prefix = "") const;
 
-    string GetNodeName() { return m_attributes["nodeName"]; }
-    map<string, string> GetAttributes() { return m_attributes; }
-    list<string> GetAttributesConstraints() { return m_attrConstraints; }
-    list<string> GetChildrenConstraints()  { return m_childrenConstraints; }
-    list<Arbre> GetChildren() { return m_children; }
-    string GetAttribute( string attribute ) { return m_attributes[attribute]; }
+    std::string GetNodeName() const { return m_attributes.at("nodeName"); }
+    std::string GetText() const { return m_attributes.at("text"); }
+    const std::map<std::string, std::string> &GetAttributes() const { return m_attributes; }
+    const std::list<std::string> &GetAttributesConstraints() const { return m_attrConstraints; }
+    const std::list<std::string> &GetChildrenConstraints() const { return m_childrenConstraints; }
+    const std::list<Arbre> &GetChildren() const { return m_children; }
+    std::string GetAttribute( std::string attribute ) const { return m_attributes.at(attribute); }
 
-    void SetAttribute( string key, string value );
+    void SetAttribute( std::string key, std::string value );
+
+    /**\brief Write the Arbre into a XML file
+       \param outFileName 
+       \param docType Name of the dtd file for structure check of the xml.
+    */
+    void WriteToFile( const std::string &outFileName, const std::string &docType = "" ) const;
 
 
-
-    static Arbre ParseXML( string inFileName );
+    static Arbre ParseXML( std::string inFileName );
     static Arbre CopyNode( TXMLNode * node );
 
-    static int  GetArbresPath( Arbre &arbre , vector<Arbre> &outVect, vector<string> path = vector<string>(), vector<map<string, string>> vectOptions = vector<map<string, string>>() );
+    static int  GetArbresPath( Arbre &arbre , std::vector<Arbre> &outVect, std::vector<std::string> path = std::vector<std::string>(), std::vector<std::map<std::string, std::string>> vectOptions = std::vector<std::map<std::string, std::string>>() );
 
   private :
   
-  
+    void WriteXML( std::ostream &stream, const std::string &prefix = "" ) const;
 
-    map<string, string> m_attributes;
-    list< Arbre > m_children;
+    std::map<std::string, std::string> m_attributes;
+    std::list< Arbre > m_children;
 
-    list<string> m_childrenConstraints;
-    list<string> m_attrConstraints;
+    std::list<std::string> m_childrenConstraints;
+    std::list<std::string> m_attrConstraints;
   };
 }
 

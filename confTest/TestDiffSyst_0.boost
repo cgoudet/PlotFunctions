@@ -1,0 +1,14 @@
+outFileName=TestDiffSyst_0.root
+totSystName=totSyst
+
+rootFileName=PlotFunctions/confTest/TestDiffSystematic.root
+histName=hist1
+systName=baseValue
+mode=0
+
+rootFileName=PlotFunctions/confTest/TestDiffSystematic.root
+histName=hist2
+systName=syst2
+mode=0
+
+#Ssytematic must be the difference of both systematics

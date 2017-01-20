@@ -496,8 +496,9 @@ int  main(int argc, char *argv[]){
 	    commandLine += " " + vName + ".pdf";
 	  }
 
-	  system( ("pdfjoin " + commandLine + " --outfile /sps/atlas/c/cgoudet/Plots/LikelihoodFit.pdf").c_str() );
-	  system( ("rm " + commandLine ).c_str() );
+	  int err = system( ("pdfjoin " + commandLine + " --outfile /sps/atlas/c/cgoudet/Plots/LikelihoodFit.pdf").c_str() );
+	  err = system( ("rm " + commandLine ).c_str() );
+	  cout << "is pdf compiled : " << !err << endl;
   //##########################################
 	 
 	}//end csv

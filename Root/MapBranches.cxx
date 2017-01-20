@@ -33,23 +33,32 @@ ChrisLib::MapBranches::MapBranches() {
 }
 
 ChrisLib::MapBranches::~MapBranches(){}
-
+//===================================================
+void ChrisLib::MapBranches::LinkOutputFromEmpty( TTree *outTree, const list<string> &branchesToLink ) {
+  if ( branchesToLink.empty() ) throw invalid_argument( "MapBranches::LinkOutputFromEmpty : empty list." );
+  if ( outTree->GetEntries() ) throw invalid_argument( "MapBranches::LinkOutputFromEmpty : TTree must be empty." );
+  if ( outTree->GetListOfBranches()->GetEntries() ) throw invalid_argument( "MapBranches::LinkOutputFromEmpty : TTree must have no branch" );
+  for_each( branchesToLink.begin(), branchesToLink.end(), [this, outTree]( const string &s ) { outTree->Branch( s.c_str(), &this->m_mapDouble[s] ); } );
+}
 //=================================================
 void ChrisLib::MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, list< string > branchesToLink ) {
   ClearMaps();
-
-  if ( !inTree ) throw invalid_argument( "MapBranches::LInkTreeBranches : Null input TTree." );
-  if ( branchesToLink.size() ) inTree->SetBranchStatus( "*", 0);
+  if ( !inTree && !outTree ) throw invalid_argument( "MapBranches::LinkTreeBranches : Null inputs TTree." );
+  else if ( !inTree ) LinkOutputFromEmpty( outTree, branchesToLink );
+  else LinkBranches( inTree, outTree, branchesToLink );
+}
+//=================================================
+void ChrisLib::MapBranches::LinkBranches( TTree *inTree, TTree *outTree, const list< string > &branchesToLink ) {
+  if ( !branchesToLink.empty() ) inTree->SetBranchStatus( "*", 0);
 
   TObjArray *branches = inTree->GetListOfBranches();
-  for ( unsigned int iBranch = 0; iBranch < (unsigned int) branches->GetEntries(); iBranch++ ) {
+  for ( unsigned int iBranch = 0; iBranch < static_cast<unsigned int>(branches->GetEntries()); iBranch++ ) {
 
     TClass *expectedClass;
     EDataType expectedType;
     
     ( (TBranch*) (*branches)[iBranch])->GetExpectedType( expectedClass, expectedType );
     string name=(*branches)[iBranch]->GetName();
-
     if ( branchesToLink.size() && find( branchesToLink.begin(), branchesToLink.end(), name ) == branchesToLink.end() ) continue;
     inTree->SetBranchStatus( name.c_str(), 1 );
 
@@ -62,6 +71,14 @@ void ChrisLib::MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, lis
 	if ( outTree ) {
 	  if ( !outTree->FindBranch( name.c_str()) ) outTree->Branch( name.c_str(), &m_mapInt[name] );
 	  else outTree->SetBranchAddress( name.c_str(), &m_mapInt[name] );
+	}
+	break;}
+      case 5 : {//float
+	m_mapFloat[name] = 0;
+	inTree->SetBranchAddress( name.c_str(), &m_mapFloat[name] );
+	if ( outTree ) {
+	  if ( !outTree->FindBranch( name.c_str()) ) outTree->Branch( name.c_str(), &m_mapFloat[name] );
+	  else outTree->SetBranchAddress( name.c_str(), &m_mapFloat[name] );
 	}
 	break;}
       case 8 : {//double
@@ -108,6 +125,7 @@ void ChrisLib::MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, lis
 //==============================================
 void ChrisLib::MapBranches::ClearMaps() {
   m_mapInt.clear();
+  m_mapFloat.clear();
   m_mapDouble.clear();
   m_mapLongLong.clear();
   m_mapULongLong.clear();
@@ -115,46 +133,23 @@ void ChrisLib::MapBranches::ClearMaps() {
   m_mapString.clear();
 }
 
-//============================================
-// const void* ChrisLib::MapBranches::GetVal( string name ) const {
-
-//   auto itInt = m_mapInt.find( name );
-//   if ( itInt != m_mapInt.end() ) return &itInt->second;
-
-//   auto itDouble = m_mapDouble.find( name );
-//   if ( itDouble != m_mapDouble.end() ) return &itDouble->second;
-
-//   auto itULongLong = m_mapULongLong.find( name );
-//   if ( itULongLong != m_mapULongLong.end() ) return &itULongLong->second;
-
-//   auto itLongLong = m_mapLongLong.find( name );
-//   if ( itLongLong != m_mapLongLong.end() ) return &itLongLong->second;
-
-//   auto itUnsigned = m_mapUnsigned.find( name );
-//   if ( itUnsigned != m_mapUnsigned.end() ) return &itUnsigned->second;
-
-//   auto itString = m_mapString.find( name );
-//   if ( itString != m_mapString.end() ) return &itString->second;
-
-
-//   throw runtime_error( "MapBranches::GetVal : No branch named " + name );
-// }
-
 //=============================================
 void ChrisLib::MapBranches::Print() const {
 
-  for ( auto it = m_mapInt.begin(); it!= m_mapInt.end(); ++it  ) cout << it->first << " " << it->second << endl;
-  for ( auto it = m_mapDouble.begin(); it!= m_mapDouble.end(); ++it  ) cout << it->first << " " << it->second << endl;
-  for ( auto it = m_mapULongLong.begin(); it!= m_mapULongLong.end(); ++it  ) cout << it->first << " " << it->second << endl;
-  for ( auto it = m_mapLongLong.begin(); it!= m_mapLongLong.end(); ++it  ) cout << it->first << " " << it->second << endl;
-  for ( auto it = m_mapUnsigned.begin(); it!= m_mapUnsigned.end(); ++it  ) cout << it->first << " " << it->second << endl;
-  for ( auto it = m_mapString.begin(); it!= m_mapString.end(); ++it  ) cout << it->first << " " << it->second << endl;
+  for ( auto it = m_mapInt.begin(); it!= m_mapInt.end(); ++it  ) cout << "int " << it->first << " " << it->second << endl;
+  for ( auto it = m_mapFloat.begin(); it!= m_mapFloat.end(); ++it  ) cout << "float " << it->first << " " << it->second << endl;
+  for ( auto it = m_mapDouble.begin(); it!= m_mapDouble.end(); ++it  ) cout << "double "<< it->first << " " << it->second << endl;
+  for ( auto it = m_mapULongLong.begin(); it!= m_mapULongLong.end(); ++it  ) cout << "ULongLong " << it->first << " " << it->second << endl;
+  for ( auto it = m_mapLongLong.begin(); it!= m_mapLongLong.end(); ++it  ) cout << "LongLong " << it->first << " " << it->second << endl;
+  for ( auto it = m_mapUnsigned.begin(); it!= m_mapUnsigned.end(); ++it  ) cout << "Unsigned " << it->first << " " << it->second << endl;
+  for ( auto it = m_mapString.begin(); it!= m_mapString.end(); ++it  ) cout << "string " << it->first << " " << it->second << endl;
 }
 
 //============================================
 void ChrisLib::MapBranches::GetKeys( list<string> &keys ) const {
   keys.clear();
   for ( auto it = m_mapInt.begin(); it!= m_mapInt.end(); ++it  ) keys.push_back( it->first );
+  for ( auto it = m_mapFloat.begin(); it!= m_mapFloat.end(); ++it  ) keys.push_back( it->first );
   for ( auto it = m_mapDouble.begin(); it!= m_mapDouble.end(); ++it  ) keys.push_back( it->first );
   for ( auto it = m_mapULongLong.begin(); it!= m_mapULongLong.end(); ++it  ) keys.push_back( it->first );
   for ( auto it = m_mapLongLong.begin(); it!= m_mapLongLong.end(); ++it  ) keys.push_back( it->first );
@@ -240,13 +235,14 @@ void ChrisLib::MapBranches::LinkCSVFile( istream &stream, const char delim ) {
 
 
 //============================================================
-void ChrisLib::MapBranches::ReadCSVEntry( istream &stream, const char delim ) {
+bool ChrisLib::MapBranches::ReadCSVEntry( istream &stream, const char delim ) {
 
   //  int iValue=0;
   double dValue=0;
 
   char line[500];
   stream.getline( line, 500 );
+  if ( stream.eof() ) return false;
   stringstream firstLine(line);
   unsigned nCols = m_CSVColsIndex.size();
   if ( !nCols ) throw runtime_error( "MapBranches::ReadCSVEntry : No column have been linked." );
@@ -268,13 +264,13 @@ void ChrisLib::MapBranches::ReadCSVEntry( istream &stream, const char delim ) {
     }
     else if ( m_CSVTypes[iCol]==CSVType::String ) {
       firstLine.getline(line, 500, delim );
-      if ( firstLine.eof() ) return;
+      if ( firstLine.eof() ) return false;
       if ( firstLine.fail() ) throw runtime_error( "MapBranches::ReadCSVEntry : Can not read string in column " + m_CSVColsIndex[iCol]);
       m_mapString.at(m_CSVColsIndex[iCol]) = line;      
       //      cout << "string : " << m_CSVColsIndex[iCol] << " " << line << endl;
     }
   }
-
+  return true;
 }
 //========================================
 string ChrisLib::MapBranches::GetLabel( const string &name ) const {
@@ -282,9 +278,12 @@ string ChrisLib::MapBranches::GetLabel( const string &name ) const {
   auto itInt = m_mapInt.find( name );
   if ( itInt != m_mapInt.end() ) return to_string(itInt->second);
 
+  auto itFloat = m_mapFloat.find( name );
+  if ( itFloat != m_mapFloat.end() ) return to_string(itFloat->second);
+
   auto itDouble = m_mapDouble.find( name );
   if ( itDouble != m_mapDouble.end() ) return to_string(itDouble->second);
-
+  
   auto itULongLong = m_mapULongLong.find( name );
   if ( itULongLong != m_mapULongLong.end() ) return to_string(itULongLong->second);
 
@@ -301,6 +300,7 @@ string ChrisLib::MapBranches::GetLabel( const string &name ) const {
 bool ChrisLib::MapBranches::IsLinked() const {
 
   return ( m_mapInt.size() ||
+	   m_mapFloat.size() ||
 	   m_mapDouble.size() ||
 	   m_mapULongLong.size() ||
 	   m_mapLongLong.size() ||
@@ -309,3 +309,18 @@ bool ChrisLib::MapBranches::IsLinked() const {
 	   );
 
 }
+
+
+//========================================================
+double ChrisLib::MapBranches::GetDouble( string name ) const {
+  
+  auto itDouble = m_mapDouble.find( name );
+  if ( itDouble != m_mapDouble.end() ) return itDouble->second;
+
+  auto itFloat = m_mapFloat.find( name );
+  if ( itFloat != m_mapFloat.end() ) return itFloat->second;
+  
+  throw range_error( "MapBranches::GetDouble : " + name + " is neither a double or a float." );
+}
+
+//===================================================

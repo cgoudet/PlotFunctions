@@ -76,9 +76,10 @@ int main() {
   string commandLine = "pdflatex  -interaction=batchmode " + outFile;
   //
   cout << "latexFileName : " << commandLine << endl;
-  system( commandLine.c_str() );
-  system( commandLine.c_str() );
-  system( commandLine.c_str() );
+  int err = system( commandLine.c_str() );
+  err = system( commandLine.c_str() );
+  err = system( commandLine.c_str() );
+  cout << "IsDocument compiled : " << err << endl;
 
 
   return 0;

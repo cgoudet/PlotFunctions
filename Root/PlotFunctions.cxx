@@ -109,12 +109,13 @@ void ChrisLib::DrawVect( vector<vector<TObject*>> &vectObj, const InputCompare &
 
   const string plotPath = inputCompare.GetOption( "plotDirectory" ) + inputCompare.GetOutName();
   const vector< vector<string> > varName = inputCompare.GetVarName();
-  const vector<string> vectorOptions = inputCompare.CreateVectorOptions();
+  DrawOptions drawOpt = inputCompare.CreateDrawOptions();
 
   for ( unsigned iHist=0; iHist<vectObj.size(); ++iHist ) {
     string outPlotName = plotPath;
     if ( !varName.empty() && varName.size()>iHist ) outPlotName += "_" + varName[0][iHist];
-    DrawPlot( vectObj[iHist], outPlotName, vectorOptions );
+    drawOpt.AddOption( "outName", outPlotName );
+    drawOpt.Draw( vectObj[iHist] );
 
     const int doTabular = atoi(inputCompare.GetOption("doTabular").c_str());
     if ( doTabular ) PrintHist( vectObj[iHist], outPlotName, doTabular );
@@ -202,12 +203,12 @@ TObject* ChrisLib::InitHist( const InputCompare &inputCompare, unsigned iPlot, u
     name << "_" << varYName[iPlot][iHist];
     if ( doLabels ) object = new TProfile( name.str().c_str(), name.str().c_str(), 1, -0.5, 0.5 );
     else if ( xBinning.empty() || xBinning[iHist].empty() ) object = new TProfile( name.str().c_str(), name.str().c_str(), nBins, varMin[iHist], varMax[iHist] );
-    else object = new TProfile( name.str().c_str(), name.str().c_str(), (int) xBinning[iPlot].size()-1, &xBinning[iPlot][0] );
+    else object = new TProfile( name.str().c_str(), name.str().c_str(), static_cast<int>(xBinning[iPlot].size())-1, &xBinning[iPlot][0] );
   }
   else {
     if ( doLabels ) object = new TH1D( name.str().c_str(), name.str().c_str(), 1, -0.5, 0.5 );
     else if ( xBinning.empty() || xBinning[iHist].empty() ) object = new TH1D( name.str().c_str(), name.str().c_str(), nBins, varMin[iHist], varMax[iHist] );
-    else object = new TH1D( name.str().c_str(), name.str().c_str(), (int) xBinning[iHist].size()-1, &xBinning[iHist][0] );
+    else object = new TH1D( name.str().c_str(), name.str().c_str(), static_cast<int>(xBinning[iHist].size())-1, &xBinning[iHist][0] );
   }
 
 
@@ -589,3 +590,4 @@ void ChrisLib::PlotMatrix( const InputCompare &inputCompare, vector<vector<TObje
  }
 
  //==============================================
+

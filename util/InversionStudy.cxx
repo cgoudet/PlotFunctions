@@ -1,20 +1,24 @@
-#include <iostream>
+#include "PlotFunctions/DrawPlot.h"
+#include "PlotFunctions/DrawOptions.h"
+#include "PlotFunctions/InvertMatrix.h"
+#include "PlotFunctions/SideFunctions.h"
+
 #include "TFile.h"
 #include "TTree.h"
-#include <vector>
 #include "TH1F.h"
 #include "TString.h"
 #include "TCanvas.h"
 #include "TLegend.h"
-#include "PlotFunctions/DrawPlot.h"
-#include "PlotFunctions/InvertMatrix.h"
-#include <vector>
-#include <string>
-#include "PlotFunctions/SideFunctions.h"
-#include <boost/program_options.hpp>
 
+#include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
+#include <vector>
+#include <string>
+#include <iostream>
+#include <exception>
+#include <vector>
+using std::invalid_argument;
 using std::string;
 using std::vector;
 using std::cout;
@@ -50,10 +54,7 @@ int main( int argc, char* argv[] ) {
   
   if (vm.count("help")) {cout << desc; return 0;}
   //===========================================
-  if ( inFileName == "" ) {
-    cout << "no input file" << endl;
-    exit(0);
-  }
+  if ( inFileName == "" ) throw invalid_argument( "InversionStudy : No input filename provided." );
 
   double inputConstantValue = 0.0062348;
   double inputConstantError = 0.001;
@@ -101,14 +102,14 @@ int main( int argc, char* argv[] ) {
   vector< TH1*> histVect;
   // vector< string > legend = { "Input", "Matrix Inversion" };
   vector< string > legend = { "Input", "Matrix Inversion", "Fit C", "Fit C2" };
-  vector<string> options;
+  DrawOptions drawOpt;
   vector< int > fitMethod = { 0, 1, 11, 12};
   
   for (  unsigned int iProc = 0; iProc < legend.size(); iProc++ ) {
     if ( mode !=-1 && fitMethod[iProc]!=mode ) continue;
     if ( !fitMethod[iProc] && inputType==1 ) continue;
     if ( !iProc && false )   {
-      histVect.push_back( (TH1D*) inFile.Get( "inputScale_c" )->Clone() );
+      histVect.push_back( static_cast<TH1D*>(inFile.Get( "inputScale_c" )->Clone()) );
       histVect.back()->SetName( TString::Format( "hist_%d", (int) histVect.size() ) );
       histVect.back()->GetXaxis()->SetTitle( "#eta_{calo}" );
       histVect.back()->GetYaxis()->SetTitle( "C" );
@@ -116,15 +117,15 @@ int main( int argc, char* argv[] ) {
     else {
       InvertMatrix( *subMatrix, *subErrMatrix, *resultMatrix, *resultErrMatrix, fitMethod[iProc]);
       cout << "inverted" << endl;
-      histVect.push_back( (TH1D*) inFile.Get( "measScale_c" )->Clone() );
-      histVect.back()->SetName( mode==-1 ? TString::Format( "hist_%d", (int) histVect.size() ) : TString("measScale_") + ( inputType ? "c" : "alpha" ) );
+      histVect.push_back( static_cast<TH1D*>(inFile.Get( "measScale_c" )->Clone()) );
+      histVect.back()->SetName( mode==-1 ? TString::Format( "hist_%d", static_cast<int>(histVect.size()) ) : TString("measScale_") + ( inputType ? "c" : "alpha" ) );
       for ( int iBin = 1; iBin < histVect.back()->GetNbinsX()+1; iBin++ ) {
 	histVect.back()->SetBinContent( iBin, (*resultMatrix)(iBin-1, 0) );
 	histVect.back()->SetBinError( iBin, (*resultErrMatrix)(iBin-1, 0) );
       }
     }
-    
-    options.push_back( "legend=" + legend[iProc] );
+
+    drawOpt.AddOption( "legend", legend[iProc] );
   }
 
   if ( outFileName != "" ) {
@@ -133,15 +134,18 @@ int main( int argc, char* argv[] ) {
     for ( auto hist : histVect ) hist->Write( "", TObject::kOverwrite );
     outFile->Close("R" );
     delete outFile;
-    
-    options.push_back( "legendPos=0.4 0.85" );
-    options.push_back( "line=0" );
+
+
+    drawOpt.AddOption( "legendPos", "0.4 0.85" );
+    drawOpt.AddOption( "line", "0" );
     string inFileName = inFile.GetName();
-    options.push_back( "latex="+StripString( inFileName ) );
-    options.push_back( "latexOpt=0.4 0.9" );
-    //  options.push_back("doRatio=1");
-    //  options.push_back( "rangeUserY=0 0.035" );
-    DrawPlot( histVect, StripString( outFileName, 0, 1 ) , options );
+    drawOpt.AddOption( "latex", StripString( inFileName ) );
+    drawOpt.AddOption( "latexOpt', '0.4 0.9" );
+    drawOpt.AddOption( "outName", StripString( outFileName, 0, 1 ) );
+    //  drawOpt.AddOption("doRatio=1");
+    //  drawOpt.AddOption( "rangeUserY=0 0.035" );
+
+    drawOpt.Draw( histVect );
   }
   return 0;
 }

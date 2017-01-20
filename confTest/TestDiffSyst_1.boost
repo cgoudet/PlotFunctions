@@ -1,0 +1,14 @@
+outFileName=TestDiffSyst_1.root
+totSystName=totSyst
+
+rootFileName=PlotFunctions/confTest/TestDiffSystematic.root
+histName=hist1
+systName=baseValue
+mode=100
+
+rootFileName=PlotFunctions/confTest/TestDiffSystematic.root
+histName=hist2
+systName=syst2
+mode=100
+
+#Ssytematic must be the quadratic sum of both histograms

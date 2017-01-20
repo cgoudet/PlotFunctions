@@ -111,8 +111,8 @@ TGraphAsymmErrors* myTGraphErrorsDivide(TGraphAsymmErrors* g1,TGraphAsymmErrors*
 
   // Double_t* X2 = g2->GetX();
   // Double_t* Y2 = g2->GetY();
-  Double_t* EXhigh2 = g2->GetEXhigh();
-  Double_t* EXlow2 =  g2->GetEXlow();
+  // Double_t* EXhigh2 = g2->GetEXhigh();
+  // Double_t* EXlow2 =  g2->GetEXlow();
   Double_t* EYhigh2 = g2->GetEYhigh();
   Double_t* EYlow2 =  g2->GetEYlow();
 

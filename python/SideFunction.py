@@ -4,6 +4,8 @@ import subprocess as sub
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+from xml.dom import minidom
+import xml.etree.cElementTree as ET
 
 ## @namespace SideFunction  Namespace wrapping all python library
 #
@@ -232,3 +234,16 @@ def AbsPath( inFile ) :
     output+=inFile
     return output
     
+#=================================================
+def prettify(elem):
+    """Return a pretty-printed XML string for the Element.
+    """
+
+    rough_string = ET.tostring(elem, 'utf-8')
+    reparsed = minidom.parseString(rough_string)
+    return reparsed.toprettyxml(indent="  ")
+#================================================
+def CreateNode( nodeName, options={} ) :
+    xmlObj = ET.Element( nodeName ) 
+    [ xmlObj.set( opt, options[opt] ) for opt in options ]
+    return xmlObj

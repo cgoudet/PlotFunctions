@@ -9,6 +9,8 @@
 #include <map>
 #include <iterator>
 #include <algorithm>
+#include <list>
+#include <functional>
 
 namespace ChrisLib {
   //============================================
@@ -61,19 +63,19 @@ Tested.
   /**\brief Parse a string into a vector of a given type elements
      \param string string to be parsed
      \param result vector
+     \param delim Delimiter for string parsing
      Tested.
   */
-  template< typename Type1 > void ParseVector( const std::string &stringVector, std::vector< Type1 > &outVector, bool doClear=1 );
-  template< typename Type1 > void ParseVector( const std::string &stringVector, std::vector< Type1 > &outVector, bool doClear ) {
-
-    if ( doClear )  outVector.clear();
-  
-    std::stringstream stream;
-    stream << stringVector;  
-
-    Type1 value;
-    while ( stream >> value ) {
-      outVector.push_back( value );
+  template< typename Type1 > void ParseVector( const std::string &s, std::vector< Type1 > &outVector, char delim = ' ' );
+  template< typename Type1 > void ParseVector( const std::string &s, std::vector< Type1 > &outVector, char delim ) {
+    
+    std::istream_iterator<Type1> end;
+    char line[500];
+    std::stringstream ss {s};
+    while( ss.getline(line, 500, delim ) ) {
+      std::stringstream ss2( line );
+      std::istream_iterator<Type1> it(ss2);
+      std::copy( it, end, back_inserter(outVector) );
     }
   }
 
@@ -134,5 +136,16 @@ Tested.
     }
   }
 
+  //=============================================
+  template<typename T> T SumSq( const std::list<T> &inList ) {
+    std::list<T> outList;
+    std::transform( inList.begin(), inList.end(), std::back_inserter(outList), [](T a){return a*a;} );
+    std::transform( ++outList.begin(), outList.end(), outList.begin(), ++outList.begin(), std::plus<T>() );
+    return outList.back();
+  }
+  //=============================================
+  template<typename T> T Oplus( const std::list<T> &inList ) {
+    return sqrt( SumSq( inList ) );
+  }
 }
 #endif

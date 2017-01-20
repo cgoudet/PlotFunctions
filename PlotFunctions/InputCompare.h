@@ -1,22 +1,57 @@
 #ifndef INPUTCOMPARE_H
 #define INPUTCOMPARE_H
 
+#include "PlotFunctions/DrawOptions.h"
+
 #include <vector>
 #include <string>
 #include <map>
 
 
 namespace ChrisLib {
-
+  
   /**
      \class InputCompare
      \brief Stores the content of boost configuration files.
+     
+     ## Plot framework
+     The interface of the plot framework is limited to a single configuration file in the boost::program_options format.
+     The user can enter information about the source files, the desired input and the plotting options in a sinngle file.
+     One line of configuration file consists in the name followed by '=' and the content of the option.
+     the character '#' is used for comments.
+     For example :
+     ```
+     rootFileName=dum.root
+     # This is a comment
+     ```
 
-     Options are read from configuration files in the boost format. 
+     To run the program, call :
+     ```
+     PlotDist <filename1> <filename2>
+     ```
+
+     The framework currenlty accepts the inputs : 
+     - TTree
+     - TH1
+     - CSV file
+     - TMatrixD
+     CSV and TTree can be mixed in a sigle plot. 
+
+     Depending on the input type and the wanted results, different types of output are available :
+     - TH1D
+     - TProfile
+     - TGraphErrors
+     - Event level comparison
+
      Simple options (i.e. not structured) are stored in string and must be check and converted upon utilization.
      They can all be retrieved using GetOption.
      Structured options may be subject to default modification. 
      If so the modification is documented in the option description.
+     The set of all options is described below which the inputs types which accept them.
+
+     The plotting of the output is performed using the algorithm ChrisLib::DrawPlot. 
+     The options for this algorithm must also be included in the configuration file.
+     The list of all possible options are documented in ChrisLib::DrawOptions
 
      ### Options Description
      
@@ -95,9 +130,6 @@ namespace ChrisLib {
      \n
      Optionnal variables : varWeight, doTabular, saveRoot, doLabels, objName
 
-     \n
-     Optionnal variables : triangular, doTabular, saveRoot
-
      - 2 : Compare the same event values across different datasets. Values are printed into a csv file.
      \n
      Mandatory variables : Binning, varName, eventID
@@ -169,10 +201,7 @@ namespace ChrisLib {
     std::string GetOption( std::string option ) const { return m_mapOptions.at(option); }    
     std::string GetOutName() const { return m_outName; }
 
-    /**
-       \brief Create the vector of options to be read by ChrisLib::DrawPlot
-    */
-    std::vector<std::string> CreateVectorOptions() const;
+    DrawOptions CreateDrawOptions() const;
 
     void  LoadFile( std::string fileName );
   

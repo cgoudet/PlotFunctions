@@ -26,7 +26,7 @@ using std::endl;
 
 #include "TGraphErrors.h"
 #include "TString.h"
-#include "TXMLNode.h"
+//#include "TXMLNode.h"
 #include <list>
 
 /** \brief Namespace wrapping all C++ library
@@ -122,9 +122,10 @@ namespace ChrisLib {
   */
   void RemoveExtremalEmptyBins( TH1 *hist );
 
-  void ParseLegend( TH1* hist, std::string &legend );
-  void ParseLegend( TGraphErrors *graph, std::string &legend );
-  void ParseLegend( std::string &legend );
+  string ParseLegend( TObject* obj, const string &legend );
+  /* std::string ParseLegend( TH1* hist, const std::string &legend ); */
+  /* std::string ParseLegend( TGraphErrors *graph, const std::string &legend ); */
+  std::string ParseLegend( const std::string &legend );
 
   /**\brief Create a boostraped Tree out of inputTrees
      \param inTrees vector of input Trees
@@ -141,18 +142,38 @@ namespace ChrisLib {
   void AddTree( TTree *treeAdd, TTree *treeAdded );
   void SaveTree( TTree *inTree, std::string prefix );
 
+  /**\create a systematics using configFile from boost file
+     Mandatory variables :
+     - outFileName : Name of the output file
+     - totSystName : Name of the ouput total systematic. 
+
+     Systematic variables : all described options must be entered the same number of time.
+     - rootFileName : Name of the file whe an histogram of interest lies
+     - histName : Name of the histogram of interest
+     - systName : Name for the considered systematic. 
+     If the keyword "__ERR" is present in the name, the values of the histograms will be replaced by their respective error.
+     - mode : Mode of the contribution of the histogram to the total uncertainty
+
+     Modes :
+     - 0XX : The systematic must be compared to another histogram. 
+     This other histogram is taken as the first given in the configuration file.
+     The comparison is a signed difference.
+     - 1XX : The histogram is directly a systematic
+     - XX : options from ChrisLib::CreateSystHist for combination with total systematic.
+     For example 10 will make the symmetrized root mean squatre between bins.
+   */
   void DiffSystematics( std::string inFileName, bool update=0 );
+  
   void VarOverTime( std::string inFileName, bool update=0);
 
   void RescaleStack( THStack *stack, double integral );
 
-  std::map<std::string,std::string> MapAttrNode( TXMLNode* node );
+  //  std::map<std::string,std::string> MapAttrNode( TXMLNode* node );
 
-  /*\brief Create the list with the all the possible combination of given name.
-    Tested.
-  */
+  /**\brief Create the list with the all the possible combination of given name.
+   */
   void CombineNames( const std::list< std::list<std::string> > &components, std::list<std::string> &outNames, std::string separator="_" );
-
+  
   /*\brief Check the equality of double numbers by comparing them up to the 7th digit
     Tested.
   */
@@ -169,9 +190,8 @@ namespace ChrisLib {
   */
   void PrintArray( const std::string &outName, const boost::multi_array<double,2> &array, const std::vector<std::string> &linesTitle, const std::vector<std::string> &colsTitle );
 
-  /*\brief Check if two histograms are comparable in term of binning
-    Tested
-  */
+  /**\brief Check if two histograms are comparable in term of x binning
+   */
   bool ComparableHists( TH1* a, TH1* b );
 
   //Converts Epoch/Unix time into a readable date year/month
@@ -179,17 +199,14 @@ namespace ChrisLib {
   //string GetMinMaxBranch ( vector <string> fileNames, &minVal, &maxVal );
 
   /**\brief Fill the values to create bin frontiers from extramal values and number of bins
-     Tested.
    */
   void FillDefaultFrontiers( vector<double> &list, const int nBins, double xMin, double xMax );
 
   /**\brief Clean a sstring by removing successive occurences of the separator
-     Tested.
    */
   std::string RemoveSeparator( std::string name, const std::string sep="_" );
 
   /**\brief Remove a list of words from a string
-     Tested.
    */
   std::string RemoveWords( std::string name, const std::list<std::string> &toRemove );
 
@@ -207,6 +224,41 @@ namespace ChrisLib {
   /**\brief Write a vector of histogram into a TFile
    */
   void WriteVect( const std::vector<TObject*> &vectHist, const std::string &outName );
+
+  double CompareVal( double nom, double par );
+  double CompareErr( double nom, double par, double errNom, double errPar );
+  bool IsHist( TObject* obj );
+
+  /**\brief Function to test the content of TTree
+     \param tree TTree under test
+     \param branch Name of branch under test
+     \return Value of first entry in branch under test
+
+     This function throws invalid_argument for null TTree and runtime_error for empty TTree or wrong branch name.
+   */
+  double TestDoubleTree( TTree *tree, const string &branch );
+
+  /**\brief Modify inHist into a systematic with respect to baseValue
+     
+     mode%/10 :
+     - 0 : quadratic sum
+     - 1 : sum of absolute values
+     - 2 : sum
+     - 3 : difference
+     - 4 : absolute value of sum
+     - 5 : absolute value of difference
+
+     mode/10 :
+     - 0 : Bin by bin
+     - 1 : symmetrized bin
+     
+     Histograms must be comparable ( ChrisLib::ComparableHists ).
+   */
+  void CreateSystHist( TH1 *inHist, TH1* baseValue, unsigned mode =0 );
+
+  /**\brief REverse errors and content value
+   */
+  void ReverseErrVal( TH1* hist );
 }
 
 #endif

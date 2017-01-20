@@ -1,13 +1,15 @@
-#define BOOST_TEST_MODULE SideFunctionsTestSuite
-
+#define BOOST_TEST_DYN_LINK
+#include <boost/test/unit_test.hpp>
 #include "PlotFunctions/SideFunctions.h"
+using namespace ChrisLib;
 
 #include "TH1D.h"
-#include <boost/test/unit_test.hpp>
+
 #include <algorithm>
 #include <iterator>
 #include <iostream>
 #include <stdexcept>
+
 using std::list;
 using std::ostream_iterator;
 using std::cout;
@@ -17,10 +19,7 @@ using std::invalid_argument;
 using std::vector;
 using std::runtime_error;
 
-using namespace ChrisLib;
-// The name of the suite must be a different name to your class                                                                                                                                      
 BOOST_AUTO_TEST_SUITE( SideFunctionsSuite )
-
 //====================================================
 BOOST_AUTO_TEST_CASE( StripStringTest ) {
   BOOST_CHECK_EQUAL( StripString( "/path/file.ext", 1, 1), "file" );
@@ -296,7 +295,6 @@ BOOST_AUTO_TEST_CASE( RebinHistTest ) {
   delete vectHist.front();
   delete vectHist.back();
 
-
   delete h1;
   delete h2;
   delete h3;
@@ -335,5 +333,109 @@ BOOST_AUTO_TEST_CASE( RemoveWordsTest ) {
   BOOST_CHECK_EQUAL( RemoveWords( "babarnty", words ), "rnty" );
 }
 
+//===============================
+BOOST_AUTO_TEST_CASE( ParseLegendTest ) {
+  string legend { "" };
+  BOOST_CHECK_EQUAL( ParseLegend(legend), "" );
+
+  legend = "rty_uio";
+  BOOST_CHECK_EQUAL( ParseLegend(legend), legend );
+
+  legend = "rty_uio__HASHTAG__FILL_____NOPOINT__ATLAS__STACK__ETA_CALOETA_CALO_______";
+  BOOST_CHECK_EQUAL( ParseLegend(legend), "rty_uio#_____#eta_{CALO}#eta_{CALO}_______" );
+
+}
+
+//===============================
+BOOST_AUTO_TEST_CASE( TestDoubleTreeTest ) {
+
+  double val1{1};
+  int val2{2};
+  TTree *tree1= new TTree( "tree1", "tree1" );
+  tree1->Branch( "branch11", &val1 );
+  tree1->Branch( "branch12", &val2 );
+
+  BOOST_CHECK_THROW( TestDoubleTree( 0, "" ), invalid_argument );
+  BOOST_CHECK_THROW( TestDoubleTree( tree1, "branch11" ), runtime_error );
+  tree1->Fill();
+  BOOST_CHECK_THROW( TestDoubleTree( tree1, "dummy" ), runtime_error );
+  BOOST_CHECK_THROW( TestDoubleTree( tree1, "branch12" ), runtime_error );
+
+  BOOST_CHECK_EQUAL( TestDoubleTree( tree1, "branch11" ), val1 );
+}
+
+//===============================
+BOOST_AUTO_TEST_CASE( CreateSystHistTest ) {
+  TH1D *hist1 = new TH1D( "hist1", "hist1", 1, 0, 1 );
+  hist1->SetBinContent( 1, 1 );
+
+  TH1D *hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
+  hist2->SetBinContent( 1, 2 );
+  CreateSystHist( hist2, hist1, 0 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), sqrt(5));
+
+  delete hist2;
+  hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
+  hist2->SetBinContent( 1, -2 );
+  CreateSystHist( hist2, hist1, 1 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 3);
+
+  delete hist2;
+  hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
+  hist2->SetBinContent( 1, -2 );
+  CreateSystHist( hist2, hist1, 2 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), -1);
+
+  delete hist2;
+  hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
+  hist2->SetBinContent( 1, -2 );
+  CreateSystHist( hist2, hist1, 3 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), -3);
+
+  delete hist2;
+  hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
+  hist2->SetBinContent( 1, -2 );
+  CreateSystHist( hist2, hist1, 4 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 1);
+
+  delete hist2;
+  hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
+  hist2->SetBinContent( 1, -2 );
+  CreateSystHist( hist2, hist1, 5 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 3);
+
+  delete hist2;
+  hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
+  hist2->SetBinContent( 1, -2 );
+  CreateSystHist( hist2, hist1, 15 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 3);
+
+  delete hist1;
+  hist1 = new TH1D( "hist1", "hist1", 2, 0, 1 );
+  hist1->SetBinContent( 1, 1 );
+  hist1->SetBinContent( 2, 2 );
+  delete hist2;
+  hist2 = new TH1D( "hist2", "hist2", 2, 0, 1 );
+  hist2->SetBinContent( 1, 3 );
+  hist2->SetBinContent( 2, 4 );
+  CreateSystHist( hist2, hist1, 14 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 5);
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(2), 5);
+
+  delete hist1;
+  delete hist2;
+}
+
+BOOST_AUTO_TEST_CASE( ReverseErrValTest ) {
+  TH1D *hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
+  hist2->SetBinContent( 1, 2 );
+  hist2->SetBinError( 1, 1 );
+  ReverseErrVal( hist2 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 1);
+  BOOST_CHECK_EQUAL( hist2->GetBinError(1), 2);
+  delete hist2;
+}
 
 BOOST_AUTO_TEST_SUITE_END()
+
+

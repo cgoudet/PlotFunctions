@@ -17,13 +17,16 @@
 #include "RooRealVar.h"
 #include <RooStats/ModelConfig.h>
 #include "RooProduct.h"
-#include "TXMLAttr.h"
+//#include "TXMLAttr.h"
 #include "TList.h"
 #include "TF1.h"
 #include "TCanvas.h"
 #include "TLegend.h"
 #include "TObjArray.h"
 #include "TArrayD.h"
+
+#include <boost/program_options.hpp>
+namespace po = boost::program_options;
 
 #include <iostream>
 #include <fstream>
@@ -44,6 +47,39 @@ using boost::multi_array;
 using boost::extents;
 using namespace ChrisLib;
 using std::swap;
+
+//==============================================
+bool ChrisLib::IsHist( TObject* obj ) {
+  if (  string(obj->ClassName()) == "TGraphErrors" ) return false;
+  else return true;
+}
+
+//##########################################################
+double ChrisLib::CompareVal( double nom, double par ) {
+  if ( nom==0 && par==0 ) return 0;
+  if ( nom==0 ) {
+    cout << "nominal value is null switching roles" << endl;
+    swap( nom, par );
+  }
+  return ( par-nom )/ nom;
+}
+
+//##########################################################
+double ChrisLib::CompareErr( double nom, double par, double errNom, double errPar ) {
+
+  if ( nom==0 && par==0 ) return 0;
+  if ( nom==0 ) {
+    cout << "nominal value is null switching roles" << endl;
+    swap( nom, par );
+  }
+
+  //  double val = CompareVal( nom, par );
+
+  double diffErrNom = par / nom / nom;
+  double diffErrPar = 1. / nom;
+  double err = sqrt( diffErrPar *diffErrPar * errPar * errPar + diffErrNom * diffErrNom * errNom * errNom );
+  return err;
+}
 
 //=====================================
 /**\brief Create a name from levels of components
@@ -291,9 +327,9 @@ double ChrisLib::ComputeChi2( TH1 *MCHist, TH1 *DataHist ) {
   double chi2 = 0;
   for ( int i = 1; i < MCHist->GetNbinsX()+1; ++i ) {
     double valdif = ( MCHist->GetBinError( i )==0 && DataHist->GetBinError( i )==0 ) ? 0 : MCHist->GetBinContent( i ) - DataHist->GetBinContent( i );
-    //    cout << "valdif : " << valdif << " = " << MCHist->GetBinContent( i ) << " - " << DataHist->GetBinContent( i ) << endl;
+    //cout << "valdif : " << valdif << " = " << MCHist->GetBinContent( i ) << " - " << DataHist->GetBinContent( i ) << endl;
     double sigma2 = ( valdif != 0 ) ? MCHist->GetBinError( i ) * MCHist->GetBinError( i ) + DataHist->GetBinError( i ) * DataHist->GetBinError( i ) : 1;
-    //    cout << "sigma2 : " << sigma2 << " :  " << MCHist->GetBinError( i ) << " " << DataHist->GetBinError( i ) << endl;
+    //cout << "sigma2 : " << sigma2 << " :  " << MCHist->GetBinError( i ) << " " << DataHist->GetBinError( i ) << endl;
     chi2 += valdif * valdif / sigma2; 
   }
     
@@ -366,19 +402,54 @@ void ChrisLib::RemoveExtremalEmptyBins( TH1 *hist ) {
 }
 
 //========================================================
-void ChrisLib::ParseLegend( TGraphErrors *graph, string &legend ) {
-  TString dumString = legend;
-  if ( graph ) { 
-    dumString.ReplaceAll( "__ENTRIES", TString::Format( "%1.0d", graph->GetN() ) );
-    dumString.ReplaceAll( "__MEAN", TString::Format( "%1.3e", graph->GetMean() ) );
-    dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", graph->GetRMS() ) );
+/**\brief Replace keywords by corresponding object properties.
+   Works only with TH1 and TGraphErrors.
+ */
+string ChrisLib::ParseLegend( TObject* obj, const string &legend ) {
+  TH1* hist=0;
+  TGraphErrors *graph=0;
+  if ( !IsHist( obj ) ) graph = static_cast<TGraphErrors*>(obj);
+  else hist=static_cast<TH1*>(obj);
+
+  double mean, rms, integral{0}, sumSq{0};
+  int nEntries;
+  if ( graph ) {
+    mean = graph->GetMean();
+    rms = graph->GetRMS();
+    nEntries = graph->GetN();
+    // list<double> sumSqVar {graph->GetStdDev(2), graph->GetMean(3) };
+    // sumSq = SumSq(sumSqVar)*nEntries;
+  }
+  else {
+    mean = hist->GetMean();
+    rms = hist->GetRMS();
+    nEntries = hist->GetEntries();
+    integral = hist->Integral();
+    list<double> sumSqVar {hist->GetStdDev(2), hist->GetMean(3) };
+    sumSq = SumSq(sumSqVar)*nEntries;
   }
 
-  legend = dumString;
-  ParseLegend( legend );
+
+  
+  TString dumString = legend;
+  dumString.ReplaceAll( "__ENTRIES", TString::Format( "%1.0d", nEntries ) );
+  dumString.ReplaceAll( "__MEAN", TString::Format( "%1.3e", mean ) );
+  dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", rms ) );
+  dumString.ReplaceAll( "__SUMSQ", TString::Format( "%1.3e", sumSq ) );
+  dumString.ReplaceAll( "__INTEGRAL", TString::Format( "%1.3e", integral ) );
+
+  return ParseLegend( static_cast<string>(dumString) );
 }
 //================================
-void ChrisLib::ParseLegend( string &legend ) {
+/**\brief Replace keywords with content in a string
+
+   Accepted keywords and modifications : \n
+   - __HASHTAG -> #
+   - ETA_CALO -> #eta_{CALO}
+
+   Following options are replaced by an empty string : __FILL __NOPOINT __ATLAS __STACK
+ */
+string ChrisLib::ParseLegend( const string &legend ) {
   TString dumString = legend;
   dumString.ReplaceAll( "__HASHTAG", "#" );
   dumString.ReplaceAll( "__FILL", "" );
@@ -386,22 +457,7 @@ void ChrisLib::ParseLegend( string &legend ) {
   dumString.ReplaceAll("__ATLAS", "" );
   dumString.ReplaceAll("__STACK", "" );
   dumString.ReplaceAll("ETA_CALO", "#eta_{CALO}" );
-  legend = dumString;
-}
-
-//============================
-void ChrisLib::ParseLegend( TH1* hist, string &legend ) {
-
-  TString dumString = legend;
-  if ( hist ) { 
-    dumString.ReplaceAll( "__ENTRIES", TString::Format( "%1.0f", hist->GetEntries() ) );
-    dumString.ReplaceAll( "__MEAN", TString::Format( "%1.3e", hist->GetMean() ) );
-    dumString.ReplaceAll( "__STDEV", TString::Format( "%1.3e", hist->GetStdDev() ) );
-    dumString.ReplaceAll( "__INTEGRAL", TString::Format( "%1.3e", hist->GetSumOfWeights() ) );
-  }
-
-  legend = dumString;
-  ParseLegend( legend );
+  return static_cast<string>( dumString );
 }
 
 //============================================
@@ -521,123 +577,100 @@ void ChrisLib::SaveTree( TTree *inTree, string prefix) {
 //================================
 void ChrisLib::DiffSystematics( string inFileName, bool update ) {
 
-  TFile *outFile = 0;
-  TH1D *totSyst = 0;
-  TH1D* baseValue = 0;
-  unsigned int mode = 0;
-  //Variables to create uncertainties
-  fstream inStream;
-  inStream.open( inFileName, fstream::in );
-  if ( !inStream.is_open() ) throw runtime_error( "DiffSystematics : "+inFileName+" does not exist.");
+  string outFileName, totSystName;
+  vector<string> histsName, rootFilesName, systsName;
+  vector<int> modes;
+  po::options_description configOptions("configOptions");
+  configOptions.add_options()
+    ( "outFileName", po::value<string>( &outFileName )->required(), "" )
+    ( "totSystName", po::value<string>( &totSystName )->required(), "" )
+    ( "mode", po::value<vector<int>>(&modes)->multitoken(), "")
+    ( "histName", po::value<vector<string>>(&histsName)->multitoken(), "" )
+    ( "systName", po::value<vector<string>>(&systsName)->multitoken(), "" )
+    ( "rootFileName", po::value<vector<string>>(&rootFilesName)->multitoken(), "" )
+    ;
+
+  po::variables_map vm;
+  ifstream ifs( inFileName, ifstream::in );
+  if ( !ifs.good() ) throw invalid_argument( "InputCompare::LoadFile : Unknown file " + inFileName );
+  po::store(po::parse_config_file(ifs, configOptions), vm);
+  po::notify( vm );
+
+  unsigned nSyst = modes.size();
+  if ( histsName.size()!=nSyst || systsName.size()!=nSyst || rootFilesName.size() !=nSyst ) throw invalid_argument( "DiffSystematics : Inputs sizes do not match" );
   
-  string rootFileName, histName, systName, outSystName;
-  unsigned int counterSyst=0;
-  string other;
-  while ( inStream >> rootFileName >> histName >> systName >> mode ) {
-    //    cout << rootFileName << endl;
-    if ( TString( rootFileName).Contains("#") ) continue;
-    if ( !outFile ) {
-      outFile = new TFile( rootFileName.c_str(), update ? "UPDATE" : "RECREATE" );
-      outSystName = histName;
-      totSyst = (TH1D*) outFile->Get( histName.c_str() );
-      continue; //counterSyst remains at 0 
-    }
-    unsigned int tempMode = mode;
+  TFile *outFile = new TFile( outFileName.c_str(), update ? "UPDATE" : "RECREATE" );
+  TH1D* totSyst = static_cast<TH1D*>(outFile->Get(totSystName.c_str())); //if totSyst is null, it will be created later
+  TH1D *baseValue=0;
+  for ( unsigned iSyst=0; iSyst!=nSyst; ++iSyst ) {
+    TFile *inFile = new TFile( rootFilesName[iSyst].c_str() );
+    if ( !inFile ) throw runtime_error( "DiffSystematics : Unknown ROOT file " + rootFilesName[iSyst] );
 
-    TFile *inFile = new TFile( rootFileName.c_str() );
-    if ( !inFile ) throw runtime_error( "DiffSystematics : "+rootFileName+" does not exist.");
-    inFile->cd();
-
-
-    if ( !counterSyst && ( tempMode/10==0 || tempMode/10==2 ) ) {
-	//Get nominal Value
-	baseValue = (TH1D*) inFile->Get( histName.c_str() )->Clone();
-	baseValue->SetDirectory(0);
-	outFile->cd();
-	if ( systName != "dum" ) baseValue->Write( systName.c_str(), TObject::kOverwrite );
-       	if ( DEBUG ) cout << "baseValue defined : " << baseValue << endl;	
-      }
-    else {
-      TH1D* inHist = (TH1D*) inFile->Get( histName.c_str() );
-      if ( !inHist ) throw runtime_error( "DiffSystematics : "+histName+" does not exist within "+inFile->GetName());
+    TH1D *inHist = static_cast<TH1D*>(inFile->Get( histsName[iSyst].c_str() ));
+    if ( !inHist ) throw runtime_error( "DiffSyst : Unknown hist " + string(inFile->GetName()) + " " + histsName[iSyst] );
+    inHist->SetDirectory(0);
+    inFile->Close();
+    delete inFile;
+    
+    if ( systsName[iSyst].find("__ERR") != string::npos ) {
       //If stat appears in the name, use the error bars as the systematic
-      if ( TString( systName ).Contains( "__STAT" ) ) {
-	systName = string(TString( systName ).ReplaceAll( "__STAT", "" ));
-	for ( int iBin=1; iBin<=inHist->GetNbinsX(); iBin++ ) inHist->SetBinContent( iBin, inHist->GetBinError( iBin ) );
-	tempMode = 10 + ( mode % 10 );
-      }
+      systsName[iSyst] = ReplaceString("__ERR", "" )(systsName[iSyst]);
+      ReverseErrVal(inHist);
+    }
+    
+    if ( !iSyst && modes[iSyst]/100!=1 ) {
+      baseValue = static_cast<TH1D*>(inHist->Clone( systsName[iSyst].c_str() ));
+      baseValue->SetDirectory(0);
+      baseValue->SetName( systsName[iSyst].c_str() );
+      continue;
+    }
 
+    if ( modes[iSyst]/100!=1 ) {
+      vector<TH1*> hists = { inHist, baseValue };
+      RebinHist( hists );
+      inHist = static_cast<TH1D*>(hists[0]);
+      baseValue = static_cast<TH1D*>(hists[1]);
+      int modeCompare = (modes[iSyst]%100)/10*10 +3;
+      CreateSystHist( inHist, baseValue, modeCompare );
+    }
 
-      systName = "syst_" + systName;
-      inHist->SetName( systName.c_str() );
-      inHist->SetTitle( inHist->GetName() );
-      inHist->SetDirectory(0);
-      if ( DEBUG ) cout << "inHist found : " << inFile->GetName() << " " << inHist->GetName() << endl;
-
-      //Create the systematic histogram to add
-      switch ( tempMode/10 ) {
-      case 0 :
-	inHist->Add( baseValue, -1 );
-	break;
-      case 2 : {
-	for ( int iBin = 1; iBin<= inHist->GetNbinsX()/2; iBin++ ) {
-	  double symDiff = ( inHist->GetBinContent(iBin) + inHist->GetBinContent( inHist->GetNbinsX() - iBin+1 ) - baseValue->GetBinContent(iBin) - baseValue->GetBinContent( baseValue->GetNbinsX() - iBin+1 ) )/2.;
-	  //	  if ( DEBUG ) cout << "symDiff " << iBin << " : " << symDiff << " " << inHist->GetBinContent(iBin) << " " << inHist->GetBinContent( inHist->GetNbinsX() - iBin+1 ) << " "  << baseValue->GetBinContent(iBin) << " " << baseValue->GetBinContent( baseValue->GetNbinsX() - iBin+1 ) << endl;
-	  inHist->SetBinContent( iBin, symDiff );
-	  inHist->SetBinContent( inHist->GetNbinsX() - iBin+1, symDiff );
-	}
-	break;
-      }//end case 2
-      }//end switch
-
-     
-      for ( int iBin = 1; iBin<inHist->GetNbinsX()+1; iBin++ ) inHist->SetBinError(iBin, 0 );
-      outFile->cd();
-      //      inHist->Write( "", TObject::kOverwrite );
-
-      if ( DEBUG ) cout << "Add systematic to the model" << endl;
-      //in case totSyst does not exists in the output file, create it
-      if ( !totSyst ) {
-	totSyst = (TH1D*) inHist->Clone();
-	for ( int iBin = 1; iBin<totSyst->GetNbinsX()+1; iBin++ ) totSyst->SetBinContent( iBin, 0 );
-	totSyst->SetName( outSystName.c_str()) ;
-	totSyst->SetTitle( totSyst->GetName() );
-	totSyst->GetYaxis()->SetTitle( "#delta" + TString(inHist->GetYaxis()->GetTitle() ) );
-      }
+    //in case totSyst does not exists in the output file, create it
+    if ( !totSyst ) {
+      totSyst = static_cast<TH1D*>(inHist->Clone(totSystName.c_str()));
+      totSyst->SetDirectory(0);
+      totSyst->SetTitle( totSyst->GetName() );
+      totSyst->GetYaxis()->SetTitle( "#delta" + TString(inHist->GetYaxis()->GetTitle() ) );
+    }
+    else {
       vector<TH1*> hists = { totSyst, inHist };
       RebinHist( hists );
-      inHist = (TH1D*) hists[1];
-      totSyst = (TH1D*) hists[0];
-      if ( !TString( inHist->GetYaxis()->GetTitle() ).Contains("#delta") ) inHist->GetYaxis()->SetTitle( "#delta" + TString( inHist->GetYaxis()->GetTitle() ) );
-      inHist->Write( "", TObject::kOverwrite );
-      for ( int iBin = 1; iBin<totSyst->GetNbinsX()+1; iBin++ ) {
-	switch( tempMode % 10 ) {
-	case 1 :
-	  totSyst->SetBinContent( iBin,
-				  totSyst->GetBinContent( iBin ) + fabs( inHist->GetBinContent( iBin ) ) );
-	  break;
-	default :
-	  totSyst->SetBinContent( iBin,
-				  sqrt(totSyst->GetBinContent( iBin )*totSyst->GetBinContent( iBin ) + inHist->GetBinContent( iBin )*inHist->GetBinContent( iBin ) ) );
-	  break;
+      totSyst = static_cast<TH1D*>(hists[0]);
+      inHist = static_cast<TH1D*>(hists[1]);
+      CreateSystHist( totSyst, inHist, modes[iSyst]%100 );
+    }
 
-	}//end switch
-	totSyst->SetBinError( iBin, 0 );
-      }//end for iBin
-
-      delete inHist; inHist=0;
-    }//end else
-
+    for ( int iBin = 1; iBin<inHist->GetNbinsX()+1; ++iBin ) {
+      inHist->SetBinError(iBin, 0 );
+      totSyst->SetBinError(iBin, 0 );
+    }
+    
     outFile->cd();
-    if ( totSyst ) totSyst->Write( "", TObject::kOverwrite );
-    if ( inFile ) delete inFile; inFile =0;
-    counterSyst++;
-  }//end while
-  if ( totSyst ) delete totSyst; totSyst=0;
-  if ( baseValue ) delete baseValue; baseValue=0;
-  cout << "outFile : " << outFile->GetName() << endl;
+    inHist->Write( "", TObject::kOverwrite );
+    delete inHist; inHist=0;
+  }
+
+  outFile->cd();
+  if ( totSyst ) {
+    totSyst->Write( "", TObject::kOverwrite );
+    delete totSyst;
+  }
+  
+  if ( baseValue ) {
+    if ( string(baseValue->GetName()) == "dum" ) baseValue->Write( "", TObject::kOverwrite );
+    delete baseValue;
+  }
   delete outFile;
-}//EndDiffSystematic
+ }//EndDiffSystematic
 
 //===================================================
 void ChrisLib::VarOverTime( string inFileName, bool update) {
@@ -735,7 +768,6 @@ void ChrisLib::CleanHist( vector<TH1*> &vect, const double removeVal ) {
 
   for ( auto itHist = vect.begin(); itHist!=vect.end(); ++itHist ) {
     if ( *itHist == 0 ) {
-      cout << "erasing " << endl;
       vect.erase( itHist );
       --itHist;
     }
@@ -789,23 +821,6 @@ string ChrisLib::ConvertEpochToDate ( int epochTime )
   date=std::to_string(currentDate->tm_mday) + "/" + std::to_string(currentDate->tm_mon+1) + "/" + std::to_string(currentDate->tm_year+1900);
   return date;
 
-}
-
-//=====================================
-map<string,string> ChrisLib::MapAttrNode( TXMLNode* node ) {
-
-  map<string,string> outMap;
-  outMap["nodeName"]=node->GetNodeName();
-  TList *attr = node->GetAttributes();
-  TIterator *it = 0;
-  if(attr!=0) {
-    it = attr->MakeIterator();
-    for ( auto attr = (TXMLAttr*) it->Next(); attr!=0; attr=(TXMLAttr*)it->Next() ) {
-      outMap[attr->GetName()] = attr->GetValue();
-    }
-    delete it; it=0;
-  }
-  return outMap;
 }
 
 //=====================================
@@ -912,49 +927,50 @@ void ChrisLib::PrintHist( vector<TObject*> &vectHist, string outName, int mode )
     for ( unsigned int iPlot = 0; iPlot < vectHist.size(); ++iPlot ) {
       if ( string(vectHist[iPlot]->ClassName())=="TGraphErrors" ) graph=static_cast<TGraphErrors*>(vectHist[iPlot]);
       else hist = static_cast<TH1*>(vectHist[iPlot]);
+      
       if ( !iBin ) {
-	if ( iPlot ) {
-
-	  int tmpNBin = hist ? hist->GetNbinsX() : graph->GetN();
-	  if ( tmpNBin != nBins ) throw invalid_argument( "PrintHist : All object must have same number of points/bins." );
-	  string lineName = vectHist[iPlot-1]->GetTitle();
-	  stream << lineName;
-	  if ( mode >= 2 ) stream << "," << lineName + " err";
-	  if ( mode >= 3 ) stream << "," << lineName + " errX";
-	}
-	else {
+	if ( !iPlot ) {
 	  nBins = hist ? hist->GetNbinsX() : graph->GetN();
 	  TString colName = hist ? hist->GetXaxis()->GetTitle() : graph->GetXaxis()->GetTitle();
 	  colName=colName.ReplaceAll("_", "" ).ReplaceAll("#", "" ) ;
-	  stream << colName; 
+	  stream << colName << ","; 
 	}
+	
+	int tmpNBin = hist ? hist->GetNbinsX() : graph->GetN();
+	if ( tmpNBin != nBins ) throw invalid_argument( "PrintHist : All object must have same number of points/bins." );
+	string lineName = vectHist[iPlot]->GetTitle();
+	stream << lineName;
+	if ( mode >= 2 ) stream << "," << lineName + " err";
+	if ( mode >= 3 ) stream << "," << lineName + " errX";
+
       }
       else {
-	if ( iPlot ) { 
-	  double valY, errX, errY;
-	  if ( hist ) {
-	    valY = hist->GetBinContent(iBin);
-	    errY = hist->GetBinError(iBin);
-	    errX = hist->GetXaxis()->GetBinWidth(iBin);
-	  }
-	  else if ( graph ) {
-	    graph->GetPoint( iBin-1, errX, valY );
-	    errX = graph->GetErrorX( iBin-1 );
-	    errY = graph->GetErrorY( iBin-1 );
-	  }
-	  stream << valY;
-	  if ( mode >= 2 ) stream << "," << errY;
-	  if ( mode >= 3 ) stream << "," << errX;
-	}
-	else {
+	if ( !iPlot ) {
 	  if ( hist ) stream << ( strcmp( hist->GetXaxis()->GetBinLabel(iBin), "" ) ? TString(hist->GetXaxis()->GetBinLabel(iBin)) :  TString::Format( "] %2.2f : %2.2f]", hist->GetXaxis()->GetBinLowEdge( iBin ), hist->GetXaxis()->GetBinUpEdge( iBin ) ) );
 	  else if ( graph ) {
 	    double x, y;
-	    graph->GetPoint( 0, x, y );
+	    graph->GetPoint( iBin-1, x, y );
 	    stream << x << endl;
 	  }
+	  stream << ",";
 	}
+	
+	double valY, errX, errY;
+	if ( hist ) {
+	  valY = hist->GetBinContent(iBin);
+	  errY = hist->GetBinError(iBin);
+	  errX = hist->GetXaxis()->GetBinWidth(iBin);
+	}
+	else if ( graph ) {
+	  graph->GetPoint( iBin-1, errX, valY );
+	  errX = graph->GetErrorX( iBin-1 );
+	  errY = graph->GetErrorY( iBin-1 );
+	}
+	stream << valY;
+	if ( mode >= 2 ) stream << "," << errY;
+	if ( mode >= 3 ) stream << "," << errX;
       }
+	
       if ( iPlot != vectHist.size() ) stream << ",";
     }
     stream << endl;
@@ -978,4 +994,56 @@ void ChrisLib::WriteVect( const vector<TObject*> &vectHist, const string &outNam
   TFile outFile( (outName+".root").c_str(), "recreate" );
   for ( auto it = vectHist.begin(); it != vectHist.end(); ++it ) (*it)->Write( "", TObject::kOverwrite );
   outFile.Close();
+}
+//==============================================
+double ChrisLib::TestDoubleTree( TTree *tree, const string &branch ) {
+  if ( !tree ) throw invalid_argument( "TestDoubleTree : Null TTree." );
+  if ( !tree->GetEntries() ) throw runtime_error( "TestDoubleTree : No entries in TTree." );
+
+  double val{-99};
+  int err = tree->SetBranchAddress( branch.c_str(), &val );
+  if ( err ) throw runtime_error( "TestDoubleTree : BranchName does not designate a double branch" );
+  tree->GetEntry(0);
+  return val;
+}
+
+//==============================================
+void ChrisLib::CreateSystHist( TH1 *inHist, TH1* baseValue, unsigned mode ) {
+  if ( !inHist || !baseValue ) throw invalid_argument( "CreateSystHist : Null inputs" );
+  if ( !ComparableHists( inHist, baseValue ) ) throw invalid_argument( "CreateSyst : Not comparable histograms." );
+
+  int nBins = baseValue->GetNbinsX();
+  int maxIBin = baseValue->GetNbinsX()+1;
+  if ( mode /10 ) maxIBin = maxIBin/2;
+  for ( int iBin=1; iBin<=maxIBin; ++iBin ) {
+    double valHist = inHist->GetBinContent( iBin );
+    double valBase = baseValue->GetBinContent( iBin );
+    if ( mode/10 ==1 ) {
+      valHist = ( valHist + inHist->GetBinContent(nBins-iBin+1))/2;
+      valBase = ( valBase + baseValue->GetBinContent(nBins-iBin+1))/2;
+    }
+
+    int restMode = mode%10;
+    if ( !restMode ) {
+      list<double> vals { valHist, valBase};
+      valHist = Oplus( vals );
+    }
+    else if ( restMode==1 ) valHist = fabs(valHist) + fabs(valBase);
+    else if ( restMode==2 ) valHist = valBase+valHist;
+    else if ( restMode==3 ) valHist = valHist-valBase;
+    else if ( restMode==4 ) valHist = fabs( valBase+valHist );
+    else if ( restMode==5 ) valHist = fabs( valBase-valHist );
+
+    inHist->SetBinContent( iBin, valHist );
+    inHist->SetBinContent( nBins-iBin+1, valHist );
+  }
+}
+
+//=============================================
+void ChrisLib::ReverseErrVal( TH1* hist ) {
+  for ( int iBin=1; iBin<hist->GetNbinsX()+1; ++iBin ) {
+    double val = hist->GetBinContent(iBin);
+    hist->SetBinContent( iBin, hist->GetBinError(iBin));
+    hist->SetBinError( iBin, val );
+  }
 }

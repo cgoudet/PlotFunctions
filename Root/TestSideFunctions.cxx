@@ -423,6 +423,18 @@ BOOST_AUTO_TEST_CASE( CreateSystHistTest ) {
   BOOST_CHECK_EQUAL( hist2->GetBinContent(2), 5);
 
   delete hist1;
+  hist1 = new TH1D( "hist1", "hist1", 2, 0, 1 );
+  hist1->SetBinContent( 1, 1 );
+  hist1->SetBinContent( 2, 2 );
+  delete hist2;
+  hist2 = new TH1D( "hist2", "hist2", 2, 0, 1 );
+  hist2->SetBinContent( 1, 3 );
+  hist2->SetBinContent( 2, 4 );
+  CreateSystHist( hist2, hist1, 0 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), sqrt(10));
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(2), sqrt(20));
+
+  delete hist1;
   delete hist2;
 }
 

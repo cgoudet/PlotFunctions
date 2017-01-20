@@ -153,6 +153,7 @@ namespace ChrisLib {
      - systName : Name for the considered systematic. 
      If the keyword "__ERR" is present in the name, the values of the histograms will be replaced by their respective error.
      - mode : Mode of the contribution of the histogram to the total uncertainty
+     - update=<int> : If 0 (default) output file will be overwritten else new systematics will be added to the file.
 
      Modes :
      - 0XX : The systematic must be compared to another histogram. 
@@ -162,7 +163,7 @@ namespace ChrisLib {
      - XX : options from ChrisLib::CreateSystHist for combination with total systematic.
      For example 10 will make the symmetrized root mean squatre between bins.
    */
-  void DiffSystematics( std::string inFileName, bool update=0 );
+  void DiffSystematics( std::string inFileName );
   
   void VarOverTime( std::string inFileName, bool update=0);
 

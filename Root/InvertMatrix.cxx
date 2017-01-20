@@ -38,16 +38,7 @@ using namespace RooFit;
 void Style_Christophe();
 using namespace ChrisLib;
 
-void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<double>& outMatrix, TMatrixT<double> &outErrMatrix, unsigned int inversionProcedure ) {
-  /*
-    InputType :
-    0 : alpha
-    1 : sigma
-  
-    Inversion Procedure 
-    0 : inversion matrix
-    1 : fit
-  */
+void ChrisLib::InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<double>& outMatrix, TMatrixT<double> &outErrMatrix, unsigned int inversionProcedure ) {
 
   // cout << "combinMatrix" << endl;
   // combinMatrix.Print();
@@ -61,7 +52,6 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
   switch ( inversionProcedure/10 ) {
 
   case 0 : { // Exact linear matrix inversion
-    cout << "linear matrix inversion" << endl;
     //Create the B matrix for alpha
     TMatrixD *bMatrix = new TMatrixD( nBins, 1);
     TMatrixD *UMatrix = new TMatrixD( nBins, nBins );  
@@ -100,7 +90,6 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
 	}
 
       }}
-    cout << "inverting" << endl;
     UMatrix->Invert();
     //    UMatrix=2*UMatrix;
     outMatrix = TMatrixD( nBins, 1);
@@ -121,11 +110,10 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
   }//end case 0 inversionProcedure/10
 
   case 1 : { //inversionProcedure/10
-    cout << "fitMethod" << endl;
     // method with likeliood fit
     //Defining observables
     RooRealVar *alpha = new RooRealVar( "alpha", "alpha", -0.1, 0.1 );
-    RooRealVar *alphaTot = new RooRealVar( "alphaTot", "alphaTot", -0.1, 0.1 );
+    //    RooRealVar *alphaTot = new RooRealVar( "alphaTot", "alphaTot", -0.1, 0.1 );
     RooArgSet *observables = new RooArgSet( RooArgSet( *alpha ), "observables" );
     map< string, RooDataSet*> datasetMap;
     
@@ -135,7 +123,7 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
     RooCategory* channellist = new RooCategory("channellist","channellist");
     RooSimultaneous *combinedPdf = new RooSimultaneous("CombinedPdf","",*channellist); 
     vector< RooGaussian*> configPdf;
-    cout << "header" << endl;
+
     for (unsigned int iLine = 0; iLine < (unsigned int) combinMatrix.GetNrows(); iLine ++) {
       for ( unsigned iCol = 0; iCol<(unsigned int) combinMatrix.GetNcols() ; iCol++ ) {
 
@@ -248,17 +236,6 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixT<d
   default : 
     cout << "input inversionProcedure/10 do not corresponds do any case available : " << inversionProcedure << endl;
   }//end switch inversionProcedure 
-  
 }
 
 
-//============================
-double SignSquare( double inVal ) {
-  return copysign( sqrt( fabs( inVal ) ), inVal );
-}
-
-//==========================================
-double ErrC( double c, double errC2 ) {
-  return sqrt( c*c + errC2 ) - fabs(c);
-
-}

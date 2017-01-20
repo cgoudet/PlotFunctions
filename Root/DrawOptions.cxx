@@ -273,9 +273,12 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
   if ( m_debug ) cout << "ChrisLib::DrawOptions::Draw" << endl;
   SetAtlasStyle();
 
+  if ( inHist.size() && TString(inHist.front()->ClassName()).Contains("TH2")) {
+    Draw( static_cast<TH2*>(inHist.front()) );
+    return;
+  }
   if ( inHist.size()==1 ) m_ints["shiftColor"] = 1;
   vector< TH1* > ratio;
-
   
   //================ PAD DEFINITION
   TCanvas canvas;

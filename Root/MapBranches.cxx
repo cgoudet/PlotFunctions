@@ -43,18 +43,16 @@ void ChrisLib::MapBranches::LinkOutputFromEmpty( TTree *outTree, const list<stri
 //=================================================
 void ChrisLib::MapBranches::LinkTreeBranches( TTree *inTree, TTree *outTree, list< string > branchesToLink ) {
   ClearMaps();
-
   if ( !inTree && !outTree ) throw invalid_argument( "MapBranches::LinkTreeBranches : Null inputs TTree." );
   else if ( !inTree ) LinkOutputFromEmpty( outTree, branchesToLink );
   else LinkBranches( inTree, outTree, branchesToLink );
 }
 //=================================================
 void ChrisLib::MapBranches::LinkBranches( TTree *inTree, TTree *outTree, const list< string > &branchesToLink ) {
-
   if ( !branchesToLink.empty() ) inTree->SetBranchStatus( "*", 0);
 
   TObjArray *branches = inTree->GetListOfBranches();
-  for ( unsigned int iBranch = 0; iBranch < (unsigned int) branches->GetEntries(); iBranch++ ) {
+  for ( unsigned int iBranch = 0; iBranch < static_cast<unsigned int>(branches->GetEntries()); iBranch++ ) {
 
     TClass *expectedClass;
     EDataType expectedType;

@@ -137,11 +137,11 @@ string ChrisLib::PrintWorkspaceCorrelationModel(string inFileName, string outFil
 
   //Get the model config out of the fileName
   TFile *inFile = new TFile( inFileName.c_str() );
-  if ( !inFile ) { cout << inFileName << " not found." << endl; exit(0); }
+  if ( !inFile ) throw runtime_error( "PrintWorkspaceCorrelationModel : "+inFileName+" not found.");
   if ( inWSName == "" ) inWSName = FindDefaultTree( inFile, "RooWorkspace" );
-  RooWorkspace *ws = (RooWorkspace*) inFile->Get( inWSName.c_str() );
-  if ( !ws ) { cout << "Workspace not found in " << inFileName << endl; exit(0); }
-  ModelConfig* const mc = (ModelConfig*) ws->obj( inMCName.c_str() );
+  RooWorkspace *ws = static_cast<RooWorkspace*>(inFile->Get( inWSName.c_str()));
+  if ( !ws ) throw runtime_error( "PrintWorkspaceCorrelationModel : Workspace not found in "+inFileName );
+  ModelConfig* const mc = static_cast<ModelConfig*>(ws->obj(inMCName.c_str()));
 
   //Get the names of all nuisance paramters
   vector<string> NPName;
@@ -253,8 +253,8 @@ string ChrisLib::PrintWorkspaceVariables( string inFileName, string outFileName,
   if ( !inFile ) { cout << inFileName << " not found." << endl; exit(0); }
 
   if ( inWSName == "" ) inWSName = FindDefaultTree( inFile, "RooWorkspace" );
-  RooWorkspace *ws = (RooWorkspace*) inFile->Get( inWSName.c_str() );
-  if ( !ws ) { cout << "Workspace not found in " << inFileName << endl; exit(0); }
+  RooWorkspace *ws = static_cast<RooWorkspace*>(inFile->Get( inWSName.c_str() ));
+  if ( !ws ) throw runtime_error( "Workspace not found in " + inFileName );
   
   RooArgSet allVars = ws->allVars();
   allVars.sort();
@@ -673,10 +673,7 @@ void ChrisLib::VarOverTime( string inFileName, bool update) {
 
   fstream inStream;
   inStream.open( inFileName, fstream::in );
-  if ( !inStream.is_open() ) {
-    cout << inFileName << " does not exist." << endl;
-    exit(0);
-  }
+  if ( !inStream.is_open() ) throw runtime_error( "VarOverTime : "+inFileName+" does not exist.");
   string rootFileName, histName, systName, outFileName, outHistName;
   double val, valMin=-99, valMax=-99;
   //  unsigned int counterSyst=0;
@@ -701,24 +698,13 @@ void ChrisLib::VarOverTime( string inFileName, bool update) {
     if ( valMin == -99 || val < valMin ) valMin = val;
 
     TFile *inFile = new TFile( rootFileName.c_str() );
-    if ( !inFile ) {
-      cout << rootFileName << " does not exists." << endl;
-      exit(0);
-    }
+    if ( !inFile ) throw runtime_error( "VarOverTime : "+rootFileName+" does not exists.");
 
     TH1D* inHist = (TH1D*) inFile->Get( histName.c_str() );
-    if ( !inHist ) {
-      cout << histName << " does not exist within " << rootFileName << endl;
-      exit(0);
-    }
+    if ( !inHist ) throw runtime_error( "VarOverTime : "+histName+" does not exist within "+rootFileName );
     yaxis = inHist->GetYaxis()->GetTitle();
     if ( !scales.size() ) scales.resize( extents[inHist->GetNbinsX()][2][0] );
-    cout << "sizes : " << scales.size() << " " << inHist->GetNbinsX() << endl;
-    cout << inFile->GetName() << " " << inHist->GetName() << endl;
-    if ( scales.size() != ( unsigned int ) inHist->GetNbinsX() ) {
-      cout << "all input scales are not from same binning" << endl;
-      exit(0);
-    }
+    if ( scales.size() != ( unsigned int ) inHist->GetNbinsX() ) throw runtime_error( "VarOverTime : all input scales are not from same binning");
     scales.resize( extents[scales.size()][2][valVect.size()] );
 
     for ( int iBin = 0; iBin < inHist->GetNbinsX(); iBin++ )  {

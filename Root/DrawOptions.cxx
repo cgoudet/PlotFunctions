@@ -525,3 +525,14 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
     m_tmpLegends.clear();
   }
 }
+//=========================================
+void ChrisLib::DrawOptions::Draw( TH2* hist ) {
+  TCanvas canvas;
+  canvas.SetRightMargin(0.1);
+  if ( m_bools["forceStyle" ] ) hist->UseCurrentStyle();
+  hist->Draw( "COLZ" );
+  vector<TObject*> v{hist};
+  DrawText( v );
+  string canOutName = GetOutName() + "." + GetExtension();
+  canvas.SaveAs( canOutName.c_str() );
+}

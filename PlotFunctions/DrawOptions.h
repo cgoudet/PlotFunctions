@@ -7,6 +7,7 @@
 #include "TH1.h"
 #include "TLine.h"
 #include "TLatex.h"
+#include "TH2.h"
 
 #include <string>
 #include <vector>
@@ -164,7 +165,7 @@ namespace ChrisLib {
     void Draw( std::vector< TObject* > &inHist );
     void Draw( const std::vector< TH1* > &inHist );
     void Draw( const std::vector< TGraphErrors* > &inHist );
-
+    void Draw( TH2* hist );
   private :
     
     void SetHistProperties( TH1* hist );

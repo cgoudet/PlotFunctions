@@ -437,7 +437,7 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
       string inTreeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( inFile, "TTree" );
       inTree = static_cast<TTree*>(inFile->Get( inTreeName.c_str() ) );
       if ( !inTree ) throw invalid_argument( "PlotTree : " + inTreeName + " not found in " + string(inFile->GetName()) );
-      inTree->SetDirectory(0);
+      //inTree->SetDirectory(0);
       if ( selectionCut.size()>iPlot && selectionCut[iPlot]!="" ) CopyTreeSelection( &inTree, selectionCut[iPlot] );
       nEntries = inTree->GetEntries();
       //create a vector to store all branches names to be linked
@@ -540,7 +540,7 @@ void ChrisLib::PlotMatrix( const InputCompare &inputCompare, vector<vector<TObje
     unsigned int nBins = doTriangular ? nLine*(nLine+1)/2 : nLine*nCol;
     drawVect[iPlot] = new TH1D( histTitle, histTitle, nBins, 0.5, nBins+0.5 );
     TH1D* hist = static_cast<TH1D*>( drawVect[iPlot] );
-    hist->SetDirectory(0);
+    //    hist->SetDirectory(0);
     int bin =1;
     for ( unsigned int iLine=0; iLine<nLine; ++iLine ) {
       unsigned int iColMax =  doTriangular ? iLine+1 : nCol;

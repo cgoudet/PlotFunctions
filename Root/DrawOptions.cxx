@@ -441,7 +441,9 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
 
   // =========== PRINT LEGENDS AND LATEX
   double lineVal = GetLine();
-  if( lineVal != -99 ) {
+  if( lineVal != -99
+      && ( lineVal > rangeUserY.front() && lineVal < rangeUserX.front() )
+      ) {
     double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : minX;
     double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : maxX;
     line.DrawLine( rangeMin , lineVal, rangeMax, lineVal);

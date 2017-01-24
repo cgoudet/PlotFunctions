@@ -437,7 +437,7 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
       string inTreeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( inFile, "TTree" );
       inTree = static_cast<TTree*>(inFile->Get( inTreeName.c_str() ) );
       if ( !inTree ) throw invalid_argument( "PlotTree : " + inTreeName + " not found in " + string(inFile->GetName()) );
-      inTree->SetDirectory(0);
+      //      inTree->SetDirectory(0);
       if ( selectionCut.size()>iPlot && selectionCut[iPlot]!="" ) CopyTreeSelection( &inTree, selectionCut[iPlot] );
       nEntries = inTree->GetEntries();
       //create a vector to store all branches names to be linked

@@ -609,6 +609,7 @@ void ChrisLib::DiffSystematics( string inFileName ) {
     delete inFile;
     inHist->SetName( systsName[iSyst].c_str() );
     inHist->SetTitle( systsName[iSyst].c_str() );
+    inHist->GetYaxis()->SetTitle( "#delta" + TString(inHist->GetYaxis()->GetTitle() ) );
     
     if ( systsName[iSyst].find("__ERR") != string::npos ) {
       //If stat appears in the name, use the error bars as the systematic

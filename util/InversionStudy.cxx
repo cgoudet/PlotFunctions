@@ -140,7 +140,7 @@ int main( int argc, char* argv[] ) {
     drawOpt.AddOption( "line", "0" );
     string inFileName = inFile.GetName();
     drawOpt.AddOption( "latex", StripString( inFileName ) );
-    drawOpt.AddOption( "latexOpt', '0.4 0.9" );
+    drawOpt.AddOption( "latexOpt", "0.4 0.9" );
     drawOpt.AddOption( "outName", StripString( outFileName, 0, 1 ) );
     //  drawOpt.AddOption("doRatio=1");
     //  drawOpt.AddOption( "rangeUserY=0 0.035" );

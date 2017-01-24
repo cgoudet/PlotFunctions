@@ -342,7 +342,7 @@ BOOST_AUTO_TEST_CASE( ParseLegendTest ) {
   BOOST_CHECK_EQUAL( ParseLegend(legend), legend );
 
   legend = "rty_uio__HASHTAG__FILL_____NOPOINT__ATLAS__STACK__ETA_CALOETA_CALO_______";
-  BOOST_CHECK_EQUAL( ParseLegend(legend), "rty_uio#_____#eta_{CALO}#eta_{CALO}_______" );
+  BOOST_CHECK_EQUAL( ParseLegend(legend), "rty_uio#___#eta_{CALO}ETA_CALO_______" );
 
 }
 

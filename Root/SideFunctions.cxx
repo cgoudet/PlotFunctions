@@ -637,7 +637,6 @@ void ChrisLib::DiffSystematics( string inFileName ) {
       totSyst = static_cast<TH1D*>(inHist->Clone(totSystName.c_str()));
       totSyst->SetDirectory(0);
       totSyst->SetTitle( totSyst->GetName() );
-      totSyst->GetYaxis()->SetTitle( "#delta" + TString(inHist->GetYaxis()->GetTitle() ) );
     }
     else {
       vector<TH1*> hists = { totSyst, inHist };

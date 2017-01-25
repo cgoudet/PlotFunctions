@@ -443,8 +443,9 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
   double lineVal = GetLine();
   cout << "lineVal : " << lineVal << endl;
   if( lineVal != -99
-      && ( lineVal > rangeUserY.front() && lineVal < rangeUserX.front() )
+      && ( lineVal > rangeUserY.front() && lineVal < rangeUserY.back() )
       ) {
+    cout << "drawLine" << endl;
     double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : minX;
     double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : maxX;
     line.DrawLine( rangeMin , lineVal, rangeMax, lineVal);

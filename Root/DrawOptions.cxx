@@ -112,7 +112,7 @@ void ChrisLib::DrawOptions::SetProperties( TObject* obj, int iHist ) {
     for ( unsigned iAxis=0; iAxis<2; ++iAxis ) {
       string title = iAxis ? GetYTitle() : GetXTitle();
       if ( title!= "" ) {
-	ParseLegend( title );
+	title = ParseLegend( title );
 	TAxis *axis = 0;
 	if ( hist ) axis = iAxis ? hist->GetYaxis() : hist->GetXaxis();
 	else axis = iAxis ? graph->GetYaxis() : graph->GetXaxis();
@@ -442,7 +442,7 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
   // =========== PRINT LEGENDS AND LATEX
   double lineVal = GetLine();
   if( lineVal != -99
-      && ( lineVal > rangeUserY.front() && lineVal < rangeUserX.front() )
+      && ( lineVal > rangeUserY.front() && lineVal < rangeUserY.back() )
       ) {
     double rangeMin = rangeUserX.size()== 2 ? rangeUserX[0] : minX;
     double rangeMax = rangeUserX.size()== 2 ? rangeUserX[1] : maxX;

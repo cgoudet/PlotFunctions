@@ -10,9 +10,7 @@
 
 namespace ChrisLib {
   
-  /**
-     \class InputCompare
-     \brief Stores the content of boost configuration files.
+  /** \brief Stores the content of boost configuration files.
      
      ## Plot framework
      The interface of the plot framework is limited to a single configuration file in the boost::program_options format.

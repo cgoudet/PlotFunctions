@@ -525,7 +525,7 @@ TTree* ChrisLib::Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsi
 //================================================
 string ChrisLib::FindDefaultTree( const TFile* inFile, string type, string keyWord  ) { 
   if ( !inFile ) throw invalid_argument( "FindDefaultTree : Null inFile " );
-  if ( type == "" ) type = "TTRee";
+  if ( type == "" ) type = "TTree";
 
   string inFileName = inFile->GetName();
   StripString( inFileName );
@@ -608,6 +608,7 @@ void ChrisLib::DiffSystematics( string inFileName ) {
     inFile->Close();
     delete inFile;
     inHist->SetName( systsName[iSyst].c_str() );
+    inHist->SetTitle( systsName[iSyst].c_str() );
     
     if ( systsName[iSyst].find("__ERR") != string::npos ) {
       //If stat appears in the name, use the error bars as the systematic
@@ -622,6 +623,7 @@ void ChrisLib::DiffSystematics( string inFileName ) {
     }
 
     if ( modes[iSyst]/100!=1 ) {
+      inHist->GetYaxis()->SetTitle( "#delta" + TString(inHist->GetYaxis()->GetTitle() ) );
       vector<TH1*> hists = { inHist, baseValue };
       RebinHist( hists );
       inHist = static_cast<TH1D*>(hists[0]);
@@ -635,7 +637,6 @@ void ChrisLib::DiffSystematics( string inFileName ) {
       totSyst = static_cast<TH1D*>(inHist->Clone(totSystName.c_str()));
       totSyst->SetDirectory(0);
       totSyst->SetTitle( totSyst->GetName() );
-      totSyst->GetYaxis()->SetTitle( "#delta" + TString(inHist->GetYaxis()->GetTitle() ) );
     }
     else {
       vector<TH1*> hists = { totSyst, inHist };

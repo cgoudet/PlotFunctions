@@ -39,7 +39,9 @@ int main( int argc, char* argv[] ) {
   if (vm.count("help")) {cout << desc; return 0;}
   //########################################
   if ( mode == 0 ) CompareSystModel();
-  else if ( mode==1 ) for_each( inputFiles.begin(), inputFiles.end(), DiffSystematics );
-
+  else if ( mode==1 ) {
+    for_each( inputFiles.begin(), inputFiles.end(), DiffSystematics );
+    cout<<"DiffSyst done.\n";
+  }
   return 0;
 }

@@ -23,7 +23,7 @@ BOOST_AUTO_TEST_SUITE( MapBranchesSuite )
 BOOST_AUTO_TEST_CASE( IsLinkedTest) {
   MapBranches mapBr;
   BOOST_CHECK( !mapBr.IsLinked() );
-  mapBr.SetVal( "string", "string" );  
+  mapBr.SetVal( "string", "string" );
   BOOST_CHECK( mapBr.IsLinked() );
   mapBr.ClearMaps();
   BOOST_CHECK( !mapBr.IsLinked() );
@@ -49,12 +49,12 @@ BOOST_AUTO_TEST_CASE( SetValTest) {
   BOOST_CHECK_EQUAL( mapBr.GetFloat("float"), valF );
   BOOST_CHECK_EQUAL( mapBr.GetDouble("double"), valD );
   BOOST_CHECK_EQUAL( mapBr.GetDouble("float"), static_cast<double>(valF) );
-  
+
   list<string> keys;
   list<string> testKeys { "int", "float", "double", "string" };
   mapBr.GetKeys( keys );
   BOOST_CHECK( keys==testKeys );
-  
+
 }
 
 //=======================================
@@ -96,11 +96,26 @@ BOOST_AUTO_TEST_CASE( LinkTreeBranchesTest ) {
   BOOST_CHECK( mapBr.IsLinked() );
 
   BOOST_CHECK_THROW( mapBr.LinkTreeBranches( 0, tree2, linkedBranches ), invalid_argument );
-  
+
   mapBr.SetVal( "branch11", 3. );
   tree2->Fill();
   BOOST_CHECK_EQUAL( TestDoubleTree(tree2, "branch11" ), 3 );
   BOOST_CHECK_THROW( mapBr.LinkTreeBranches( 0, tree2, linkedBranches ), invalid_argument );
+
+}
+
+//=======================================
+BOOST_AUTO_TEST_CASE( IsTypeTest ) {
+  MapBranches mBr;
+  float testF=0;
+  double testD=1;
+    mBr.SetVal( "float", testF );
+  mBr.SetVal( "double", testD );
+  mBr.SetVal( "string", "coucou" );
+
+  BOOST_CHECK( !mBr.IsFloat( "baba" ) );
+  BOOST_CHECK( !mBr.IsFloat( "double" ) );
+  BOOST_CHECK( mBr.IsFloat( "float" ) );
 
 }
 

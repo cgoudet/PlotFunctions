@@ -106,7 +106,6 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   po::notify( vm );
 
   m_outName = StripString( fileName );
-
   if ( DEBUG ) cout << "plotDirectory : " << m_mapOptions["plotDirectory"] << endl;
   if ( m_mapOptions["plotDirectory"] != "" && m_mapOptions["plotDirectory"].back() != '/' ) m_mapOptions["plotDirectory"] += "/";
 

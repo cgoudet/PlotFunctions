@@ -247,3 +247,4 @@ def CreateNode( nodeName, options={} ) :
     xmlObj = ET.Element( nodeName ) 
     [ xmlObj.set( opt, options[opt] ) for opt in options ]
     return xmlObj
+#===============================================

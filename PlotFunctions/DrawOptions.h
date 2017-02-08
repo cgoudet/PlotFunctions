@@ -95,6 +95,10 @@ namespace ChrisLib {
      <int> is interpreted as boolean.
 
      - forceStyle=<int> : Force the style of the inputs into the default one. True by default.
+
+     - topMargin=<double> : Sets the top margin of the main canvas to non-default value
+
+     - bottomMargin=<double> : Sets the bottom margin of the main cancas to non-default value
   */
   class DrawOptions {
   public :
@@ -115,7 +119,8 @@ namespace ChrisLib {
     double GetLine() const { return m_doubles.at("line"); }
     double GetClean() const { return m_doubles.at("clean"); }
     double GetOffset() const { return m_doubles.at("offset"); }
-
+    double GetTopMargin() const { return m_doubles.at("topMargin"); }
+    double GetBottomMargin() const { return m_doubles.at("bottomMargin"); }
   
     
     const std::string &GetXTitle() const { return m_strings.at("xTitle"); }

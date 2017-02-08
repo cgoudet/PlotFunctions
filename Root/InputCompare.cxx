@@ -95,6 +95,8 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
     ( "doLabels", po::value<string>( &m_mapOptions["doLabels"]) , "" )
     ( "grid", po::value<string>(&m_mapOptions["grid"]), "" )
     ( "forceStyle", po::value<string>(&m_mapOptions["forceStyle"]),"" )
+    ( "topMargin", po::value<string>( &m_mapOptions["topMargin"]), "" )
+    ( "bottomMargin", po::value<string>( &m_mapOptions["bottomMargin"]), "" )
     ;
 
   po::variables_map vm;

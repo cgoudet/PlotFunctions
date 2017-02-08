@@ -39,7 +39,7 @@ ChrisLib::DrawOptions::DrawOptions() : m_legendCoord {0.7,0.9}, m_debug(0),
   keys = { "doRatio", "drawStyle", "shiftColor", "grid" };
   for ( auto vKey : keys ) m_ints[vKey]=0;  
 
-  keys = { "scale", "line", "clean", "normalize" };
+  keys = { "scale", "line", "clean", "normalize", "topMargin", "bottomMargin" };
   for ( auto vKey : keys ) m_doubles[vKey]=-99;
   m_doubles["extendUp"]=0;
   m_doubles["offset"]=0;
@@ -282,6 +282,10 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
   
   //================ PAD DEFINITION
   TCanvas canvas;
+  double topMargin = GetTopMargin();
+  if (topMargin!=-99) canvas.SetTopMargin(topMargin);
+  double bottomMargin = GetBottomMargin();
+  if (bottomMargin!=-99) canvas.SetBottomMargin(bottomMargin);
   int doGrid = GetGrid();
   canvas.SetGrid( doGrid%2, doGrid/2 );
 

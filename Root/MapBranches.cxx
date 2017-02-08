@@ -164,7 +164,7 @@ void ChrisLib::MapBranches::LinkCSVFile( istream &stream, const char delim ) {
   stream.seekg( 0, stream.beg );
 
   unsigned int nCols = 0;
-  char line[500];
+  char line[10000];
   bool isFirstLineTitle=true;
   //  int iValue=0;
   double dValue=0;
@@ -172,7 +172,7 @@ void ChrisLib::MapBranches::LinkCSVFile( istream &stream, const char delim ) {
   unsigned nStringL2=0;
   for ( unsigned iLine=0; iLine<2; ++iLine ) {
 
-    stream.getline( line, 500 );
+    stream.getline( line, 10000 );
     stringstream firstLine(line);
 
     if ( !iLine ) {
@@ -226,7 +226,7 @@ void ChrisLib::MapBranches::LinkCSVFile( istream &stream, const char delim ) {
   }
   
   stream.seekg( 0, stream.beg );
-  stream.getline(line, 500 );
+  stream.getline(line, 10000 );
 
   // cout << "keys: "<< endl;
   // list<string> keys;
@@ -239,11 +239,11 @@ bool ChrisLib::MapBranches::ReadCSVEntry( istream &stream, const char delim ) {
 
   //  int iValue=0;
   double dValue=0;
-
-  char line[500];
-  stream.getline( line, 500 );
+  char line[10000];
+  stream.getline( line, 10000 );
   if ( stream.eof() ) return false;
   stringstream firstLine(line);
+
   unsigned nCols = m_CSVColsIndex.size();
   if ( !nCols ) throw runtime_error( "MapBranches::ReadCSVEntry : No column have been linked." );
 
@@ -260,10 +260,10 @@ bool ChrisLib::MapBranches::ReadCSVEntry( istream &stream, const char delim ) {
       if ( firstLine.fail() ) throw runtime_error( "MapBranches::ReadCSVEntry : Can not read double in column " + m_CSVColsIndex[iCol]);
       m_mapDouble.at(m_CSVColsIndex[iCol]) = dValue;
       //      cout << "double : " << m_CSVColsIndex[iCol] << " " << dValue << endl;
-      firstLine.getline(line, 500, delim );
+      firstLine.getline(line, 10000, delim );
     }
     else if ( m_CSVTypes[iCol]==CSVType::String ) {
-      firstLine.getline(line, 500, delim );
+      firstLine.getline(line, 10000,  delim );
       if ( firstLine.eof() ) return false;
       if ( firstLine.fail() ) throw runtime_error( "MapBranches::ReadCSVEntry : Can not read string in column " + m_CSVColsIndex[iCol]);
       m_mapString.at(m_CSVColsIndex[iCol]) = line;      

@@ -5,7 +5,7 @@ class DrawOptions :
     
     def __init__(self) :
         keys = [ "xTitle", "yTitle", 'legendPos', 'rangeUserX', 'rangeUserY', 'varMin', 'varMax', 
-                 "scale", "line", "clean", "normalize", "topMargin", "bottomMargin" "doChi2", "logy", "orderX", 
+                 "scale", "line", "clean", "normalize", "topMargin", "bottomMargin", "doChi2", "logy", "orderX", 
                  "doRatio", "drawStyle", "shiftColor", "grid", 'extendUp', 'offset', 'inputType', 'selectionCut',
                  'eventID', 'nEvents', 'nBins', 'triangular', 'xBinning', 'yBinning', 'xTitle', 'yTitle', 'doTabular',
                  'logy', 'removeVal', 'orderX', 'forceStyle', 'extension', 'outName', 'saveRoot', 'doLabels',

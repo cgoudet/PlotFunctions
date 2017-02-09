@@ -33,7 +33,10 @@ using std::endl;
  */
 namespace ChrisLib {
 
-  /*\brief Modify histograms to have a common binning as the one with most granularity.
+  /**\brief Ensures that a string finishes by a /
+   */
+  inline std::string AddSlash( std::string s ) { if (s.back()!='/') s+='/'; return s;}
+     /**\brief Modify histograms to have a common binning as the one with most granularity.
     Tested
    */
   void RebinHist( std::vector<TH1*> &vectHist );
@@ -108,7 +111,7 @@ namespace ChrisLib {
   void WriteLatexHeader( std::fstream &latexStream, std::string title, std::string author="Christophe Goudet", int mode=0 );
 
   /**\brief Remove suffix and prefix from a string
-     \param inString string to be modified. 
+     \param inString string to be modified.
      \param doPrefix remove everything before the last /
      \param doSuffix remove everything after the last .
      \return string copy of the modified string
@@ -153,7 +156,7 @@ namespace ChrisLib {
   TTree* Bootstrap( std::vector< TTree* > inTrees, unsigned int nEvents=0, unsigned long seed = 0, int mode = 0 );
 
   /**\brief Find the name of an object from the class type in the given tfile
-     \param inFile 
+     \param inFile
      \param type Class name of the looked for object
      \param keyword keyword to be present in the searched object name
    */
@@ -165,18 +168,18 @@ namespace ChrisLib {
   /**\create a systematics using configFile from boost file
      Mandatory variables :
      - outFileName : Name of the output file
-     - totSystName : Name of the ouput total systematic. 
+     - totSystName : Name of the ouput total systematic.
 
      Systematic variables : all described options must be entered the same number of time.
      - rootFileName : Name of the file whe an histogram of interest lies
      - histName : Name of the histogram of interest
-     - systName : Name for the considered systematic. 
+     - systName : Name for the considered systematic.
      If the keyword "__ERR" is present in the name, the values of the histograms will be replaced by their respective error.
      - mode : Mode of the contribution of the histogram to the total uncertainty
      - update=<int> : If 0 (default) output file will be overwritten else new systematics will be added to the file.
 
      Modes :
-     - 0XX : The systematic must be compared to another histogram. 
+     - 0XX : The systematic must be compared to another histogram.
      This other histogram is taken as the first given in the configuration file.
      The comparison is a signed difference.
      - 1XX : The histogram is directly a systematic
@@ -184,7 +187,7 @@ namespace ChrisLib {
      For example 10 will make the symmetrized root mean squatre between bins.
    */
   void DiffSystematics( std::string inFileName );
-  
+
   void VarOverTime( std::string inFileName, bool update=0);
 
   void RescaleStack( THStack *stack, double integral );
@@ -194,7 +197,7 @@ namespace ChrisLib {
   /**\brief Create the list with the all the possible combination of given name.
    */
   void CombineNames( const std::list< std::list<std::string> > &components, std::list<std::string> &outNames, std::string separator="_" );
-  
+
   /*\brief Check the equality of double numbers by comparing them up to the 7th digit
     Tested.
   */
@@ -233,7 +236,7 @@ namespace ChrisLib {
 
   /**\brief Print the content of histograms into a csv file
      \param outName Name of the output file without extension
-     \param vectHist 
+     \param vectHist
      \param mode If 2 also print the histograms uncertainties
    */
   void PrintHist( std::vector<TObject*> &vectHist, std::string outName, int mode );
@@ -260,7 +263,7 @@ namespace ChrisLib {
   double TestDoubleTree( TTree *tree, const string &branch );
 
   /**\brief Modify inHist into a systematic with respect to baseValue
-     
+
      mode%/10 :
      - 0 : quadratic sum
      - 1 : sum of absolute values
@@ -272,7 +275,7 @@ namespace ChrisLib {
      mode/10 :
      - 0 : Bin by bin
      - 1 : symmetrized bin
-     
+
      Histograms must be comparable ( ChrisLib::ComparableHists ).
    */
   void CreateSystHist( TH1 *inHist, TH1* baseValue, unsigned mode =0 );
@@ -283,5 +286,3 @@ namespace ChrisLib {
 }
 
 #endif
-
-

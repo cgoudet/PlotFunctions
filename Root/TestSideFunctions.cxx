@@ -95,11 +95,11 @@ BOOST_AUTO_TEST_CASE( ComparableHistsTest ) {
   h1->Fill( 0.5, 0.7 );
   h1->Fill( 1.5, 0.6 );
   h1->Fill( 2.5, 2. );
-  
+
   TH1D *h3 = new TH1D( "h3", "h3", 4, 0, 4 );
   TH1D *h4 = new TH1D( "h4", "h4", 3, 0, 4 );
   TH1D *h5 = new TH1D( "h5", "h5", 3, 1, 3 );
-  
+
   double x[]={0, 0.2, 2, 3};
   TH1D *h6 = new TH1D( "h6", "h6", 3, x );
 
@@ -109,7 +109,7 @@ BOOST_AUTO_TEST_CASE( ComparableHistsTest ) {
   BOOST_CHECK_THROW( ComparableHists( h1, 0 ), invalid_argument );
   BOOST_CHECK_THROW( ComparableHists( 0, h2 ), invalid_argument );
   BOOST_CHECK_THROW( ComparableHists( 0, 0 ), invalid_argument );
-  
+
   BOOST_CHECK( ComparableHists( h1, h2 ) );
   BOOST_CHECK( !ComparableHists( h1, h3 ) );
   BOOST_CHECK( !ComparableHists( h1, h4 ) );
@@ -130,7 +130,7 @@ BOOST_AUTO_TEST_CASE( ComparableHistsTest ) {
 //==========================================
 BOOST_AUTO_TEST_CASE( GetCoordFromLinearTest ) {
   const vector<unsigned> levelsSize = { 3, 2, 5 };
-  
+
   vector<unsigned> outCoords;
   vector<unsigned> testCoords;
 
@@ -237,7 +237,7 @@ BOOST_AUTO_TEST_CASE( CleanHistTest ) {
   BOOST_CHECK_THROW( CleanHist( vectHist, -99 ), invalid_argument );
   delete vectHist.front();
   delete vectHist.back();
-  
+
   delete h1;
   delete h2;
   delete h3;
@@ -304,7 +304,7 @@ BOOST_AUTO_TEST_CASE( RebinHistTest ) {
 BOOST_AUTO_TEST_CASE( FillDefaultFrontiersTest ) {
   vector<double> testVect = { 0., 1., 2., 3. };
   vector<double> outVect;
-  
+
   FillDefaultFrontiers( outVect, 3, 0, 3 );
   BOOST_CHECK_EQUAL( outVect.size(), testVect.size() );
   BOOST_CHECK( equal( outVect.begin(), outVect.end(), testVect.begin() ) );
@@ -448,6 +448,12 @@ BOOST_AUTO_TEST_CASE( ReverseErrValTest ) {
   delete hist2;
 }
 
+BOOST_AUTO_TEST_CASE( AddSlashTest ) {
+  string in{ "dodo" };
+  BOOST_CHECK_EQUAL( AddSlash(in), "dodo/");
+  in = "dodo ";
+  BOOST_CHECK_EQUAL( AddSlash(in), "dodo /");
+  in = "dodo/";
+  BOOST_CHECK_EQUAL( AddSlash(in), in );
+}
 BOOST_AUTO_TEST_SUITE_END()
-
-

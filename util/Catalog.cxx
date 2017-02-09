@@ -35,13 +35,10 @@ int main( int argc, char* argv[] ) {
   po::variables_map vm;
   po::store(po::command_line_parser(argc, argv).options(desc).positional(p).style(po::command_line_style::unix_style ^ po::command_line_style::allow_short).run(), vm);
   po::notify(vm);
-  
+
   if (vm.count("help")) {cout << desc; return 0;}
   //########################################
   if ( mode == 0 ) CompareSystModel();
-  else if ( mode==1 ) {
-    for_each( inputFiles.begin(), inputFiles.end(), DiffSystematics );
-    cout<<"DiffSyst done.\n";
-  }
+  else if ( mode==1 ) for_each( inputFiles.begin(), inputFiles.end(), DiffSystematics );
   return 0;
 }

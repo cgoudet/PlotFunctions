@@ -28,16 +28,16 @@ using std::string;
 using namespace ChrisLib;
 
 ChrisLib::DrawOptions::DrawOptions() : m_legendCoord {0.7,0.9}, m_debug(0),
-				       m_colors {1, 632, 600, 616, 416, 800, 921, 629, 597, 613, 413, 797, 635, 603, 619, 419, 807 },
-				       m_fillColors { 3, 5 }
+                                       m_colors {1, 632, 600, 616, 416, 800, 921, 629, 597, 613, 413, 797, 635, 603, 619, 419, 807 },
+                                       m_fillColors { 3, 5 }
 {
 
   std::list<string> keys { "doChi2", "logy", "orderX" };
   for ( auto vKey : keys ) m_bools[vKey]=0;
   m_bools["forceStyle"]=1;
-  
+
   keys = { "doRatio", "drawStyle", "shiftColor", "grid" };
-  for ( auto vKey : keys ) m_ints[vKey]=0;  
+  for ( auto vKey : keys ) m_ints[vKey]=0;
 
   keys = { "scale", "line", "clean", "normalize", "topMargin", "bottomMargin" };
   for ( auto vKey : keys ) m_doubles[vKey]=-99;
@@ -70,8 +70,14 @@ void ChrisLib::DrawOptions::AddOption( const string &key, const string &value ) 
     ParseVector( value, m_legendCoord );
     CheckLegendCoord();
   }
-  else if ( key == "rangeUserX" ) ParseVector( value, m_rangeUserX );
-  else if ( key == "rangeUserY" ) ParseVector( value, m_rangeUserY );
+  else if ( key == "rangeUserX" ) {
+    m_rangeUserX.clear();
+    ParseVector( value, m_rangeUserX );
+  }
+  else if ( key == "rangeUserY" ) {
+    m_rangeUserY.clear();
+    ParseVector( value, m_rangeUserY );
+  }
   else if ( key == "latexOpt" ) {
     m_latexPos.push_back( vector<double>() );
     ParseVector( value, m_latexPos.back() );
@@ -98,7 +104,7 @@ void ChrisLib::DrawOptions::SetHistProperties( TH1* hist ) {
     if ( strcmp( hist->GetFunction( obj->GetName() )->ClassName(), "TF1" ) ) continue;
     hist->GetFunction( obj->GetName() )->SetLineColor( hist->GetLineColor() );
   }
-  
+  if ( hist->GetNbinsX()>30 ) hist->GetXaxis()->LabelsOption("v");
 }
 //================================================
 void ChrisLib::DrawOptions::SetProperties( TObject* obj, int iHist ) {
@@ -106,17 +112,17 @@ void ChrisLib::DrawOptions::SetProperties( TObject* obj, int iHist ) {
   TGraphErrors *graph=0;
   if (  !IsHist( obj ) ) graph = static_cast<TGraphErrors*>(obj);
   else hist=static_cast<TH1*>(obj);
-  
+
   if ( m_bools["forceStyle" ] ) obj->UseCurrentStyle();
   if ( !iHist ) {
     for ( unsigned iAxis=0; iAxis<2; ++iAxis ) {
       string title = iAxis ? GetYTitle() : GetXTitle();
       if ( title!= "" ) {
-	title = ParseLegend( title );
-	TAxis *axis = 0;
-	if ( hist ) axis = iAxis ? hist->GetYaxis() : hist->GetXaxis();
-	else axis = iAxis ? graph->GetYaxis() : graph->GetXaxis();
-	axis->SetTitle( title.c_str() );
+        title = ParseLegend( title );
+        TAxis *axis = 0;
+        if ( hist ) axis = iAxis ? hist->GetYaxis() : hist->GetXaxis();
+        else axis = iAxis ? graph->GetYaxis() : graph->GetXaxis();
+        axis->SetTitle( title.c_str() );
       }
     }
     if ( graph && GetOrderX() ) graph->Sort();
@@ -126,18 +132,18 @@ void ChrisLib::DrawOptions::SetProperties( TObject* obj, int iHist ) {
   TAttLine *attLine= hist ? static_cast<TAttLine*>(hist) : static_cast<TAttLine*>(graph);
   TAttMarker *attMarker = hist ? static_cast<TAttMarker*>(hist) : static_cast<TAttMarker*>(graph);
   attMarker->SetMarkerSize( 0.5 );
-  
+
   int shiftColor = GetShiftColor();
   switch ( GetDrawStyle() ) {
   case 1 :
     attLine->SetLineColor( m_colors[ max( 0, iHist/2 + shiftColor )] );
     attMarker->SetMarkerColor( m_colors[ max( 0 , static_cast<int>(iHist/2 + shiftColor)) ] );
-    attMarker->SetMarkerStyle( (iHist%2) ? 4 : 8 ); 
+    attMarker->SetMarkerStyle( (iHist%2) ? 4 : 8 );
     break;
   default :
     attLine->SetLineColor( m_colors[iHist+shiftColor] );
     attMarker->SetMarkerColor( m_colors[ iHist + shiftColor ] );
-    attMarker->SetMarkerStyle( 8 ); 
+    attMarker->SetMarkerStyle( 8 );
   }
 
   if ( hist ) {
@@ -158,9 +164,9 @@ void ChrisLib::DrawOptions::SetProperties( TObject* obj, int iHist ) {
     if ( offset ) {
       double minY=graph->GetMinimum();
       for ( int bin = 0; bin < graph->GetN(); bin++ ) {
-	double x, y;
-	graph->GetPoint( bin, x, y );
-	graph->SetPoint( bin, x, y-( offset==-99 ? minY : offset ) );
+        double x, y;
+        graph->GetPoint( bin, x, y );
+        graph->SetPoint( bin, x, y-( offset==-99 ? minY : offset ) );
       }
     }
   }
@@ -215,7 +221,7 @@ void ChrisLib::DrawOptions::DrawText( vector<TObject*> &inHist ) {
 
   const vector<double> legendCoord = GetLegendCoord();
   int drawStyle = GetDrawStyle();
-  
+
   for ( unsigned int iLegend=0; iLegend<m_legends.size(); iLegend++ ) {
     if ( !inHist[iLegend] ) continue;
     TH1* hist=0;
@@ -231,14 +237,14 @@ void ChrisLib::DrawOptions::DrawText( vector<TObject*> &inHist ) {
     m_legends[iLegend] =  hist ? ParseLegend( hist, m_legends[iLegend] ) : ParseLegend( graph, m_legends[iLegend] );
     if ( doFill ) {
       color = hist ? hist->GetFillColor() : graph->GetFillColor();
-      myBoxText( legendCoord[0], legendCoord[1]-0.04*iLegend, color, m_legends[iLegend].c_str() ); 
+      myBoxText( legendCoord[0], legendCoord[1]-0.04*iLegend, color, m_legends[iLegend].c_str() );
     }
     else if ( drawStyle ) myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, markerStyle, m_legends[iLegend].c_str()  );
     else myLineText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, lineStyle, m_legends[iLegend].c_str()  );
     //Added by Antinea but don't know the impact
     // if (drawStyle==4) {
-    // 	myLineText( legendCoord[0]-0.005, legendCoord[1]-0.05*iLegend, color, lineStyle, ""  ); 
-    // 	myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, markerStyle, inLegend[iLegend].c_str()  );
+    //  myLineText( legendCoord[0]-0.005, legendCoord[1]-0.05*iLegend, color, lineStyle, ""  );
+    //  myMarkerText( legendCoord[0], legendCoord[1]-0.05*iLegend, color, markerStyle, inLegend[iLegend].c_str()  );
     // }
   }
   if ( m_debug )  cout << "legend drawn" << endl;
@@ -279,7 +285,7 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
   }
   if ( inHist.size()==1 ) m_ints["shiftColor"] = 1;
   vector< TH1* > ratio;
-  
+
   //================ PAD DEFINITION
   TCanvas canvas;
   double topMargin = GetTopMargin();
@@ -295,7 +301,7 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
   padDown.SetTopMargin( 0 );
   padDown.SetBottomMargin( 0.2 );
 
-  int doRatio = GetDoRatio();  
+  int doRatio = GetDoRatio();
   if ( doRatio ) {
     padUp.Draw();
     padUp.SetGrid( doGrid%2, doGrid/2 );
@@ -327,7 +333,7 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
   if ( !m_legends.empty() && m_legends.size() != inHist.size() ) throw invalid_argument( "DrawPlot : Number of legend must match the one of histograms." );
   const vector<double> legendCoord = GetLegendCoord();
 
-  
+
   for ( unsigned int iHist = 0; iHist < inHist.size(); ++iHist ) {
     if ( !inHist[iHist] ) continue;
     TH1* hist=0;
@@ -350,17 +356,17 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
       m_tmpLegends = m_legends;
       TH1* refObj=0;
       switch ( GetDrawStyle() ) {
-      case 1 : 
-	if ( !IsHist(inHist[iHist-1]) ) throw runtime_error( "DrawOptions::DrawPlot : Chi2 on different types" );
-	refObj  = static_cast<TH1*>( inHist[iHist-1] );
-	if ( iHist % 2 ) m_legends[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( hist, static_cast<TH1*>(inHist[iHist-1]) )/hist->GetNbinsX() );
-	break;
+      case 1 :
+        if ( !IsHist(inHist[iHist-1]) ) throw runtime_error( "DrawOptions::DrawPlot : Chi2 on different types" );
+        refObj  = static_cast<TH1*>( inHist[iHist-1] );
+        if ( iHist % 2 ) m_legends[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( hist, static_cast<TH1*>(inHist[iHist-1]) )/hist->GetNbinsX() );
+        break;
       default :
-	
-	if ( !IsHist( inHist[refHist] ) ) throw runtime_error( "DrawOptions::DrawPlot : Chi2 on different types" );
-	refObj  = static_cast<TH1*>( inHist[refHist] );
-	m_legends[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( hist, refObj)/refObj->GetNbinsX() );
-	
+
+        if ( !IsHist( inHist[refHist] ) ) throw runtime_error( "DrawOptions::DrawPlot : Chi2 on different types" );
+        refObj  = static_cast<TH1*>( inHist[refHist] );
+        m_legends[iHist] += " : chi2=" + TString::Format( "%2.2f", ComputeChi2( hist, refObj)/refObj->GetNbinsX() );
+
       }
     }
 
@@ -381,7 +387,7 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
   if ( !strcmp( refXAxis->GetBinLabel(1), "" ) ) {
     if ( doRatio ) dumHist = padUp.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
     else dumHist = canvas.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
-    
+
     dumHist->GetXaxis()->SetTitle( refXAxis->GetTitle() );
     dumHist->GetYaxis()->SetTitle( refYAxis->GetTitle() );
 
@@ -405,23 +411,23 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
     switch ( GetDrawStyle() ){
     case 2 : drawOption += "HIST"; break;
     case 3 : drawOption += "HISTL"; break;
-      // case 4 : 
+      // case 4 :
       //   inHist[0]->SetMarkerStyle(8);
       //   inHist[1]->SetMarkerStyle(25);
       //   inHist[iHist]->SetMarkerSize(1.3);
       //   break;
-    default : drawOption += "E"; 
+    default : drawOption += "E";
     }
 
     if ( m_legends.size() > iHist && m_legends[iHist].find("__NOPOINT")!=string::npos ) {
       cout << "transparent" << endl;
       if ( hist ) {
-	hist->SetLineColorAlpha( 0, 0 );
-	hist->SetMarkerColorAlpha( 0, 0 );
+        hist->SetLineColorAlpha( 0, 0 );
+        hist->SetMarkerColorAlpha( 0, 0 );
       }
       else {
-	graph->SetLineColorAlpha( 0, 0 );
-	graph->SetMarkerColorAlpha( 0, 0 );
+        graph->SetLineColorAlpha( 0, 0 );
+        graph->SetMarkerColorAlpha( 0, 0 );
       }
     }
 
@@ -441,7 +447,7 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
     else canvas.SetLogy(1);
     if ( m_debug ) cout << "logy done" << endl;
   }
-  
+
 
   // =========== PRINT LEGENDS AND LATEX
   double lineVal = GetLine();
@@ -470,39 +476,39 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
       //Decide how to pair histogram for ratio
       switch ( GetDrawStyle() ) {
       case 1 :
-	if ( !(iHist % 2) || !inHist[iHist-1]) continue;
-	ratio.push_back( 0 );
-	ratio.back() = static_cast<TH1*>(inHist[iHist]->Clone());
-	ratio.back()->Add( static_cast<TH1*>(inHist[iHist-1]), -1 );
-	if ( doRatio == 1 ) ratio.back()->Divide( static_cast<TH1*>(inHist[iHist-1]) );
-	yTitle = ( doRatio==1 ) ? "#frac{h_{2n+1}-h_{2n}}{h_{2n}}" : "h_{2n+1}-h_{2n}";
-	break;
-      default : 
-	ratio.push_back( 0 );
-	ratio.back() = static_cast<TH1*>(inHist[iHist]->Clone());
-	ratio.back()->Add( static_cast<TH1*>(inHist[refHist]), -1 );
-	if ( doRatio == 1 ) ratio.back()->Divide( static_cast<TH1*>(inHist[refHist]) );
-	yTitle = ( doRatio==1 ) ? "#frac{h_{n}-h_{0}}{h_{0}}" : "h_{n}-h_{0}";
+        if ( !(iHist % 2) || !inHist[iHist-1]) continue;
+        ratio.push_back( 0 );
+        ratio.back() = static_cast<TH1*>(inHist[iHist]->Clone());
+        ratio.back()->Add( static_cast<TH1*>(inHist[iHist-1]), -1 );
+        if ( doRatio == 1 ) ratio.back()->Divide( static_cast<TH1*>(inHist[iHist-1]) );
+        yTitle = ( doRatio==1 ) ? "#frac{h_{2n+1}-h_{2n}}{h_{2n}}" : "h_{2n+1}-h_{2n}";
+        break;
+      default :
+        ratio.push_back( 0 );
+        ratio.back() = static_cast<TH1*>(inHist[iHist]->Clone());
+        ratio.back()->Add( static_cast<TH1*>(inHist[refHist]), -1 );
+        if ( doRatio == 1 ) ratio.back()->Divide( static_cast<TH1*>(inHist[refHist]) );
+        yTitle = ( doRatio==1 ) ? "#frac{h_{n}-h_{0}}{h_{0}}" : "h_{n}-h_{0}";
       }
       if ( m_debug ) cout << "ratio created" << endl;
       //Set graphics properties of first hitogram
       if ( !setTitle ) {
-	ratio.front()->GetXaxis()->SetTitle( refXAxis->GetTitle() );
-	ratio.front()->GetXaxis()->SetLabelSize( 0.1 );
-	ratio.front()->GetXaxis()->SetTitleSize( 0.1 );
-	ratio.front()->GetYaxis()->SetLabelSize( 0.05 );
-	ratio.front()->GetYaxis()->SetTitleSize( 0.1 );
-	ratio.front()->GetYaxis()->SetTitleOffset( 0.3 );
-	ratio.front()->GetXaxis()->SetTitleOffset( 0.7 );
-	ratio.front()->SetTitle("");
-	ratio.front()->GetYaxis()->SetTitle( yTitle.c_str() );
-	setTitle = 1;
+        ratio.front()->GetXaxis()->SetTitle( refXAxis->GetTitle() );
+        ratio.front()->GetXaxis()->SetLabelSize( 0.1 );
+        ratio.front()->GetXaxis()->SetTitleSize( 0.1 );
+        ratio.front()->GetYaxis()->SetLabelSize( 0.05 );
+        ratio.front()->GetYaxis()->SetTitleSize( 0.1 );
+        ratio.front()->GetYaxis()->SetTitleOffset( 0.3 );
+        ratio.front()->GetXaxis()->SetTitleOffset( 0.7 );
+        ratio.front()->SetTitle("");
+        ratio.front()->GetYaxis()->SetTitle( yTitle.c_str() );
+        setTitle = 1;
       }
       if ( m_debug ) cout << "ratio front title done" << endl;
       //Update the values of Y axis range
       for ( int bin = 1; bin <= ratio.front()->GetNbinsX(); bin++ ) {
-	minValRatio = min( ratio.back()->GetBinContent(bin) - ratio.back()->GetBinError( bin), minValRatio );
-	maxValRatio = max( ratio.back()->GetBinContent(bin)+ ratio.back()->GetBinError( bin ), maxValRatio );
+        minValRatio = min( ratio.back()->GetBinContent(bin) - ratio.back()->GetBinError( bin), minValRatio );
+        maxValRatio = max( ratio.back()->GetBinContent(bin)+ ratio.back()->GetBinError( bin ), maxValRatio );
       }
 
     }// end iHist
@@ -516,7 +522,7 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
       //      else if ( drawOptmapOptionsInt["centerZoom"] ) ratio.front()->GetXaxis()->SetRangeUser( minX, maxX );
       if ( m_debug ) cout << "plot ratio" << endl;
       for ( unsigned int iHist = 0; iHist < ratio.size(); iHist++ ) {
-	ratio[iHist]->Draw( ( iHist ) ? "e,same" : "e" );
+        ratio[iHist]->Draw( ( iHist ) ? "e,same" : "e" );
       }
       //Create a line at 0 to visualize deviations
       //      line.DrawLine( rangeUserXratio.front()->GetXaxis()->GetXmin(), 0, ratio.front()->GetXaxis()->GetXmax(), 0);

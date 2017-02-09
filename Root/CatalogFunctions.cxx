@@ -28,7 +28,7 @@ void  ChrisLib::CompareSystModel() {
   vector<string> legends;
   string prod;
 
-  int mode = 1;
+  int mode = 0;
   switch (mode){
   case 0 :
     directories = { "h013_ALL_range20/", "h013_Full_range20/", "h013_FullMerged_range20/", "h013_mergeEta_range20/" };
@@ -78,15 +78,18 @@ void  ChrisLib::CompareSystModel() {
   }
 
   DrawOptions drawOpt;
-  drawOpt.AddOption( "outName", prefix+ "CompareSystModel" );
+  drawOpt.AddOption( "outName", prefix+ "CompareSystModel_"+std::to_string(mode) );
   drawOpt.AddOption( "latex", "mean" );
-  drawOpt.AddOption( "latexOpt", "0.16 0.9" );
+  drawOpt.AddOption( "latexOpt", "0.16 0.96" );
   drawOpt.AddOption( "latex", prod);
-  drawOpt.AddOption( "latexOpt", "0.16 0.86" );
+  drawOpt.AddOption( "latexOpt", "0.16 0.92" );
   drawOpt.AddOption( "yTitle", "total systematic" );
   drawOpt.AddOption( "xTitle", "category" );
   drawOpt.AddOption( "rangeUserY", "0 0.99" );
-  drawOpt.AddOption( "extendUp", "0.2" );
+  drawOpt.AddOption( "topMargin", "0.1" );
+  drawOpt.AddOption( "bottomMargin", "0.2" );
+  drawOpt.AddOption( "legendPos", "0.7 0.96" );
+
   for ( auto legend : legends ) drawOpt.AddOption( "legend", legend );
   drawOpt.Draw( vectHist );
 }

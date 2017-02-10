@@ -28,6 +28,7 @@ void  ChrisLib::CompareSystModel() {
   vector<string> legends;
   string prod;
 
+
   int mode = 0;
   switch (mode){
   case 0 :

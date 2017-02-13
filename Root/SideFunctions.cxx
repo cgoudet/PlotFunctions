@@ -34,7 +34,7 @@ namespace po = boost::program_options;
 #include <chrono>
 #include <memory>
 #include <set>
-#include <algorithm> 
+#include <algorithm>
 #include <stdio.h>
 #include <string>
 #include <iterator>
@@ -92,8 +92,8 @@ void ChrisLib::CombineNames( const list<list<string>> &components, list<string> 
     outNames.clear();
     for( auto vCurrentName : tmpVect ) {
       for ( auto vString : vLevel ) {
-	string name  = vCurrentName == "" ? vString : vCurrentName + separator + vString;
-  	outNames.push_back( name );
+        string name  = vCurrentName == "" ? vString : vCurrentName + separator + vString;
+        outNames.push_back( name );
       }
     }
   }
@@ -120,7 +120,7 @@ void ChrisLib::GetCoordFromLinear( const vector<unsigned> &levelsSize, const uns
   //coords from the least to most nested
   coords.clear();
   unsigned subLevelSize=1;
-  
+
   for ( auto itLevel = levelsSize.rbegin(); itLevel!=levelsSize.rend(); ++itLevel ) {
     unsigned int dumSubLevelSize = subLevelSize;
     subLevelSize *= *itLevel;
@@ -172,8 +172,8 @@ string ChrisLib::PrintWorkspaceCorrelationModel(string inFileName, string outFil
     }
     configName.push_back( RemoveSeparator( name ) );
     RooProduct *var = (RooProduct*) ws->function( name.c_str() );
-    if ( !var ) { 
-      cout << name << " not found in " << ws->GetName() << endl; 
+    if ( !var ) {
+      cout << name << " not found in " << ws->GetName() << endl;
       iConfToSkip.push_back( iConf );
       continue;
     }
@@ -192,18 +192,18 @@ string ChrisLib::PrintWorkspaceCorrelationModel(string inFileName, string outFil
       vector<string>::iterator pos = find( NPName.begin(), NPName.end(), string(dumName) );
       //      while ( NPPos == NPName.size() && ++nStep!=5 ) {
       while ( pos == NPName.end() && ++nStep!=5 ) {
-	if ( nStep==2 ) dumName.ReplaceAll( nameWoVariable, "" );
-	else if ( nStep ==3 ) dumName.Resize( dumName.Last('_') );
-	else if ( nStep ==4 ) dumName+="_"+nameWoVariable;
-	dumName = RemoveSeparator(string(dumName));
-	pos = find( NPName.begin(), NPName.end(), string(dumName) );
-	//NPPos = SearchVectorBin( string(dumName), NPName );
-	//	if ( dumName.Contains( "ATLAS_pdf_acc" ) ) cout << dumName << " " << NPPos << " " << NPName.size() << endl;
+        if ( nStep==2 ) dumName.ReplaceAll( nameWoVariable, "" );
+        else if ( nStep ==3 ) dumName.Resize( dumName.Last('_') );
+        else if ( nStep ==4 ) dumName+="_"+nameWoVariable;
+        dumName = RemoveSeparator(string(dumName));
+        pos = find( NPName.begin(), NPName.end(), string(dumName) );
+        //NPPos = SearchVectorBin( string(dumName), NPName );
+        //	if ( dumName.Contains( "ATLAS_pdf_acc" ) ) cout << dumName << " " << NPPos << " " << NPName.size() << endl;
       }
-      
-      if ( pos == NPName.end() ) { 
-	cout << dumName << " not found" << endl;
-	continue;
+
+      if ( pos == NPName.end() ) {
+        cout << dumName << " not found" << endl;
+        continue;
       }
       else correlations[iConf][NPPos]=1;
     }
@@ -232,15 +232,15 @@ string ChrisLib::PrintWorkspaceCorrelationModel(string inFileName, string outFil
     dumConfToSkip = iConfToSkip;
     for ( unsigned int iCat=0; iCat<correlations.size(); ++iCat ) {
       if ( iCat == dumConfToSkip.back() ) {
-	dumConfToSkip.pop_back();
-	continue;
+        dumConfToSkip.pop_back();
+        continue;
       }
       stream << "," << (correlations[iCat][iNPName] ? "1" : "0");
     }
     stream << endl;
   }
   stream.close();
-  
+
   return outFileName;
 
 
@@ -248,34 +248,34 @@ string ChrisLib::PrintWorkspaceCorrelationModel(string inFileName, string outFil
 
 //==============================================================
 string ChrisLib::PrintWorkspaceVariables( string inFileName, string outFileName, vector<string> inFunctionsName, string inWSName ) {
-  
+
   TFile *inFile = new TFile( inFileName.c_str() );
   if ( !inFile ) { cout << inFileName << " not found." << endl; exit(0); }
 
   if ( inWSName == "" ) inWSName = FindDefaultTree( inFile, "RooWorkspace" );
   RooWorkspace *ws = static_cast<RooWorkspace*>(inFile->Get( inWSName.c_str() ));
   if ( !ws ) throw runtime_error( "Workspace not found in " + inFileName );
-  
+
   RooArgSet allVars = ws->allVars();
   allVars.sort();
-  
+
   fstream stream;
   if ( outFileName == "" ) outFileName = "/sps/atlas/c/cgoudet/Plots/PrintWorkspaceVariables.csv";
   cout << "Writing in : " << outFileName << endl;
   stream.open( outFileName.c_str(), fstream::out | fstream::trunc );
-  
+
   TIterator* iter = allVars.createIterator();
   while ( RooRealVar* v = (RooRealVar* ) iter->Next() ) {
     stream << v->GetName() << "," << v->getVal() << "," << v->getError() << endl;
   }
-  
+
   for ( auto vName : inFunctionsName ) {
     RooAbsReal *var = ws->function( vName.c_str() );
     if ( var ) stream << vName << "," << var->getVal() << ",0"  << endl;
     else cout << vName << " not found in " << ws->GetName() << endl;
   }
   stream.close();
-  
+
   return outFileName;
 }
 
@@ -292,8 +292,8 @@ void ChrisLib::RebinHist( vector<TH1*> &vectHist ) {
   for ( auto itHist = vectHist.begin(); itHist!=vectHist.end(); ++itHist ) {
     auto array  = (*itHist)->GetXaxis()->GetXbins();
     if ( array->GetSize() ) {
-      for ( int iBin = 0; iBin < array->GetSize(); iBin++ ) 
-	axisLimits.push_back( array->At( iBin ) );
+      for ( int iBin = 0; iBin < array->GetSize(); iBin++ )
+        axisLimits.push_back( array->At( iBin ) );
     }
     else FillDefaultFrontiers( axisLimits, (*itHist)->GetNbinsX(), (*itHist)->GetXaxis()->GetXmin(), (*itHist)->GetXaxis()->GetXmax() );
   }
@@ -330,9 +330,9 @@ double ChrisLib::ComputeChi2( TH1 *MCHist, TH1 *DataHist ) {
     //cout << "valdif : " << valdif << " = " << MCHist->GetBinContent( i ) << " - " << DataHist->GetBinContent( i ) << endl;
     double sigma2 = ( valdif != 0 ) ? MCHist->GetBinError( i ) * MCHist->GetBinError( i ) + DataHist->GetBinError( i ) * DataHist->GetBinError( i ) : 1;
     //cout << "sigma2 : " << sigma2 << " :  " << MCHist->GetBinError( i ) << " " << DataHist->GetBinError( i ) << endl;
-    chi2 += valdif * valdif / sigma2; 
+    chi2 += valdif * valdif / sigma2;
   }
-    
+
   return chi2;
 }
 
@@ -348,8 +348,8 @@ int ChrisLib::FindFitBestRange( TH1D *hist, int &binMin, int &binMax, double chi
   double min = hist->GetMinimum();
   int centralBin = hist->GetMinimumBin();
 
-  if ( chiMinLow == 0 ) binMin = 1; 
-  else { 
+  if ( chiMinLow == 0 ) binMin = 1;
+  else {
   binMin = centralBin;
   while ( binMin > 1 && hist->GetBinContent( binMin ) - min < chiMinLow ) binMin--;
   }
@@ -477,7 +477,7 @@ TTree* ChrisLib::Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsi
   vector<unsigned int > totEntriesIndex, selectedEventsIndex;
   for ( unsigned int i =0; i<totEntry; i++ ) totEntriesIndex.push_back( i );
 
-  // TH1D *histTest =new TH1D("bootstrap", "", totEntry, 0, totEntry); 
+  // TH1D *histTest =new TH1D("bootstrap", "", totEntry, 0, totEntry);
   // TFile *outRootFile = new TFile ("bootstrapFile.root", "RECREATE");
 
   // cout<<"Create bootstrap histo, nEvents: "<<nEvents<<endl;
@@ -490,7 +490,7 @@ TTree* ChrisLib::Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsi
       totEntriesIndex[xEntry] = totEntriesIndex.back();
       totEntriesIndex.pop_back();
     }
-   
+
     // histTest->Fill(totEntriesIndex[xEntry]);
 
   }
@@ -511,8 +511,8 @@ TTree* ChrisLib::Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsi
       vTree->GetEntry( iEvent );
       while ( selectedEventsIndex.back() < counter ) selectedEventsIndex.pop_back();
       while ( selectedEventsIndex.back() == counter ) {
-	outTree->Fill();
-	selectedEventsIndex.pop_back();
+        outTree->Fill();
+        selectedEventsIndex.pop_back();
       }
 
       counter ++;
@@ -523,7 +523,7 @@ TTree* ChrisLib::Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsi
 }
 
 //================================================
-string ChrisLib::FindDefaultTree( const TFile* inFile, string type, string keyWord  ) { 
+string ChrisLib::FindDefaultTree( const TFile* inFile, string type, string keyWord  ) {
   if ( !inFile ) throw invalid_argument( "FindDefaultTree : Null inFile " );
   if ( type == "" ) type = "TTree";
 
@@ -531,7 +531,7 @@ string ChrisLib::FindDefaultTree( const TFile* inFile, string type, string keyWo
   StripString( inFileName );
 
   list<string> listTreeNames;
-  
+
   TIter nextkey( inFile->GetListOfKeys());
   TKey *key=0;
   while ((key = static_cast<TKey*>(nextkey()))) {
@@ -539,7 +539,7 @@ string ChrisLib::FindDefaultTree( const TFile* inFile, string type, string keyWo
     listTreeNames.push_back( key->GetName() );
   }
   delete key; key=0;
-  
+
   if ( !listTreeNames.size() ) throw runtime_error( "FindDefaultTree : No object of type " + type + " found." );
   else if ( listTreeNames.size() == 1 || keyWord == "" ) return *listTreeNames.begin();
   else {
@@ -562,6 +562,7 @@ void ChrisLib::AddTree( TTree *treeAdd, TTree *treeAdded ) {
 //===================================
 void ChrisLib::SaveTree( TTree *inTree, string prefix) {
   prefix += string( inTree->GetName()) + ".root";
+  cout << "Writting : " << prefix << endl;
   TFile *dumFile = new TFile( prefix.c_str(), "RECREATE" );
   inTree->Write();
   dumFile->Close("R");
@@ -594,7 +595,7 @@ void ChrisLib::DiffSystematics( string inFileName ) {
   po::notify( vm );
   unsigned nSyst = modes.size();
   if ( histsName.size()!=nSyst || systsName.size()!=nSyst || rootFilesName.size() !=nSyst ) throw invalid_argument( "DiffSystematics : Inputs sizes do not match" );
-  
+
   TFile *outFile = new TFile( outFileName.c_str(), update ? "UPDATE" : "RECREATE" );
   TH1D* totSyst = static_cast<TH1D*>(outFile->Get(totSystName.c_str())); //if totSyst is null, it will be created later
   TH1D *baseValue=0;
@@ -609,13 +610,13 @@ void ChrisLib::DiffSystematics( string inFileName ) {
     delete inFile;
     inHist->SetName( systsName[iSyst].c_str() );
     inHist->SetTitle( systsName[iSyst].c_str() );
-    
+
     if ( systsName[iSyst].find("__ERR") != string::npos ) {
       //If stat appears in the name, use the error bars as the systematic
       systsName[iSyst] = ReplaceString("__ERR", "" )(systsName[iSyst]);
       ReverseErrVal(inHist);
     }
-    
+
     if ( !baseValue && modes[iSyst]/100!=1 ) {
       baseValue = static_cast<TH1D*>(inHist->Clone( systsName[iSyst].c_str() ));
       baseValue->SetDirectory(0);
@@ -650,7 +651,7 @@ void ChrisLib::DiffSystematics( string inFileName ) {
       inHist->SetBinError(iBin, 0 );
       totSyst->SetBinError(iBin, 0 );
     }
-    
+
     outFile->cd();
     inHist->Write( "", TObject::kOverwrite );
     delete inHist; inHist=0;
@@ -717,7 +718,7 @@ void ChrisLib::VarOverTime( string inFileName, bool update) {
     delete inFile;
   }// end while
 
-  cout << "outFileName : " << outFileName << " " << outHistName << endl;  
+  cout << "outFileName : " << outFileName << " " << outHistName << endl;
   TFile *outFile = new TFile( outFileName.c_str(), update ? "UPDATE" : "RECREATE" );
   vector< TH1D *> histVect( scales.size(), 0 );
   cout << "scale size : " << scales.size() << endl;
@@ -728,7 +729,7 @@ void ChrisLib::VarOverTime( string inFileName, bool update) {
       histVect[iBin]->GetXaxis()->SetTitle( "PT" );
       histVect[iBin]->GetYaxis()->SetTitle( yaxis.c_str() );
     }
-    
+
     for ( unsigned int iPt=0; iPt<scales[iBin][0].size(); iPt++ ) {
       unsigned int bin = histVect[iBin]->FindFixBin( valVect[iPt] );
       histVect[iBin]->SetBinContent( bin, scales[iBin][0][iPt] );
@@ -770,7 +771,7 @@ void ChrisLib::CleanHist( vector<TH1*> &vect, const double removeVal ) {
     }
     if ( !ComparableHists( *vect.begin(), *itHist ) ) throw invalid_argument( "CleanHist : Histograms not comparables." );
   }
-  
+
   if ( vect.empty() ) return;
   int nBins = vect.front()->GetNbinsX();
   //Check which bins must be kept
@@ -783,7 +784,7 @@ void ChrisLib::CleanHist( vector<TH1*> &vect, const double removeVal ) {
       keepBin = true;
       break;
     }
-    if ( keepBin ) keptBins.push_back( iBin );     
+    if ( keepBin ) keptBins.push_back( iBin );
     }
 
 
@@ -795,7 +796,7 @@ void ChrisLib::CleanHist( vector<TH1*> &vect, const double removeVal ) {
     string tmpName = vect[iVect]->GetName();
     TH1D *dumVect = new TH1D( "tmp", vect[iVect]->GetTitle(), static_cast<int>(keptBins.size()), 0.5, keptBins.size()+0.5 );
     dumVect->SetDirectory(0);
-    
+
     for ( unsigned int iBin=0; iBin<keptBins.size(); ++iBin ) {
       dumVect->SetBinContent( iBin+1, vect[iVect]->GetBinContent(keptBins[iBin]) );
       dumVect->SetBinError( iBin+1, vect[iVect]->GetBinError(keptBins[iBin]) );
@@ -825,7 +826,7 @@ string ChrisLib::ConvertEpochToDate ( int epochTime )
 
 //=====================================
 void ChrisLib::PrintArray( const string &outName, const multi_array<double,2> &array, const vector<string> &linesTitle, const vector<string> &colsTitle ) {
-  
+
    if ( !array.size() || !array[0].size() ) return;
    if ( linesTitle.size() && linesTitle.size() != array.size() ) throw runtime_error("PrintArray : Not enough names for lines.");
    ReplaceString repStr( "_", "\\_" );
@@ -834,7 +835,7 @@ void ChrisLib::PrintArray( const string &outName, const multi_array<double,2> &a
    unsigned nCols = array[0].size();
    if ( linesTitle.size() ) ++nCols;
    if ( colsTitle.size() && colsTitle.size() != nCols ) throw runtime_error("PrintArray : Not enough names for columns.");
-   
+
    cout << "writting in : " << outName << endl;
    fstream stream( outName.c_str(), fstream::out );
    for ( unsigned iLine = 0; iLine<array.size(); ++iLine ) {
@@ -893,7 +894,7 @@ string ChrisLib::RemoveSeparator( string name, const string sep ) {
     name.erase( pos, sep.size() );
     pos = name.find( sep+sep );
   }
-  
+
   while ( name.size()>=sep.size() && name.substr(name.size()-sep.size() ) == sep ) name.erase( name.size() - sep.size() );
 
   return name;
@@ -915,7 +916,7 @@ string ChrisLib::RemoveWords( string name,const list<string> &toRemove ) {
 void ChrisLib::PrintHist( vector<TObject*> &vectHist, string outName, int mode ) {
   RemoveNullPointers( vectHist );
   if ( vectHist.empty() ) throw invalid_argument( "PrintHist : Empty input vector." );
-  
+
   fstream stream;
   outName += ".csv";
   stream.open( outName, fstream::out | fstream::trunc );
@@ -927,57 +928,57 @@ void ChrisLib::PrintHist( vector<TObject*> &vectHist, string outName, int mode )
     for ( unsigned int iPlot = 0; iPlot < vectHist.size(); ++iPlot ) {
       if ( string(vectHist[iPlot]->ClassName())=="TGraphErrors" ) graph=static_cast<TGraphErrors*>(vectHist[iPlot]);
       else hist = static_cast<TH1*>(vectHist[iPlot]);
-      
+
       if ( !iBin ) {
-	if ( !iPlot ) {
-	  nBins = hist ? hist->GetNbinsX() : graph->GetN();
-	  TString colName = hist ? hist->GetXaxis()->GetTitle() : graph->GetXaxis()->GetTitle();
-	  colName=colName.ReplaceAll("_", "" ).ReplaceAll("#", "" ) ;
-	  stream << colName << ","; 
-	}
-	
-	int tmpNBin = hist ? hist->GetNbinsX() : graph->GetN();
-	if ( tmpNBin != nBins ) throw invalid_argument( "PrintHist : All object must have same number of points/bins." );
-	string lineName = vectHist[iPlot]->GetTitle();
-	stream << lineName;
-	if ( mode >= 2 ) stream << "," << lineName + " err";
-	if ( mode >= 3 ) stream << "," << lineName + " errX";
+        if ( !iPlot ) {
+          nBins = hist ? hist->GetNbinsX() : graph->GetN();
+          TString colName = hist ? hist->GetXaxis()->GetTitle() : graph->GetXaxis()->GetTitle();
+          colName=colName.ReplaceAll("_", "" ).ReplaceAll("#", "" ) ;
+          stream << colName << ",";
+        }
+
+        int tmpNBin = hist ? hist->GetNbinsX() : graph->GetN();
+        if ( tmpNBin != nBins ) throw invalid_argument( "PrintHist : All object must have same number of points/bins." );
+        string lineName = vectHist[iPlot]->GetTitle();
+        stream << lineName;
+        if ( mode >= 2 ) stream << "," << lineName + " err";
+        if ( mode >= 3 ) stream << "," << lineName + " errX";
 
       }
       else {
-	if ( !iPlot ) {
-	  if ( hist ) stream << ( strcmp( hist->GetXaxis()->GetBinLabel(iBin), "" ) ? TString(hist->GetXaxis()->GetBinLabel(iBin)) :  TString::Format( "] %2.2f : %2.2f]", hist->GetXaxis()->GetBinLowEdge( iBin ), hist->GetXaxis()->GetBinUpEdge( iBin ) ) );
-	  else if ( graph ) {
-	    double x, y;
-	    graph->GetPoint( iBin-1, x, y );
-	    stream << x << endl;
-	  }
-	  stream << ",";
-	}
-	
-	double valY, errX, errY;
-	if ( hist ) {
-	  valY = hist->GetBinContent(iBin);
-	  errY = hist->GetBinError(iBin);
-	  errX = hist->GetXaxis()->GetBinWidth(iBin);
-	}
-	else if ( graph ) {
-	  graph->GetPoint( iBin-1, errX, valY );
-	  errX = graph->GetErrorX( iBin-1 );
-	  errY = graph->GetErrorY( iBin-1 );
-	}
-	stream << valY;
-	if ( mode >= 2 ) stream << "," << errY;
-	if ( mode >= 3 ) stream << "," << errX;
+        if ( !iPlot ) {
+          if ( hist ) stream << ( strcmp( hist->GetXaxis()->GetBinLabel(iBin), "" ) ? TString(hist->GetXaxis()->GetBinLabel(iBin)) :  TString::Format( "] %2.2f : %2.2f]", hist->GetXaxis()->GetBinLowEdge( iBin ), hist->GetXaxis()->GetBinUpEdge( iBin ) ) );
+          else if ( graph ) {
+            double x, y;
+            graph->GetPoint( iBin-1, x, y );
+            stream << x << endl;
+          }
+          stream << ",";
+        }
+
+        double valY, errX, errY;
+        if ( hist ) {
+          valY = hist->GetBinContent(iBin);
+          errY = hist->GetBinError(iBin);
+          errX = hist->GetXaxis()->GetBinWidth(iBin);
+        }
+        else if ( graph ) {
+          graph->GetPoint( iBin-1, errX, valY );
+          errX = graph->GetErrorX( iBin-1 );
+          errY = graph->GetErrorY( iBin-1 );
+        }
+        stream << valY;
+        if ( mode >= 2 ) stream << "," << errY;
+        if ( mode >= 3 ) stream << "," << errX;
       }
-	
+
       if ( iPlot != vectHist.size() ) stream << ",";
     }
     stream << endl;
   }
   stream.close();
   cout << "Wrote " << outName  << endl;
-										 }
+                                                                                 }
 //======================================================
 void ChrisLib::CopyTreeSelection( TTree** inTree, const string &selection ) {
   if ( selection == "" ) return;

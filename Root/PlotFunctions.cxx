@@ -138,42 +138,38 @@ void ChrisLib::SplitTree( const InputCompare &inputCompare ) {
     TTree *treeRejSel=0, *treePassSel=0;
     for ( unsigned int iAdd = 0; iAdd < rootFilesName[iPlot].size(); ++iAdd ) {
 
-      for ( unsigned int iPass = 0; iPass < 2; iPass++ ) {
-        TTree *selTree = iPass ? treeRejSel : treePassSel;
-            if ( !iAdd && selTree ) SaveTree( selTree, plotDirectory );
+      for ( unsigned int iPass = 0; iPass < 2; ++iPass ) {
 
-            TFile inFile( rootFilesName[iPlot][iAdd].c_str() );
-            string treeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( &inFile );
-            TTree *inTree = (TTree*) inFile.Get( treeName.c_str() );
-            if ( !inTree ) throw invalid_argument( "SplitTree : Unknown Tree." );
-            inTree->SetDirectory(0);
+        TFile inFile( rootFilesName[iPlot][iAdd].c_str() );
+        if ( inFile.IsZombie()) throw invalid_argument("ChrisLib::SplitTree : Unknown file " + rootFilesName[iPlot][iAdd]);
+        string treeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( &inFile );
+        TTree *inTree = static_cast<TTree*>(inFile.Get( treeName.c_str() ));
+        if ( !inTree ) throw invalid_argument( "SplitTree : Unknown Tree." );
+        inTree->SetDirectory(0);
+        gROOT->cd();
 
-            gROOT->cd();
-            string dumString = inFile.GetName();
-            treeName = StripString( dumString ) + "_" + inputCompare.GetOutName() + ( iPass ? "_RejSel" : "_PassSel" );
-            string selection = selectionCut.size()>iPlot ? selectionCut[iPlot] : "";
-            if ( selection == "" ) throw invalid_argument( "SplitTree : Selection is empty." );
-            if ( iPass ) selection = "!(" + selection + ")";
-            TTree *dumTree = inTree->CopyTree( selection.c_str() );
-            dumTree->SetDirectory(0);
+        treeName = StripString( inFile.GetName() ) + "_" + inputCompare.GetOutName() + ( iPass ? "_RejSel" : "_PassSel" );
+        string selection = selectionCut.size()>iPlot ? selectionCut[iPlot] : "";
+        if ( selection == "" ) throw invalid_argument( "SplitTree : Selection is empty." );
+        if ( iPass ) selection = "!(" + selection + ")";
+        TTree *dumTree = inTree->CopyTree( selection.c_str() );
+        dumTree->SetDirectory(0);
 
-            if ( selTree ) {
-              AddTree( selTree, dumTree  );
-              delete dumTree; dumTree=0;
-            }
-            else {
-              dumTree->SetName( treeName.c_str() );
-              dumTree->SetTitle( treeName.c_str() );
-              iPass ? (treeRejSel = dumTree) : (treePassSel= dumTree) ;
-            }
+        TTree **selTree = iPass ? &treeRejSel : &treePassSel;
+        if ( *selTree ) {
+          AddTree( *selTree, dumTree  );
+          delete dumTree; dumTree=0;
+        }
+        else {
+          dumTree->SetName( treeName.c_str() );
+          dumTree->SetTitle( treeName.c_str() );
+          *selTree = dumTree;
+        }
 
-            delete inTree; inTree = 0;
-
-            if ( iAdd == rootFilesName.back().size()-1 && selTree ) SaveTree( selTree, plotDirectory );
-          }//end iPass
+        delete inTree; inTree = 0;
+        if ( iAdd == rootFilesName[iPlot].size()-1 && *selTree ) SaveTree( *selTree, plotDirectory );
+      }//end iPass
     }
-    treePassSel->Print();
-    treeRejSel->Print();
   }
 }
 //============================================================

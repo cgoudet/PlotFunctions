@@ -34,6 +34,7 @@ namespace ChrisLib {
     const std::list<Arbre> &GetChildren() const { return m_children; }
     std::string GetAttribute( std::string attribute ) const { return m_attributes.at(attribute); }
 
+    bool IsAttribute( std::string attribute ) const { return (m_attributes.find(attribute)!=m_attributes.end()); }
     void SetAttribute( std::string key, std::string value );
 
     /**\brief Write the Arbre into a XML file

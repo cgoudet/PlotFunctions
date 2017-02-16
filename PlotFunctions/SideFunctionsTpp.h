@@ -114,7 +114,7 @@ Tested.
   //============================================
   /**\brief Print keys of a map
    */
-  template< typename Type1 > void PrintMapKeys( std::map<std::string, Type1> &inMap ) {
+  template< typename Type1 > void PrintMapKeys( const std::map<std::string, Type1> &inMap ) {
     for ( auto itKey = inMap.begin(); itKey!=inMap.end(); ++itKey ) std::cout << itKey->first << " ";
     std::cout << std::endl;
   }

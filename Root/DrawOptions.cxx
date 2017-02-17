@@ -217,7 +217,24 @@ void ChrisLib::DrawOptions::GetMaxValue( TObject *obj, double &minVal, double &m
   }
 }
 //==============================================
+void ChrisLib::DrawOptions::DrawLatex() {
+  vector<string> inLatex(GetLatex());
+  const vector<vector<double>> latexPos = GetLatexPos();
+  for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {
+    if ( latexPos[iLatex].size() != 2 ) continue;
+    bool doLabel = inLatex[iLatex].find("__ATLAS") != string::npos;
+    inLatex[iLatex] = ParseLegend( inLatex[iLatex] );
+    if ( doLabel ) ATLASLabel( latexPos[iLatex][0], latexPos[iLatex][1], inLatex[iLatex].c_str(),1 , 0.04 );
+    else myText( latexPos[iLatex][0], latexPos[iLatex][1], 1, inLatex[iLatex].c_str() );
+  }
+}
+//==============================================
 void ChrisLib::DrawOptions::DrawText( vector<TObject*> &inHist ) {
+  DrawLegend(inHist);
+  DrawLatex();
+}
+//==============================================
+void ChrisLib::DrawOptions::DrawLegend( vector<TObject*> &inHist ) {
 
   const vector<double> legendCoord = GetLegendCoord();
   int drawStyle = GetDrawStyle();
@@ -248,18 +265,6 @@ void ChrisLib::DrawOptions::DrawText( vector<TObject*> &inHist ) {
     // }
   }
   if ( m_debug )  cout << "legend drawn" << endl;
-
-  vector<string> inLatex(GetLatex());
-  const vector<vector<double>> latexPos = GetLatexPos();
-  for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {
-    if ( latexPos[iLatex].size() != 2 ) continue;
-    bool doLabel = inLatex[iLatex].find("__ATLAS") != string::npos;
-    inLatex[iLatex] = ParseLegend( inLatex[iLatex] );
-    if ( doLabel ) ATLASLabel( latexPos[iLatex][0], latexPos[iLatex][1], inLatex[iLatex].c_str(),1 , 0.04 );
-    else myText( latexPos[iLatex][0], latexPos[iLatex][1], 1, inLatex[iLatex].c_str() );
-  }
-  if ( m_debug ) cout << "latex drawn" << endl;
-
 }
 //==============================================
 void ChrisLib::DrawOptions::Draw( const vector< TH1* > &inHist ) {

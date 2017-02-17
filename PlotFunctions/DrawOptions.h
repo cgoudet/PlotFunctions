@@ -178,7 +178,8 @@ namespace ChrisLib {
     void CheckLegendCoord();
     void GetMaxValue( TObject *obj, double &minVal, double &maxVal, double &minX, double &maxX, bool takeError, bool isRef );
     void DrawText( std::vector<TObject*> &inHist );
-  
+    void DrawLegend( std::vector<TObject*> &inHist );
+    void DrawLatex();
   
     std::map<std::string,bool> m_bools;
     std::map<std::string,int> m_ints;

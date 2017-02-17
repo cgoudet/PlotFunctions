@@ -8,6 +8,9 @@
 #include <TROOT.h>
 #include "TF1.h"
 #include "TCanvas.h"
+#include "RooPlot.h"
+#include "RooDataSet.h"
+#include "RooAbsPdf.h"
 
 #include <exception>
 #include <iostream>
@@ -26,6 +29,7 @@ using std::vector;
 using std::string;
 
 using namespace ChrisLib;
+using namespace RooFit;
 
 ChrisLib::DrawOptions::DrawOptions() : m_legendCoord {0.7,0.9}, m_debug(0),
                                        m_colors {1, 632, 600, 616, 416, 800, 921, 629, 597, 613, 413, 797, 635, 603, 619, 419, 807 },
@@ -555,4 +559,50 @@ void ChrisLib::DrawOptions::Draw( TH2* hist ) {
   DrawText( v );
   string canOutName = GetOutName() + "." + GetExtension();
   canvas.SaveAs( canOutName.c_str() );
+}
+//=========================================
+void ChrisLib::DrawOptions::Draw( RooRealVar *frameVar, vector<TObject*> &inObj ) {
+
+  TCanvas *canvas = new TCanvas();
+  if ( m_rangeUserX.size() == 2 ) frameVar->setRange( m_rangeUserX.front(), m_rangeUserX.back() );
+
+  RooPlot* frame=frameVar->frame( frameVar->getBins());
+  frame->SetTitle(""); //empty title to prevent printing "A RooPlot of ..."
+  frame->SetXTitle(frameVar->GetTitle());
+
+  int shiftColor = GetShiftColor();
+  vector<map<string,int>> legendInfo;
+  for ( unsigned int iHist=0; iHist<inObj.size(); iHist++ ) {
+    legendInfo.push_back( map<string, int>());
+    legendInfo.back()["color"] = m_colors[ iHist + shiftColor ];
+    if ( string(inObj[iHist]->ClassName() ) == "RooDataSet" ) {
+      //      ( (RooDataSet*) inObj[iHist])->Print();
+      static_cast<RooDataSet*>(inObj[iHist])->plotOn( frame, LineColor( m_colors[ iHist + shiftColor ] ), DataError( RooAbsData::SumW2 ) );
+      legendInfo.back()["doLine"] = 0;
+      legendInfo.back()["style"] = frame->getAttLine(frame->getObject(iHist)->GetName())->GetLineStyle();
+    }
+    else {
+      //      ( (RooAbsPdf*) inObj[iHist])->Print();
+      static_cast<RooAbsPdf*>(inObj[iHist])->plotOn( frame, LineColor( m_colors[ iHist + shiftColor ] ) );
+      legendInfo.back()["doLine"] = 1;
+      legendInfo.back()["style"] = frame->getAttMarker(frame->getObject(iHist)->GetName())->GetMarkerStyle();
+    }
+  }
+
+  frame->Draw();
+  // for ( unsigned int iHist=0; iHist<inObj.size(); iHist++ ) {
+  //   if ( legendInfo[iHist]["doLine"] )    myMarkerText( 0.7, 0.9-0.05*iHist, legendInfo[iHist]["color"], legendInfo[iHist]["style"], inLegend.size() ? inLegend[iHist].c_str() : "" ); 
+  //   else  myLineText( 0.7, 0.9-0.05*iHist, legendInfo[iHist]["color"], legendInfo[iHist]["style"], inLegend.size() ? inLegend[iHist].c_str() : "" ); 
+
+  // }
+
+  DrawLatex();
+
+  string canOutName = GetOutName() + "." + GetExtension();
+  canvas->SaveAs( canOutName.c_str() );
+
+  //  canvas->SaveAs( TString( outName + ".pdf") );
+  delete frame;
+  delete canvas; canvas=0;
+
 }

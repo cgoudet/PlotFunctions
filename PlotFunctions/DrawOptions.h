@@ -8,6 +8,7 @@
 #include "TLine.h"
 #include "TLatex.h"
 #include "TH2.h"
+#include "RooRealVar.h"
 
 #include <string>
 #include <vector>
@@ -171,6 +172,9 @@ namespace ChrisLib {
     void Draw( const std::vector< TH1* > &inHist );
     void Draw( const std::vector< TGraphErrors* > &inHist );
     void Draw( TH2* hist );
+    void Draw( RooRealVar *frameVar, std::vector<TObject*> &inObj );
+
+
   private :
     
     void SetHistProperties( TH1* hist );

@@ -150,10 +150,13 @@ namespace ChrisLib {
    */
   std::string ParseLegend( const std::string &legend );
 
-  /**\brief Create a boostraped Tree out of inputTrees
+  /**\brief Create a boostraped TTree out of inputTrees
      \param inTrees vector of input Trees
+     \param nEvents number of events in the bootstraped TTree
+     \param seed determine whether the TRandom generator's seed is the default one (0) or current time (1)
+     \param mode determine whether the random sampling is done with (0) or without (1) replacement
   */
-  TTree* Bootstrap( std::vector< TTree* > inTrees, unsigned int nEvents=0, unsigned long seed = 0, int mode = 0 );
+  TTree* Bootstrap( std::vector< TTree* > inTrees, unsigned int nEvents=0, unsigned long seed = 0, int mode = 1 );
 
   /**\brief Find the name of an object from the class type in the given tfile
      \param inFile

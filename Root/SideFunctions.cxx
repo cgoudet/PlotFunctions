@@ -471,16 +471,10 @@ TTree* ChrisLib::Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsi
   unsigned int totEntry = 0;
   for ( unsigned int iTree = 0; iTree < inTrees.size(); iTree++ ) totEntry += inTrees[iTree]->GetEntries();
   if ( !nEvents ) nEvents = totEntry;
-
   cout << "nEvents : " << nEvents << endl;
 
   vector<unsigned int > totEntriesIndex, selectedEventsIndex;
   for ( unsigned int i =0; i<totEntry; i++ ) totEntriesIndex.push_back( i );
-
-  // TH1D *histTest =new TH1D("bootstrap", "", totEntry, 0, totEntry);
-  // TFile *outRootFile = new TFile ("bootstrapFile.root", "RECREATE");
-
-  // cout<<"Create bootstrap histo, nEvents: "<<nEvents<<endl;
 
   for ( unsigned int iEvent=0; iEvent<nEvents; iEvent++ ) {
     unsigned int xEntry = floor( rand.Uniform( totEntriesIndex.size() ) );
@@ -490,16 +484,9 @@ TTree* ChrisLib::Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsi
       totEntriesIndex[xEntry] = totEntriesIndex.back();
       totEntriesIndex.pop_back();
     }
-
-    // histTest->Fill(totEntriesIndex[xEntry]);
-
   }
   sort( selectedEventsIndex.begin(), selectedEventsIndex.end() );
   reverse( selectedEventsIndex.begin(), selectedEventsIndex.end() );
-
-  //histTest->Write();
-  //outRootFile->Close();
-  //delete outRootFile;
 
   MapBranches mapB;
   unsigned int counter=0;
@@ -514,7 +501,6 @@ TTree* ChrisLib::Bootstrap( vector< TTree* > inTrees, unsigned int nEvents, unsi
         outTree->Fill();
         selectedEventsIndex.pop_back();
       }
-
       counter ++;
     }
   }

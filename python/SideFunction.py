@@ -211,7 +211,8 @@ def drawMinipage( plots, title='', content='' ) :
 
 #============================================
 def AddSlash( string ) :
-    return string + ( '/' if string[-1] != '/' else '' )
+    if string=='' : return ''
+    else : return string + ( '/' if string[-1] != '/' else '' )
 
 #===================================
 def BatchHeader( path, package, macro ) :

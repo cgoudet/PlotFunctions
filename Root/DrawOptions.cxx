@@ -138,9 +138,10 @@ void ChrisLib::DrawOptions::SetProperties( TObject* obj, int iHist ) {
   attMarker->SetMarkerSize( 0.5 );
 
   int shiftColor = GetShiftColor();
-  switch ( GetDrawStyle() ) {
+  switch ( GetDrawStyle()/10 ) {
   case 1 :
     attLine->SetLineColor( m_colors[ max( 0, iHist/2 + shiftColor )] );
+    attLine->SetLineStyle( 1 + iHist%2 );
     attMarker->SetMarkerColor( m_colors[ max( 0 , static_cast<int>(iHist/2 + shiftColor)) ] );
     attMarker->SetMarkerStyle( (iHist%2) ? 4 : 8 );
     break;
@@ -364,7 +365,7 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
     if ( hist && GetDoChi2() && m_legends.size() && iHist ){
       m_tmpLegends = m_legends;
       TH1* refObj=0;
-      switch ( GetDrawStyle() ) {
+      switch ( GetDrawStyle()/10 ) {
       case 1 :
         if ( !IsHist(inHist[iHist-1]) ) throw runtime_error( "DrawOptions::DrawPlot : Chi2 on different types" );
         refObj  = static_cast<TH1*>( inHist[iHist-1] );
@@ -418,8 +419,8 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
 
     string drawOption = strcmp( refXAxis->GetBinLabel(1), "" ) && static_cast<int>(iHist)==refHist ?  "" :"SAME,";
     switch ( GetDrawStyle() ){
-    case 2 : drawOption += "HIST"; break;
-    case 3 : drawOption += "HISTL"; break;
+    case 1 : drawOption += "HIST"; break;
+    case 2 : drawOption += "HISTL"; break;
       // case 4 :
       //   inHist[0]->SetMarkerStyle(8);
       //   inHist[1]->SetMarkerStyle(25);

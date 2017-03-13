@@ -418,7 +418,7 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
     else hist=static_cast<TH1*>(inHist[iHist]);
 
     string drawOption = strcmp( refXAxis->GetBinLabel(1), "" ) && static_cast<int>(iHist)==refHist ?  "" :"SAME,";
-    switch ( GetDrawStyle() ){
+    switch ( GetDrawStyle()%10 ){
     case 1 : drawOption += "HIST"; break;
     case 2 : drawOption += "HISTL"; break;
       // case 4 :

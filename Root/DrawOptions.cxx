@@ -272,6 +272,11 @@ void ChrisLib::DrawOptions::DrawLegend( vector<TObject*> &inHist ) {
   if ( m_debug )  cout << "legend drawn" << endl;
 }
 //==============================================
+void ChrisLib::DrawOptions::Draw( TH1* inHist ) {
+  vector<TObject*> v{inHist};
+  Draw( v );
+}
+//==============================================
 void ChrisLib::DrawOptions::Draw( const vector< TH1* > &inHist ) {
   vector<TObject*> histObj(inHist.size());
   copy( inHist.begin(), inHist.end(), histObj.begin());

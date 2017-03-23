@@ -172,6 +172,7 @@ namespace ChrisLib {
     void Draw( const std::vector< TH1* > &inHist );
     void Draw( const std::vector< TGraphErrors* > &inHist );
     void Draw( TH2* hist );
+    void Draw( TH1* hist );
     void Draw( RooRealVar *frameVar, std::vector<TObject*> &inObj );
 
 

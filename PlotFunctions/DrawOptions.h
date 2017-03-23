@@ -104,6 +104,7 @@ namespace ChrisLib {
   class DrawOptions {
   public :
     DrawOptions();
+    DrawOptions( const std::string &outName );
 
     bool GetDoChi2() const { return m_bools.at("doChi2"); }
     bool GetLogY() const { return m_bools.at("logy"); }

@@ -53,7 +53,10 @@ ChrisLib::DrawOptions::DrawOptions() : m_legendCoord {0.7,0.9}, m_debug(0),
   m_strings["extension"]="pdf";
   m_strings["outName"]="plot";
 }
-
+//==========================================================
+ChrisLib::DrawOptions::DrawOptions( const string &outName ) : DrawOptions() {
+  m_strings["outName"]=outName;
+}
 //==========================================================
 void ChrisLib::DrawOptions::AddOption( const string &option ) {
   string key = option.substr( 0, option.find_first_of('=' ) );

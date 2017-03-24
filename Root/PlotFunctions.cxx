@@ -459,8 +459,7 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
         if ( nEvents && countEvent==nEvents ) break;
         if ( isRoot ) inTree->GetEntry( iEvent );
         else {
-          mapBranch.ReadCSVEntry( inputStream );
-          if ( inputStream.eof() ) break;
+	  if ( !mapBranch.ReadCSVEntry( inputStream ) ) break;
           ++nEntries;
         }
         FillObject( inputCompare, mapBranch, vectHist, IDValues, varValues, iPlot, iEvent );

@@ -40,5 +40,6 @@ int main( int argc, char* argv[] ) {
   //########################################
   if ( mode == 0 ) CompareSystModel();
   else if ( mode==1 ) for_each( inputFiles.begin(), inputFiles.end(), DiffSystematics );
+  if ( mode==2 ) TestMarc();
   return 0;
 }

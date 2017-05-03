@@ -181,7 +181,6 @@ namespace ChrisLib {
      Modes :
      - 0XX : The systematic must be compared to another histogram.
      This other histogram is taken as the first given in the configuration file.
-     The comparison is a signed difference.
      - 1XX : The histogram is directly a systematic
      - XX : options from ChrisLib::CreateSystHist for combination with total systematic.
      For example 10 will make the symmetrized root mean squatre between bins.

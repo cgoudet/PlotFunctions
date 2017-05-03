@@ -39,7 +39,7 @@ void  ChrisLib::CompareSystModel() {
   string prod;
 
   string namePrefix = "CompareSystModel";
-  int mode = 0;
+  int mode = 2;
   switch (mode){
   case 0 :
     directories = { "h015_1NP_BDT_catMerge_range55", "h015_1NP_BDT_catMerge_root" };
@@ -47,14 +47,14 @@ void  ChrisLib::CompareSystModel() {
     prod = "h015Merged";
     break;
   case 1 :
-    directories = { "h014_ALL" };
-    legends = { "ALL" };
-    prod = "h014";
+    directories = { "h015_1NP", "h015_1NP_BDT_catMerge_root" };
+    legends = directories;
+    prod = "h015Merged";
     break;
   case 2 :
-    directories = { "h014_ALL", "h015_ALL", "h015_ALL_BDT"};
+    directories = { "h015_FULLMerge", "h015_FULLMerge_BDT_catMerge_root"};
     legends = directories;
-    prod = "h015";
+    prod = "h015Merged";
     namePrefix="CompareCategories";
     break;
   case 3 :

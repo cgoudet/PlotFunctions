@@ -366,76 +366,103 @@ BOOST_AUTO_TEST_CASE( TestDoubleTreeTest ) {
 
 //===============================
 BOOST_AUTO_TEST_CASE( CreateSystHistTest ) {
+
+  BOOST_CHECK_THROW( CreateSystHist(0,0,0), invalid_argument );
+
   TH1D *hist1 = new TH1D( "hist1", "hist1", 1, 0, 1 );
   hist1->SetBinContent( 1, 1 );
 
-  TH1D *hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
-  hist2->SetBinContent( 1, 2 );
+  TH1D *h2 = new TH1D( "h2", "h2", 1, 0, 1 );
+  h2->SetBinContent( 1, -2 );
+
+  TH1D *hist2 = static_cast<TH1D*>(h2->Clone());
   CreateSystHist( hist2, hist1, 0 );
   BOOST_CHECK_EQUAL( hist2->GetBinContent(1), sqrt(5));
 
-  delete hist2;
-  hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
-  hist2->SetBinContent( 1, -2 );
+  // Test of bins by bins modes
+  delete hist2; hist2=0;
+  hist2 = static_cast<TH1D*>(h2->Clone());
   CreateSystHist( hist2, hist1, 1 );
   BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 3);
 
-  delete hist2;
-  hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
-  hist2->SetBinContent( 1, -2 );
+  delete hist2; hist2=0;
+  hist2 = static_cast<TH1D*>(h2->Clone());
   CreateSystHist( hist2, hist1, 2 );
   BOOST_CHECK_EQUAL( hist2->GetBinContent(1), -1);
 
-  delete hist2;
-  hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
-  hist2->SetBinContent( 1, -2 );
+  delete hist2; hist2=0;
+  hist2 = static_cast<TH1D*>(h2->Clone());
   CreateSystHist( hist2, hist1, 3 );
   BOOST_CHECK_EQUAL( hist2->GetBinContent(1), -3);
 
-  delete hist2;
-  hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
-  hist2->SetBinContent( 1, -2 );
+  delete hist2; hist2=0;
+  hist2 = static_cast<TH1D*>(h2->Clone());
   CreateSystHist( hist2, hist1, 4 );
   BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 1);
 
-  delete hist2;
-  hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
-  hist2->SetBinContent( 1, -2 );
+  delete hist2; hist2=0;
+  hist2 = static_cast<TH1D*>(h2->Clone());
   CreateSystHist( hist2, hist1, 5 );
   BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 3);
 
-  delete hist2;
-  hist2 = new TH1D( "hist2", "hist2", 1, 0, 1 );
-  hist2->SetBinContent( 1, -2 );
+  delete hist2; hist2=0;
+  hist2 = static_cast<TH1D*>(h2->Clone());
+  CreateSystHist( hist2, 0, 0 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 4);
+
+  delete hist2; hist2=0;
+  hist2 = static_cast<TH1D*>(h2->Clone());
+  CreateSystHist( hist2, 0, 1 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 2);
+
+  delete hist2; hist2=0;
+  hist2 = static_cast<TH1D*>(h2->Clone());
+  CreateSystHist( hist2, 0, 3 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 2);
+
+  delete hist2; hist2=0;
+  hist2 = static_cast<TH1D*>(h2->Clone());
+  CreateSystHist( hist2, 0, 13 );
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 2);
+
+
+
+  //test of symetrized mode
+  delete hist2; hist2=0;
+  hist2 = static_cast<TH1D*>(h2->Clone());
   CreateSystHist( hist2, hist1, 15 );
   BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 3);
 
-  delete hist1;
+  delete hist1; hist1=0;
   hist1 = new TH1D( "hist1", "hist1", 2, 0, 1 );
   hist1->SetBinContent( 1, 1 );
   hist1->SetBinContent( 2, 2 );
-  delete hist2;
-  hist2 = new TH1D( "hist2", "hist2", 2, 0, 1 );
-  hist2->SetBinContent( 1, 3 );
-  hist2->SetBinContent( 2, 4 );
+  delete h2; h2=0;
+  delete hist2; hist2=0;
+  h2 = new TH1D( "h2", "h2", 2, 0, 1 );
+  h2->SetBinContent( 1, 3 );
+  h2->SetBinContent( 2, 4 );
+  hist2 = static_cast<TH1D*>(h2->Clone());
   CreateSystHist( hist2, hist1, 14 );
   BOOST_CHECK_EQUAL( hist2->GetBinContent(1), 5);
   BOOST_CHECK_EQUAL( hist2->GetBinContent(2), 5);
 
-  delete hist1;
-  hist1 = new TH1D( "hist1", "hist1", 2, 0, 1 );
-  hist1->SetBinContent( 1, 1 );
-  hist1->SetBinContent( 2, 2 );
-  delete hist2;
-  hist2 = new TH1D( "hist2", "hist2", 2, 0, 1 );
-  hist2->SetBinContent( 1, 3 );
-  hist2->SetBinContent( 2, 4 );
+  delete hist2; hist2=0;
+  hist2 = static_cast<TH1D*>(h2->Clone());
   CreateSystHist( hist2, hist1, 0 );
   BOOST_CHECK_EQUAL( hist2->GetBinContent(1), sqrt(10));
   BOOST_CHECK_EQUAL( hist2->GetBinContent(2), sqrt(20));
 
+  delete hist2; hist2=0;
+  hist2 = static_cast<TH1D*>(h2->Clone());
+  CreateSystHist( hist2, 0, 10 );
+  double val=3.5*3.5;
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(1), val);
+  BOOST_CHECK_EQUAL( hist2->GetBinContent(2), val);
+
   delete hist1;
   delete hist2;
+  delete h2;
 }
 
 BOOST_AUTO_TEST_CASE( ReverseErrValTest ) {

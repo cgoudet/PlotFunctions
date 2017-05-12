@@ -8,6 +8,7 @@
 #include "TLine.h"
 #include "TLatex.h"
 #include "TH2.h"
+#include "RooRealVar.h"
 
 #include <string>
 #include <vector>
@@ -103,6 +104,7 @@ namespace ChrisLib {
   class DrawOptions {
   public :
     DrawOptions();
+    DrawOptions( const std::string &outName );
 
     bool GetDoChi2() const { return m_bools.at("doChi2"); }
     bool GetLogY() const { return m_bools.at("logy"); }
@@ -171,6 +173,10 @@ namespace ChrisLib {
     void Draw( const std::vector< TH1* > &inHist );
     void Draw( const std::vector< TGraphErrors* > &inHist );
     void Draw( TH2* hist );
+    void Draw( TH1* hist );
+    void Draw( RooRealVar *frameVar, std::vector<TObject*> &inObj );
+
+
   private :
     
     void SetHistProperties( TH1* hist );
@@ -178,7 +184,8 @@ namespace ChrisLib {
     void CheckLegendCoord();
     void GetMaxValue( TObject *obj, double &minVal, double &maxVal, double &minX, double &maxX, bool takeError, bool isRef );
     void DrawText( std::vector<TObject*> &inHist );
-  
+    void DrawLegend( std::vector<TObject*> &inHist );
+    void DrawLatex();
   
     std::map<std::string,bool> m_bools;
     std::map<std::string,int> m_ints;

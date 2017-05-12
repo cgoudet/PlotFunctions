@@ -216,9 +216,7 @@ void ChrisLib::MapBranches::LinkCSVFile( istream &stream, const char delim ) {
 
   if ( nStringL2 == nCols ) isFirstLineTitle=false;
 
-
   for ( unsigned iCol=0; iCol<nCols; ++iCol ) {
-    //    cout << m_CSVColsIndex[iCol] << " " << m_CSVTypes[iCol] << endl;
     if ( !isFirstLineTitle ) m_CSVColsIndex[iCol] = to_string(iCol);
     if ( m_CSVTypes[iCol] == CSVType::Int ) m_mapInt[m_CSVColsIndex[iCol]]=0;
     else if ( m_CSVTypes[iCol] == CSVType::Double ) m_mapDouble[m_CSVColsIndex[iCol]]=0;
@@ -227,73 +225,56 @@ void ChrisLib::MapBranches::LinkCSVFile( istream &stream, const char delim ) {
   
   stream.seekg( 0, stream.beg );
   stream.getline(line, 10000 );
-
-  // cout << "keys: "<< endl;
-  // list<string> keys;
-  // GetKeys( keys );
 }
 
 
 //============================================================
 bool ChrisLib::MapBranches::ReadCSVEntry( istream &stream, const char delim ) {
 
-  //  int iValue=0;
   double dValue=0;
   char line[10000];
   stream.getline( line, 10000 );
-  if ( stream.eof() ) return false;
+  if ( strcmp(line,"")==0 && stream.eof() ) return false;
   stringstream firstLine(line);
 
   unsigned nCols = m_CSVColsIndex.size();
   if ( !nCols ) throw runtime_error( "MapBranches::ReadCSVEntry : No column have been linked." );
 
   for ( unsigned iCol=0; iCol<nCols; ++iCol ) {
-    //    cout << iCol << " " << m_CSVColsIndex[iCol] << endl;
-    // if ( m_CSVTypes[iCol]==CSVType::Int ) {
-    //   firstLine >> iValue;
-    //   if ( !firstLine.good() ) throw runtime_error( "MapBranches::ReadCSVEntry : Can not read integer in column " + m_CSVColsIndex[iCol]);
-    //   m_mapInt.at(m_CSVColsIndex[iCol]) = iValue;
-    // }
     if ( m_CSVTypes[iCol]==CSVType::Double ) {
       firstLine >> dValue;
-      //      if ( firstLine.eof() ) return;
       if ( firstLine.fail() ) throw runtime_error( "MapBranches::ReadCSVEntry : Can not read double in column " + m_CSVColsIndex[iCol]);
       m_mapDouble.at(m_CSVColsIndex[iCol]) = dValue;
-      //      cout << "double : " << m_CSVColsIndex[iCol] << " " << dValue << endl;
       firstLine.getline(line, 10000, delim );
     }
     else if ( m_CSVTypes[iCol]==CSVType::String ) {
       firstLine.getline(line, 10000,  delim );
-      if ( firstLine.eof() ) return false;
       if ( firstLine.fail() ) throw runtime_error( "MapBranches::ReadCSVEntry : Can not read string in column " + m_CSVColsIndex[iCol]);
       m_mapString.at(m_CSVColsIndex[iCol]) = line;      
-      //      cout << "string : " << m_CSVColsIndex[iCol] << " " << line << endl;
-    }
+     }
   }
   return true;
 }
 //========================================
 string ChrisLib::MapBranches::GetLabel( const string &name ) const {
 
+  stringstream s;
+
   auto itInt = m_mapInt.find( name );
-  if ( itInt != m_mapInt.end() ) return to_string(itInt->second);
-
+  if ( itInt != m_mapInt.end() ) s << itInt->second;
   auto itFloat = m_mapFloat.find( name );
-  if ( itFloat != m_mapFloat.end() ) return to_string(itFloat->second);
-
+  if ( itFloat != m_mapFloat.end() ) s << itFloat->second;
   auto itDouble = m_mapDouble.find( name );
-  if ( itDouble != m_mapDouble.end() ) return to_string(itDouble->second);
-  
+  if ( itDouble != m_mapDouble.end() ) s << itDouble->second;
   auto itULongLong = m_mapULongLong.find( name );
-  if ( itULongLong != m_mapULongLong.end() ) return to_string(itULongLong->second);
-
+  if ( itULongLong != m_mapULongLong.end() ) s << itULongLong->second;
   auto itLongLong = m_mapLongLong.find( name );
-  if ( itLongLong != m_mapLongLong.end() ) return to_string(itLongLong->second);
-
+  if ( itLongLong != m_mapLongLong.end() ) s << itLongLong->second;
   auto itUnsigned = m_mapUnsigned.find( name );
-  if ( itUnsigned != m_mapUnsigned.end() ) return to_string(itUnsigned->second);
+  if ( itUnsigned != m_mapUnsigned.end() ) s << itUnsigned->second;
 
-  return GetString( name );
+  if ( s.str() == "" ) return GetString( name );
+  else return s.str();
 
 }
 //=======================================================

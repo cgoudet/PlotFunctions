@@ -97,7 +97,7 @@ def DSCB( myy, mu, sigma, alphaHi, alphaLow, nHi, nLow ) :
 
 #==================================
 def listFiles( directory, pattern='' ):
-    output = sub.check_output( ['ls '+ directory + pattern ],  shell=1, stderr=sub.STDOUT ) 
+    output = sub.check_output( ['ls '+ AddSlash(directory) + pattern ],  shell=1, stderr=sub.STDOUT ) 
     if '\n' in output : content = output.split() 
     else : content = [ output ]
     return content
@@ -211,7 +211,8 @@ def drawMinipage( plots, title='', content='' ) :
 
 #============================================
 def AddSlash( string ) :
-    return string + ( '/' if string[-1] != '/' else '' )
+    if string=='' : return ''
+    else : return string + ( '/' if string[-1] != '/' else '' )
 
 #===================================
 def BatchHeader( path, package, macro ) :

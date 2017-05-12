@@ -184,10 +184,10 @@ namespace ChrisLib {
      Modes :
      - 0XX : The systematic must be compared to another histogram.
      This other histogram is taken as the first given in the configuration file.
-     The comparison is a signed difference.
      - 1XX : The histogram is directly a systematic
      - XX : options from ChrisLib::CreateSystHist for combination with total systematic.
      For example 10 will make the symmetrized root mean squatre between bins.
+
    */
   void DiffSystematics( std::string inFileName );
 
@@ -267,11 +267,15 @@ namespace ChrisLib {
 
   /**\brief Modify inHist into a systematic with respect to baseValue
 
+     Description of the modes.
+     The content in parathesis describe the action of the mode if baseValue is null.
+     If no content in parenthesis, then the operation consists in comparing with a a uniformly 0 base value.
+
      mode%/10 :
-     - 0 : quadratic sum
+     - 0 : quadratic sum (square)
      - 1 : sum of absolute values
      - 2 : sum
-     - 3 : difference
+     - 3 : difference (sign flip)
      - 4 : absolute value of sum
      - 5 : absolute value of difference
 
@@ -280,8 +284,9 @@ namespace ChrisLib {
      - 1 : symmetrized bin
 
      Histograms must be comparable ( ChrisLib::ComparableHists ).
+
    */
-  void CreateSystHist( TH1 *inHist, TH1* baseValue, unsigned mode =0 );
+  void CreateSystHist( TH1 *inHist, const TH1* baseValue, unsigned mode =0 );
 
   /**\brief REverse errors and content value
    */

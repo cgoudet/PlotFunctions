@@ -8,6 +8,9 @@
 #include <TROOT.h>
 #include "TF1.h"
 #include "TCanvas.h"
+#include "RooPlot.h"
+#include "RooDataSet.h"
+#include "RooAbsPdf.h"
 
 #include <exception>
 #include <iostream>
@@ -26,6 +29,7 @@ using std::vector;
 using std::string;
 
 using namespace ChrisLib;
+using namespace RooFit;
 
 ChrisLib::DrawOptions::DrawOptions() : m_legendCoord {0.7,0.9}, m_debug(0),
                                        m_colors {1, 632, 600, 616, 416, 800, 921, 629, 597, 613, 413, 797, 635, 603, 619, 419, 807 },
@@ -49,7 +53,10 @@ ChrisLib::DrawOptions::DrawOptions() : m_legendCoord {0.7,0.9}, m_debug(0),
   m_strings["extension"]="pdf";
   m_strings["outName"]="plot";
 }
-
+//==========================================================
+ChrisLib::DrawOptions::DrawOptions( const string &outName ) : DrawOptions() {
+  m_strings["outName"]=outName;
+}
 //==========================================================
 void ChrisLib::DrawOptions::AddOption( const string &option ) {
   string key = option.substr( 0, option.find_first_of('=' ) );
@@ -134,9 +141,10 @@ void ChrisLib::DrawOptions::SetProperties( TObject* obj, int iHist ) {
   attMarker->SetMarkerSize( 0.5 );
 
   int shiftColor = GetShiftColor();
-  switch ( GetDrawStyle() ) {
+  switch ( GetDrawStyle()/10 ) {
   case 1 :
     attLine->SetLineColor( m_colors[ max( 0, iHist/2 + shiftColor )] );
+    attLine->SetLineStyle( 1 + iHist%2 );
     attMarker->SetMarkerColor( m_colors[ max( 0 , static_cast<int>(iHist/2 + shiftColor)) ] );
     attMarker->SetMarkerStyle( (iHist%2) ? 4 : 8 );
     break;
@@ -217,7 +225,24 @@ void ChrisLib::DrawOptions::GetMaxValue( TObject *obj, double &minVal, double &m
   }
 }
 //==============================================
+void ChrisLib::DrawOptions::DrawLatex() {
+  vector<string> inLatex(GetLatex());
+  const vector<vector<double>> latexPos = GetLatexPos();
+  for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {
+    if ( latexPos[iLatex].size() != 2 ) continue;
+    bool doLabel = inLatex[iLatex].find("__ATLAS") != string::npos;
+    inLatex[iLatex] = ParseLegend( inLatex[iLatex] );
+    if ( doLabel ) ATLASLabel( latexPos[iLatex][0], latexPos[iLatex][1], inLatex[iLatex].c_str(),1 , 0.04 );
+    else myText( latexPos[iLatex][0], latexPos[iLatex][1], 1, inLatex[iLatex].c_str() );
+  }
+}
+//==============================================
 void ChrisLib::DrawOptions::DrawText( vector<TObject*> &inHist ) {
+  DrawLegend(inHist);
+  DrawLatex();
+}
+//==============================================
+void ChrisLib::DrawOptions::DrawLegend( vector<TObject*> &inHist ) {
 
   const vector<double> legendCoord = GetLegendCoord();
   int drawStyle = GetDrawStyle();
@@ -248,18 +273,11 @@ void ChrisLib::DrawOptions::DrawText( vector<TObject*> &inHist ) {
     // }
   }
   if ( m_debug )  cout << "legend drawn" << endl;
-
-  vector<string> inLatex(GetLatex());
-  const vector<vector<double>> latexPos = GetLatexPos();
-  for ( unsigned int iLatex = 0; iLatex < inLatex.size(); iLatex++ ) {
-    if ( latexPos[iLatex].size() != 2 ) continue;
-    bool doLabel = inLatex[iLatex].find("__ATLAS") != string::npos;
-    inLatex[iLatex] = ParseLegend( inLatex[iLatex] );
-    if ( doLabel ) ATLASLabel( latexPos[iLatex][0], latexPos[iLatex][1], inLatex[iLatex].c_str(),1 , 0.04 );
-    else myText( latexPos[iLatex][0], latexPos[iLatex][1], 1, inLatex[iLatex].c_str() );
-  }
-  if ( m_debug ) cout << "latex drawn" << endl;
-
+}
+//==============================================
+void ChrisLib::DrawOptions::Draw( TH1* inHist ) {
+  vector<TObject*> v{inHist};
+  Draw( v );
 }
 //==============================================
 void ChrisLib::DrawOptions::Draw( const vector< TH1* > &inHist ) {
@@ -355,7 +373,7 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
     if ( hist && GetDoChi2() && m_legends.size() && iHist ){
       m_tmpLegends = m_legends;
       TH1* refObj=0;
-      switch ( GetDrawStyle() ) {
+      switch ( GetDrawStyle()/10 ) {
       case 1 :
         if ( !IsHist(inHist[iHist-1]) ) throw runtime_error( "DrawOptions::DrawPlot : Chi2 on different types" );
         refObj  = static_cast<TH1*>( inHist[iHist-1] );
@@ -408,9 +426,9 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
     else hist=static_cast<TH1*>(inHist[iHist]);
 
     string drawOption = strcmp( refXAxis->GetBinLabel(1), "" ) && static_cast<int>(iHist)==refHist ?  "" :"SAME,";
-    switch ( GetDrawStyle() ){
-    case 2 : drawOption += "HIST"; break;
-    case 3 : drawOption += "HISTL"; break;
+    switch ( GetDrawStyle()%10 ){
+    case 1 : drawOption += "HIST"; break;
+    case 2 : drawOption += "HISTL"; break;
       // case 4 :
       //   inHist[0]->SetMarkerStyle(8);
       //   inHist[1]->SetMarkerStyle(25);
@@ -550,4 +568,50 @@ void ChrisLib::DrawOptions::Draw( TH2* hist ) {
   DrawText( v );
   string canOutName = GetOutName() + "." + GetExtension();
   canvas.SaveAs( canOutName.c_str() );
+}
+//=========================================
+void ChrisLib::DrawOptions::Draw( RooRealVar *frameVar, vector<TObject*> &inObj ) {
+
+  TCanvas *canvas = new TCanvas();
+  if ( m_rangeUserX.size() == 2 ) frameVar->setRange( m_rangeUserX.front(), m_rangeUserX.back() );
+
+  RooPlot* frame=frameVar->frame( frameVar->getBins());
+  frame->SetTitle(""); //empty title to prevent printing "A RooPlot of ..."
+  frame->SetXTitle(frameVar->GetTitle());
+
+  int shiftColor = GetShiftColor();
+  vector<map<string,int>> legendInfo;
+  for ( unsigned int iHist=0; iHist<inObj.size(); iHist++ ) {
+    legendInfo.push_back( map<string, int>());
+    legendInfo.back()["color"] = m_colors[ iHist + shiftColor ];
+    if ( string(inObj[iHist]->ClassName() ) == "RooDataSet" ) {
+      //      ( (RooDataSet*) inObj[iHist])->Print();
+      static_cast<RooDataSet*>(inObj[iHist])->plotOn( frame, LineColor( m_colors[ iHist + shiftColor ] ), DataError( RooAbsData::SumW2 ) );
+      legendInfo.back()["doLine"] = 0;
+      legendInfo.back()["style"] = frame->getAttLine(frame->getObject(iHist)->GetName())->GetLineStyle();
+    }
+    else {
+      //      ( (RooAbsPdf*) inObj[iHist])->Print();
+      static_cast<RooAbsPdf*>(inObj[iHist])->plotOn( frame, LineColor( m_colors[ iHist + shiftColor ] ) );
+      legendInfo.back()["doLine"] = 1;
+      legendInfo.back()["style"] = frame->getAttMarker(frame->getObject(iHist)->GetName())->GetMarkerStyle();
+    }
+  }
+
+  frame->Draw();
+  // for ( unsigned int iHist=0; iHist<inObj.size(); iHist++ ) {
+  //   if ( legendInfo[iHist]["doLine"] )    myMarkerText( 0.7, 0.9-0.05*iHist, legendInfo[iHist]["color"], legendInfo[iHist]["style"], inLegend.size() ? inLegend[iHist].c_str() : "" ); 
+  //   else  myLineText( 0.7, 0.9-0.05*iHist, legendInfo[iHist]["color"], legendInfo[iHist]["style"], inLegend.size() ? inLegend[iHist].c_str() : "" ); 
+
+  // }
+
+  DrawLatex();
+
+  string canOutName = GetOutName() + "." + GetExtension();
+  canvas->SaveAs( canOutName.c_str() );
+
+  //  canvas->SaveAs( TString( outName + ".pdf") );
+  delete frame;
+  delete canvas; canvas=0;
+
 }

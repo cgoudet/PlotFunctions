@@ -603,21 +603,23 @@ void ChrisLib::DiffSystematics( string inFileName ) {
       ReverseErrVal(inHist);
     }
 
+    //The current histogram is the baseValue
     if ( !baseValue && modes[iSyst]/100!=1 ) {
       baseValue = static_cast<TH1D*>(inHist->Clone( systsName[iSyst].c_str() ));
       baseValue->SetDirectory(0);
       continue;
     }
 
-    if ( modes[iSyst]/100!=1 ) {
-      inHist->GetYaxis()->SetTitle( "#delta" + TString(inHist->GetYaxis()->GetTitle() ) );
-      vector<TH1*> hists = { inHist, baseValue };
+    inHist->GetYaxis()->SetTitle( "#delta" + TString(inHist->GetYaxis()->GetTitle() ) );
+    vector<TH1*> hists = { inHist };
+    hists.push_back( modes[iSyst]/100!=1 ? baseValue : 0 );
+    if ( baseValue) {
       RebinHist( hists );
       inHist = static_cast<TH1D*>(hists[0]);
       baseValue = static_cast<TH1D*>(hists[1]);
-      int modeCompare = (modes[iSyst]%100)/10*10 +3;
-      CreateSystHist( inHist, baseValue, modeCompare );
     }
+    int modeCompare = (modes[iSyst]%100)/10*10 + (modes[iSyst]/100!=1 ?3:2);
+    CreateSystHist( inHist, baseValue, modeCompare );
 
     //in case totSyst does not exists in the output file, create it
     if ( !totSyst ) {
@@ -995,29 +997,43 @@ double ChrisLib::TestDoubleTree( TTree *tree, const string &branch ) {
 }
 
 //==============================================
-void ChrisLib::CreateSystHist( TH1 *inHist, TH1* baseValue, unsigned mode ) {
+void ChrisLib::CreateSystHist( TH1 *inHist, const TH1* baseValue, unsigned mode ) {
 
-  if ( !inHist || !baseValue ) throw invalid_argument( "CreateSystHist : Null inputs" );
-  if ( !ComparableHists( inHist, baseValue ) ) throw invalid_argument( "CreateSyst : Not comparable histograms." );
+  if ( !inHist ) throw invalid_argument( "CreateSystHist : Null inputs" );
 
-  int nBins = baseValue->GetNbinsX();
-  int maxIBin = baseValue->GetNbinsX()+1;
-  if ( mode /10 ) maxIBin = maxIBin/2;
+  //Create a copy of base value which is modifiable
+  //if base value is empty, create an empty histogram
+  bool isEmptyBase=!baseValue;
+  TH1* basePrime = 0;
+  if ( !isEmptyBase ) {
+    basePrime = static_cast<TH1*>(baseValue->Clone());
+    if ( !ComparableHists( inHist, basePrime ) ) throw invalid_argument( "CreateSyst : Not comparable histograms." );
+  }
+  else  {
+    basePrime = static_cast<TH1*>(inHist->Clone());
+    basePrime->Scale(0);
+  }
+
+  int nBins = basePrime->GetNbinsX();
+  int maxIBin = basePrime->GetNbinsX()+1;
+  if ( mode /10 ==1) maxIBin = maxIBin/2;
   for ( int iBin=1; iBin<=maxIBin; ++iBin ) {
     double valHist = inHist->GetBinContent( iBin );
-    double valBase = baseValue->GetBinContent( iBin );
+    double valBase = basePrime->GetBinContent( iBin );
     if ( mode/10 ==1 ) {
       valHist = ( valHist + inHist->GetBinContent(nBins-iBin+1))/2;
-      valBase = ( valBase + baseValue->GetBinContent(nBins-iBin+1))/2;
+      valBase = ( valBase + basePrime->GetBinContent(nBins-iBin+1))/2;
     }
 
     int restMode = mode%10;
-    if ( !restMode ) {
+    if ( !restMode && isEmptyBase ) valHist *= valHist;
+    else if ( !restMode ) {
       list<double> vals { valHist, valBase};
       valHist = Oplus( vals );
     }
     else if ( restMode==1 ) valHist = fabs(valHist) + fabs(valBase);
     else if ( restMode==2 ) valHist = valBase+valHist;
+    else if ( restMode==3 && isEmptyBase ) valHist = -valHist;
     else if ( restMode==3 ) valHist = valHist-valBase;
     else if ( restMode==4 ) valHist = fabs( valBase+valHist );
     else if ( restMode==5 ) valHist = fabs( valBase-valHist );
@@ -1026,6 +1042,8 @@ void ChrisLib::CreateSystHist( TH1 *inHist, TH1* baseValue, unsigned mode ) {
     if ( mode/10==1) inHist->SetBinContent( nBins-iBin+1, valHist );
 
   }
+
+  delete basePrime;
 }
 
 //=============================================

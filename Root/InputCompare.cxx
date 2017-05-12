@@ -1,4 +1,3 @@
-#define DEBUG 0
 #include "PlotFunctions/SideFunctions.h"
 #include "PlotFunctions/SideFunctionsTpp.h"
 #include "PlotFunctions/InputCompare.h"
@@ -21,7 +20,7 @@ using std::endl;
 using std::list;
 using namespace ChrisLib;
 
-ChrisLib::InputCompare::InputCompare() 
+ChrisLib::InputCompare::InputCompare() : m_debug(0)
 {
 }
 
@@ -106,10 +105,10 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   po::notify( vm );
 
   m_outName = StripString( fileName );
-  if ( DEBUG ) cout << "plotDirectory : " << m_mapOptions["plotDirectory"] << endl;
+  if ( m_debug ) cout << "plotDirectory : " << m_mapOptions["plotDirectory"] << endl;
   if ( m_mapOptions["plotDirectory"] != "" && m_mapOptions["plotDirectory"].back() != '/' ) m_mapOptions["plotDirectory"] += "/";
 
-  if ( DEBUG ) cout << "rootFilesName" << endl;
+  if ( m_debug ) cout << "rootFilesName" << endl;
 
   //Keep the push_back to allow multiple files configurations
   for ( unsigned int iHist = 0; iHist < rootFilesName.size(); ++iHist ) {
@@ -119,20 +118,20 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   unsigned nPlots = m_rootFilesName.size();
   cout << "nPlots : " << nPlots << endl;
 
-  if ( DEBUG ) cout << "objName" << endl;
+  if ( m_debug ) cout << "objName" << endl;
   for ( unsigned int iHist = 0; iHist < objName.size(); ++iHist ) {
     m_objName.push_back( vector<string>() ); 
     ParseVector( objName[iHist], m_objName.back(), 0 );
   }
 
-  if ( DEBUG ) cout << "varName" << endl;
+  if ( m_debug ) cout << "varName" << endl;
   for ( unsigned int iName = 0; iName < varName.size(); ++iName ) {
     m_varName.push_back( vector<string>() ); 
     ParseVector( varName[iName], m_varName.back(), 0 );
     if ( m_varName.back().size() != m_varName[0].size() ) throw runtime_error( "InputConpare::LoadFiles : varName structure not identical for all files." );
   }
   while ( m_varName.size() && m_varName.size() < nPlots ) m_varName.push_back( m_varName.back() );
-  if ( DEBUG ) cout << "varYName" << endl;
+  if ( m_debug ) cout << "varYName" << endl;
 
   for ( unsigned int iYName = 0; iYName < varYName.size(); ++iYName ) {
     m_varYName.push_back( vector<string>() );
@@ -181,7 +180,7 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
   }
   while ( xBinning.size() && xBinning.size() < m_rootFilesName.size() ) xBinning.push_back( xBinning.back() );
 
-  if ( DEBUG ) cout << "latex" << endl;
+  if ( m_debug ) cout << "latex" << endl;
   for ( auto vLatex = latex.begin(); vLatex!= latex.end(); vLatex++ ) m_latex.push_back( *vLatex );
   for ( auto vLatexOpt = latexOpt.begin(); vLatexOpt!= latexOpt.end(); vLatexOpt++ ) m_latexOpt.push_back( *vLatexOpt );
   if ( m_latex.size() != m_latexOpt.size() ) throw runtime_error( "InputCompare::LoadFile : latex names and options have different sizes");

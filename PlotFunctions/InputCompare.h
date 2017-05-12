@@ -230,7 +230,7 @@ namespace ChrisLib {
     std::vector< std::string > m_loadFiles;
     std::map<std::string,std::string>  m_mapOptions;
     std::vector<std::vector<double>> m_xBinning;
-
+    int m_debug;
   };
 
 }

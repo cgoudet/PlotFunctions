@@ -603,23 +603,21 @@ void ChrisLib::DiffSystematics( string inFileName ) {
       ReverseErrVal(inHist);
     }
 
-    //The current histogram is the baseValue
     if ( !baseValue && modes[iSyst]/100!=1 ) {
       baseValue = static_cast<TH1D*>(inHist->Clone( systsName[iSyst].c_str() ));
       baseValue->SetDirectory(0);
       continue;
     }
 
-    inHist->GetYaxis()->SetTitle( "#delta" + TString(inHist->GetYaxis()->GetTitle() ) );
-    vector<TH1*> hists = { inHist };
-    hists.push_back( modes[iSyst]/100!=1 ? baseValue : 0 );
-    if ( baseValue) {
+    if ( modes[iSyst]/100!=1 ) {
+      inHist->GetYaxis()->SetTitle( "#delta" + TString(inHist->GetYaxis()->GetTitle() ) );
+      vector<TH1*> hists = { inHist, baseValue };
       RebinHist( hists );
       inHist = static_cast<TH1D*>(hists[0]);
       baseValue = static_cast<TH1D*>(hists[1]);
+      int modeCompare = (modes[iSyst]%100)/10*10 +3;
+      CreateSystHist( inHist, baseValue, modeCompare );
     }
-    int modeCompare = (modes[iSyst]%100)/10*10 + (modes[iSyst]/100!=1 ?3:2);
-    CreateSystHist( inHist, baseValue, modeCompare );
 
     //in case totSyst does not exists in the output file, create it
     if ( !totSyst ) {

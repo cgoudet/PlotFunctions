@@ -618,9 +618,10 @@ void ChrisLib::DiffSystematics( string inFileName ) {
       inHist = static_cast<TH1D*>(hists[0]);
       baseValue = static_cast<TH1D*>(hists[1]);
     }
+
     int modeCompare = (modes[iSyst]%100)/10*10 + (modes[iSyst]/100!=1 ?3:2);
     CreateSystHist( inHist, baseValue, modeCompare );
-
+    
     //in case totSyst does not exists in the output file, create it
     if ( !totSyst ) {
       totSyst = static_cast<TH1D*>(inHist->Clone(totSystName.c_str()));

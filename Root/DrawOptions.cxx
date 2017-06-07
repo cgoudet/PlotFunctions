@@ -406,6 +406,9 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
     if ( doRatio ) dumHist = padUp.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
     else dumHist = canvas.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
 
+    dumHist->SetLineColorAlpha( 0, 0 );
+    dumHist->SetMarkerColorAlpha( 0, 0 );
+
     dumHist->GetXaxis()->SetTitle( refXAxis->GetTitle() );
     dumHist->GetYaxis()->SetTitle( refYAxis->GetTitle() );
 
@@ -507,7 +510,8 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
         ratio.back()->Add( static_cast<TH1*>(inHist[refHist]), -1 );
         if ( doRatio == 1 ) ratio.back()->Divide( static_cast<TH1*>(inHist[refHist]) );
         yTitle = ( doRatio==1 ) ? "#frac{h_{n}-h_{0}}{h_{0}}" : "h_{n}-h_{0}";
-      }
+      }//end switch
+
       if ( m_debug ) cout << "ratio created" << endl;
       //Set graphics properties of first hitogram
       if ( !setTitle ) {
@@ -600,8 +604,8 @@ void ChrisLib::DrawOptions::Draw( RooRealVar *frameVar, vector<TObject*> &inObj 
 
   frame->Draw();
   // for ( unsigned int iHist=0; iHist<inObj.size(); iHist++ ) {
-  //   if ( legendInfo[iHist]["doLine"] )    myMarkerText( 0.7, 0.9-0.05*iHist, legendInfo[iHist]["color"], legendInfo[iHist]["style"], inLegend.size() ? inLegend[iHist].c_str() : "" ); 
-  //   else  myLineText( 0.7, 0.9-0.05*iHist, legendInfo[iHist]["color"], legendInfo[iHist]["style"], inLegend.size() ? inLegend[iHist].c_str() : "" ); 
+  //   if ( legendInfo[iHist]["doLine"] )    myMarkerText( 0.7, 0.9-0.05*iHist, legendInfo[iHist]["color"], legendInfo[iHist]["style"], inLegend.size() ? inLegend[iHist].c_str() : "" );
+  //   else  myLineText( 0.7, 0.9-0.05*iHist, legendInfo[iHist]["color"], legendInfo[iHist]["style"], inLegend.size() ? inLegend[iHist].c_str() : "" );
 
   // }
 

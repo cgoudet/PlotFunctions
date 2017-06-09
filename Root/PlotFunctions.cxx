@@ -132,45 +132,70 @@ void ChrisLib::SplitTree( const InputCompare &inputCompare ) {
   const vector<vector<string>> rootFilesName = inputCompare.GetRootFilesName();
   const vector<string> selectionCut = inputCompare.GetSelectionCut();
 
-
+  string treeName;
+  string selection;
   string plotDirectory = inputCompare.GetOption( "plotDirectory" );
+
+
   for ( unsigned int iPlot = 0; iPlot < rootFilesName.size(); ++iPlot ) {
-    TTree *treeRejSel=0, *treePassSel=0;
+
+    treeName=plotDirectory+StripString( rootFilesName[0][0] ) + "_" + inputCompare.GetOutName()+".root";
+    TFile *dumFile = new TFile( treeName.c_str(), "RECREATE" );
+    TTree *selTree = 0;
+    cout<<dumFile->GetName()<<endl;
     for ( unsigned int iAdd = 0; iAdd < rootFilesName[iPlot].size(); ++iAdd ) {
 
+      TFile *inFile= TFile::Open( rootFilesName[iPlot][iAdd].c_str() );
+      if ( inFile->IsZombie()) throw invalid_argument("ChrisLib::SplitTree : Unknown file " + rootFilesName[iPlot][iAdd]);
+      treeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( inFile );
+      TTree *inTree = static_cast<TTree*>(inFile->Get( treeName.c_str() ));
+      if ( !inTree ) throw invalid_argument( "SplitTree : Unknown Tree." );
+      //      inTree->SetDirectory(0);
+      //gROOT->cd();
+      cout<<"intree: "<<inTree->GetEntries()<<endl;
+      dumFile->cd();
+
       for ( unsigned int iPass = 0; iPass < 2; ++iPass ) {
+	cout<<iPass<<endl;
+	
+	treeName= iPass ? "RejSelTree" : "PassSelTree" ;
+	cout<<iPass<<treeName<<endl;
+	
+        selection = selectionCut.size()>iPlot ? selectionCut[iPlot] : "";
+	if ( selection == "" ) throw invalid_argument( "SplitTree : Selection is empty." );
+	if ( iPass ) selection = "!(" + selection + ")";
+	cout<<selection<<endl;
 
-        TFile inFile( rootFilesName[iPlot][iAdd].c_str() );
-        if ( inFile.IsZombie()) throw invalid_argument("ChrisLib::SplitTree : Unknown file " + rootFilesName[iPlot][iAdd]);
-        string treeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( &inFile );
-        TTree *inTree = static_cast<TTree*>(inFile.Get( treeName.c_str() ));
-        if ( !inTree ) throw invalid_argument( "SplitTree : Unknown Tree." );
-        inTree->SetDirectory(0);
-        gROOT->cd();
+	
 
-        treeName = StripString( inFile.GetName() ) + "_" + inputCompare.GetOutName() + ( iPass ? "_RejSel" : "_PassSel" );
-        string selection = selectionCut.size()>iPlot ? selectionCut[iPlot] : "";
-        if ( selection == "" ) throw invalid_argument( "SplitTree : Selection is empty." );
-        if ( iPass ) selection = "!(" + selection + ")";
-        TTree *dumTree = inTree->CopyTree( selection.c_str() );
-        dumTree->SetDirectory(0);
+	if ( iAdd ) {
+	  //          AddTree( *selTree, dumTree  );
+	  AddTree( selTree, inTree->CopyTree( selection.c_str(), "Overwrite" )  );
+	  //          delete dumTree; dumTree=0;
+	}
+	else {
+	  //*selTree = dumTree;
+	  selTree = inTree->CopyTree( selection.c_str(), "Overwrite" );
+	  selTree->SetName( treeName.c_str() );
+	  selTree->SetTitle( treeName.c_str() );
+	  
+	}
 
-        TTree **selTree = iPass ? &treeRejSel : &treePassSel;
-        if ( *selTree ) {
-          AddTree( *selTree, dumTree  );
-          delete dumTree; dumTree=0;
-        }
-        else {
-          dumTree->SetName( treeName.c_str() );
-          dumTree->SetTitle( treeName.c_str() );
-          *selTree = dumTree;
-        }
-
-        delete inTree; inTree = 0;
-        if ( iAdd == rootFilesName[iPlot].size()-1 && *selTree ) SaveTree( *selTree, plotDirectory );
+	//        delete inTree; inTree = 0;
+	if ( iAdd == rootFilesName[iPlot].size()-1 ) {
+	  //	  dumFile->cd();
+	  selTree->Write( "", TObject::kOverwrite );
+	  cout<<"Writting: "<<dumFile->GetName()<<endl;
+	  cout<<selTree->GetName()<< " "<<selTree->GetEntries()<<endl;
+	  //SaveTree( *selTree, plotDirectory );
+	  
+	}
+	cout<<iPass<<endl;
       }//end iPass
-    }
-  }
+      treeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( inFile );
+      dumFile->Delete(treeName.c_str());
+    }// end iAdd
+  }//end iPlot
 }
 //============================================================
 TObject* ChrisLib::InitHist( const InputCompare &inputCompare, unsigned iPlot, unsigned iHist ) {

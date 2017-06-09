@@ -314,10 +314,11 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
   canvas.SetGrid( doGrid%2, doGrid/2 );
 
   TPad padUp( "padUp", "padUp", 0, 0.3, 1, 1 );
-  padUp.SetBottomMargin( 0 );
+  padUp.SetTopMargin( 0.08 );
+  padUp.SetBottomMargin( 0.008 );
   TPad padDown( "padDown", "padDown", 0, 0, 1, 0.3 );
-  padDown.SetTopMargin( 0 );
-  padDown.SetBottomMargin( 0.2 );
+  padDown.SetTopMargin( 0.05 );
+  padDown.SetBottomMargin( 0.3 );
 
   int doRatio = GetDoRatio();
   if ( doRatio ) {
@@ -413,7 +414,7 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
     dumHist->GetYaxis()->SetTitle( refYAxis->GetTitle() );
 
     if (doRatio) {
-      dumHist->GetYaxis()->SetTitleOffset( 0.6 );
+      dumHist->GetYaxis()->SetTitleOffset( 0.75 );
       dumHist->GetYaxis()->SetTitleSize( 0.06 );
     }
   }
@@ -517,11 +518,11 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
       if ( !setTitle ) {
         ratio.front()->GetXaxis()->SetTitle( refXAxis->GetTitle() );
         ratio.front()->GetXaxis()->SetLabelSize( 0.1 );
-        ratio.front()->GetXaxis()->SetTitleSize( 0.1 );
-        ratio.front()->GetYaxis()->SetLabelSize( 0.05 );
-        ratio.front()->GetYaxis()->SetTitleSize( 0.1 );
+        ratio.front()->GetXaxis()->SetTitleSize( 0.15 );
+        ratio.front()->GetYaxis()->SetLabelSize( 0.065 );
+        ratio.front()->GetYaxis()->SetTitleSize( 0.15 );
         ratio.front()->GetYaxis()->SetTitleOffset( 0.3 );
-        ratio.front()->GetXaxis()->SetTitleOffset( 0.7 );
+        ratio.front()->GetXaxis()->SetTitleOffset( 0.85 );
         ratio.front()->SetTitle("");
         ratio.front()->GetYaxis()->SetTitle( yTitle.c_str() );
         setTitle = 1;

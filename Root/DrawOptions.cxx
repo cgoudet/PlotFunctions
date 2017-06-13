@@ -313,11 +313,11 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
   int doGrid = GetGrid();
   canvas.SetGrid( doGrid%2, doGrid/2 );
 
-  TPad padUp( "padUp", "padUp", 0, 0.3, 1, 1 );
+  TPad padUp( "padUp", "padUp", 0, 0.35, 1, 1 );
   padUp.SetTopMargin( 0.08 );
   padUp.SetBottomMargin( 0.008 );
-  TPad padDown( "padDown", "padDown", 0, 0, 1, 0.3 );
-  padDown.SetTopMargin( 0.05 );
+  TPad padDown( "padDown", "padDown", 0, 0, 1, 0.35 );
+  padDown.SetTopMargin( 0.08 );
   padDown.SetBottomMargin( 0.3 );
 
   int doRatio = GetDoRatio();

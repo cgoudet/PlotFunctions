@@ -119,4 +119,16 @@ BOOST_AUTO_TEST_CASE( IsTypeTest ) {
 
 }
 
+//====================================================
+BOOST_AUTO_TEST_CASE( GetSizeTest) {
+  MapBranches mapBr;
+  BOOST_CHECK_EQUAL( mapBr.GetSize(), 0 );
+  mapBr.SetVal( "string", "string" );
+  BOOST_CHECK_EQUAL( mapBr.GetSize(), 1 );
+  mapBr.SetVal( "float", 1. );
+  BOOST_CHECK_EQUAL( mapBr.GetSize(), 2 );
+  mapBr.ClearMaps();
+  BOOST_CHECK_EQUAL( mapBr.GetSize(), 0 );
+}
+
 BOOST_AUTO_TEST_SUITE_END()

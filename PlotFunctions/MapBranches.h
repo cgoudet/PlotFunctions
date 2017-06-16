@@ -108,6 +108,11 @@ namespace ChrisLib {
     /**\brief Fill keys with the list of all branch names
      */
     void GetKeys( std::list<std::string> &keys ) const;
+
+    /**\brief Get the number of Keys
+     */
+    unsigned int GetSize() const;
+
     /**\brief Return branch content as string
      */
     std::string GetLabel( const std::string &name ) const;

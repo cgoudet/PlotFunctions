@@ -158,6 +158,22 @@ void ChrisLib::MapBranches::GetKeys( list<string> &keys ) const {
 }
 
 //============================================
+unsigned int ChrisLib::MapBranches::GetSize() const {
+
+  unsigned int size = 0;
+  size+= m_mapInt.size();
+  size+= m_mapInt.size();
+  size+= m_mapFloat.size();
+  size+= m_mapDouble.size();
+  size+= m_mapULongLong.size();
+  size+= m_mapLongLong.size();
+  size+= m_mapUnsigned.size();
+  size+= m_mapString.size();
+
+  return size;
+}
+
+//============================================
 void ChrisLib::MapBranches::LinkCSVFile( istream &stream, const char delim ) {
   //Check the first two lines to setup the class and put back the reader at the firs data line
 

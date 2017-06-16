@@ -19,3 +19,6 @@ PlotFunctions is a library designed in the ROOT framework to :
 - A set of python functions : SideFunction.py
 - A robust minimization algorithm in RooFit framework : ChrisLib::FitData
 - A framework to scan a likelihood.
+
+# Versions
+- v2.4 : Adding the function MapBranch::GetSize() 

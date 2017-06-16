@@ -97,9 +97,13 @@ def DSCB( myy, mu, sigma, alphaHi, alphaLow, nHi, nLow ) :
 
 #==================================
 def listFiles( directory, pattern='' ):
-    output = sub.check_output( ['ls '+ AddSlash(directory) + pattern ],  shell=1, stderr=sub.STDOUT ) 
+    output = sub.check_output( ['ls '+ directory ],  shell=1, stderr=sub.STDOUT ) 
+
     if '\n' in output : content = output.split() 
     else : content = [ output ]
+
+    content = [ f for f in content if pattern in f ]
+
     return content
 
 #==================================

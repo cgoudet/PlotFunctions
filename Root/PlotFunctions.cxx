@@ -358,7 +358,6 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
   const vector< vector<string> > &varErrY = inputCompare.GetVarErrY();
   const vector< vector<string> > &varWeight = inputCompare.GetVarWeight();
   const unsigned doLabels = atoi(inputCompare.GetOption("doLabels").c_str());
-  const int inputType = atoi(inputCompare.GetOption("inputType").c_str());
   const unsigned function = atoi(inputCompare.GetOption("function").c_str());
 
   double totWeight=1;
@@ -372,7 +371,7 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
     if ( doLabels ) label = ReplaceString( "\\_", "_" )(mapBranch.GetLabel( varName[iPlot][iHist] ));
     if ( outMode==OutMode::histEvent && ( !iPlot || foundIndex != -1 ) ) varValues[foundIndex][iHist*varName.size()+iPlot] = stod(mapBranch.GetLabel( varName[iPlot][iHist] ));
 
-    unsigned histIndex = inputType==2 ? 0 : iHist;
+    unsigned histIndex = outMode==OutMode::histMultiBranch ? 0 : iHist;
     if ( !vectObject[histIndex][iPlot] ) { //Defines the histograms
       vectObject[histIndex][iPlot]=InitHist( inputCompare, iPlot, histIndex );
       TH1 *hist = static_cast<TH1*>(vectObject[histIndex][iPlot]);
@@ -437,9 +436,6 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
 
   vectHist = vector<vector<TObject*>>( varName[0].size(), vector<TObject*>(rootFilesName.size(), 0) );  //InputCompare ensures that varName[i] all have the same size.
 
-  //The mode 2 merges all varNames into a single histogram.
-  int inputType = atoi(inputCompare.GetOption("inputType").c_str());
-  if ( inputType==2 ) vectHist = vector<vector<TObject*>>( 1, vector<TObject*>(rootFilesName.size(), 0) );
 
 
   unsigned nEvents = atoi(inputCompare.GetOption("nEvents").c_str());
@@ -454,6 +450,9 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
     varValues.resize( extents[nEvents][nCols] );
     IDValues.resize( extents[nEvents][nCols] );
   }
+  else if ( outMode==OutMode::histMultiBranch ) //The mode 2 merges all varNames into a single histogram.
+    vectHist = vector<vector<TObject*>>( 1, vector<TObject*>(rootFilesName.size(), 0) );
+
 
   for ( unsigned int iPlot = 0; iPlot < rootFilesName.size(); ++iPlot ) {
     unsigned countEvent=0;

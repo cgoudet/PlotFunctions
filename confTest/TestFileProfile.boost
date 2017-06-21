@@ -1,6 +1,6 @@
-inputType=7
-rootFileName=/sps/atlas/c/cgoudet/Hgam/FrameWork/PlotFunctions/confTest/mapResult.csv
-rootFileName=/sps/atlas/c/cgoudet/Hgam/FrameWork/PlotFunctions/confTest/mapResult.csv
+inputType=4
+rootFileName=/home/goudet/Documents/Programs/Packages/PlotFunctions/confTest/mapResult.csv
+rootFileName=/home/goudet/Documents/Programs/Packages/PlotFunctions/confTest/mapResult.csv
 
 varName=mean_down
 varName=mean_up

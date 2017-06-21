@@ -358,7 +358,7 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
   int foundIndex=-1;
   if ( outMode==OutMode::histEvent ) foundIndex = FillCompareEvent( inputCompare, IDValues, mapBranch, iPlot, iEntry );
 
-  for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
+  for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); ++iHist ) {
     string label;
     if ( doLabels ) label = ReplaceString( "\\_", "_" )(mapBranch.GetLabel( varName[iPlot][iHist] ));
     if ( outMode==OutMode::histEvent && ( !iPlot || foundIndex != -1 ) ) varValues[foundIndex][iHist*varName.size()+iPlot] = stod(mapBranch.GetLabel( varName[iPlot][iHist] ));

@@ -526,8 +526,7 @@ OutMode ChrisLib::GetOutMode( const InputCompare &inputCompare ) {
 
   int inputType = atoi(inputCompare.GetOption("inputType").c_str());
   if ( inputType==0 ) return OutMode::none;
-  else if ( inputType<3 ) return OutMode::hist;
-  else if ( inputType < 6 ) return static_cast<OutMode>(inputType-1);
+  else if ( inputType < 6 ) return static_cast<OutMode>(inputType);
   else throw runtime_error( "GetOutMode : OutMode not planned for inputType above 5" );
 }
 
@@ -536,6 +535,7 @@ string ChrisLib::WriteOutMode ( const OutMode outMode ) {
   switch( outMode ) {
   case OutMode::none : return "none";
   case OutMode::hist : return "hist";
+  case OutMode::histMultiBranch : return "histMultiBranch";
   case OutMode::histEvent : return "histEvent";
   case OutMode::profile : return "profile";
   case OutMode::graphErrors : return "graphErrors";

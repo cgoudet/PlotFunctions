@@ -22,7 +22,7 @@ namespace ChrisLib {
   void PlotMatrix( const InputCompare &inputCompare, std::vector<std::vector<TObject*>> &vectObj );
 
   //=======================
-  enum class OutMode { none, hist, histEvent, profile, graphErrors };
+  enum class OutMode { none, hist, histMultiBranch, histEvent, profile, graphErrors };
 
   //=======================
   OutMode GetOutMode( const InputCompare &inputCompare );

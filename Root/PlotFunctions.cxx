@@ -353,6 +353,7 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
   const vector< vector<string> > &varWeight = inputCompare.GetVarWeight();
   const unsigned doLabels = atoi(inputCompare.GetOption("doLabels").c_str());
   const int inputType = atoi(inputCompare.GetOption("inputType").c_str());
+  const unsigned function = atoi(inputCompare.GetOption("function").c_str());
 
   double totWeight=1;
   if ( outMode!=OutMode::graphErrors ) for_each( varWeight[iPlot].begin(), varWeight[iPlot].end(), [&totWeight, &mapBranch]( const string &s ) { totWeight*=stod(mapBranch.GetLabel(s));} );
@@ -381,7 +382,7 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
 
     int iBin = -1;
     if ( doLabels && IsTH1( outMode ) ) {
-      TH1* hist = static_cast< TH1* >(vectObject[iHist][iPlot]);
+      TH1* hist = static_cast< TH1* >(vectObject[histIndex][iPlot]);
       iBin = hist->GetXaxis()->FindBin( label.c_str() );
       if ( iBin==-1 ) throw runtime_error( "FillObject : FindBin error." );
     }
@@ -405,8 +406,9 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
     else if ( ( outMode==OutMode::hist && totWeight )
               || ( outMode==OutMode::histEvent && foundIndex!=-1 )
               ) {
-      if ( doLabels ) static_cast<TH1D*>(vectObject[iHist][iPlot])->Fill( iBin-1, totWeight );
-      else static_cast<TH1D*>(vectObject[iHist][iPlot])->Fill( xVal , totWeight );
+      TH1D *filledHist = static_cast<TH1D*>(vectObject[iHist][iPlot]);
+      if ( !doLabels ) iBin = filledHist->FindFixBin( xVal);
+      FillFunctionHisto( filledHist, iBin, totWeight, function);
     }
 
   }// End iHist
@@ -618,3 +620,10 @@ void ChrisLib::PlotMatrix( const InputCompare &inputCompare, vector<vector<TObje
  }
 
  //==============================================
+void ChrisLib::FillFunctionHisto( TH1* filledHist, const unsigned int bin, const double value, const unsigned code ) {
+
+  // double totValue =
+  //     if ( doLabels ) static_cast<TH1D*>(vectObject[iHist][iPlot])->Fill( iBin-1, totWeight );
+  //     else static_cast<TH1D*>(vectObject[iHist][iPlot])->Fill( xVal , totWeight );
+
+}

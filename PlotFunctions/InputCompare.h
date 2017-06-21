@@ -106,6 +106,9 @@ namespace ChrisLib {
 
      - triangular=number : Boolean allowing to plot only triangular matrix.
 
+     - function=number : Code for the function to be used to combine new entry of histogram with its content.
+     Default=0=sum.
+     Description of available options is in ChrisLib::FillFunctionHisto.
 
      ### inputType Description
      The PlotDist framework allows for variouts operation on various types of input data.

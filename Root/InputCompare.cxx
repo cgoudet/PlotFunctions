@@ -96,6 +96,7 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
     ( "forceStyle", po::value<string>(&m_mapOptions["forceStyle"]),"" )
     ( "topMargin", po::value<string>( &m_mapOptions["topMargin"]), "" )
     ( "bottomMargin", po::value<string>( &m_mapOptions["bottomMargin"]), "" )
+    ( "function", po::value<string>(&m_mapOptions["function"])->default_value("0"))
     ;
 
   po::variables_map vm;
@@ -120,13 +121,13 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
 
   if ( m_debug ) cout << "objName" << endl;
   for ( unsigned int iHist = 0; iHist < objName.size(); ++iHist ) {
-    m_objName.push_back( vector<string>() ); 
+    m_objName.push_back( vector<string>() );
     ParseVector( objName[iHist], m_objName.back(), 0 );
   }
 
   if ( m_debug ) cout << "varName" << endl;
   for ( unsigned int iName = 0; iName < varName.size(); ++iName ) {
-    m_varName.push_back( vector<string>() ); 
+    m_varName.push_back( vector<string>() );
     ParseVector( varName[iName], m_varName.back(), 0 );
     if ( m_varName.back().size() != m_varName[0].size() ) throw runtime_error( "InputConpare::LoadFiles : varName structure not identical for all files." );
   }
@@ -188,7 +189,7 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
 
 //==========================================
 DrawOptions ChrisLib::InputCompare::CreateDrawOptions() const {
-  list<string> nonDrawOptions { "", "inputType", "diagonalize", "doTabular", "plotDirectory", "saveRoot", "nEvents", "nBins", "doLabels" };
+  list<string> nonDrawOptions { "", "inputType", "diagonalize", "doTabular", "plotDirectory", "saveRoot", "nEvents", "nBins", "doLabels", "function" };
   DrawOptions drawOpt;
   vector<string> outVect;
   for ( map<string, string>::const_iterator it = m_mapOptions.begin(); it != m_mapOptions.end(); ++it) {
@@ -196,7 +197,7 @@ DrawOptions ChrisLib::InputCompare::CreateDrawOptions() const {
     if ( find ( nonDrawOptions.begin(), nonDrawOptions.end(), it->first ) != nonDrawOptions.end() ) continue;
     drawOpt.AddOption( it->first, it->second );
   }
-  
+
   for ( auto legend : m_legend ) drawOpt.AddOption("legend", legend );
   for ( auto latex : m_latex ) drawOpt.AddOption( "latex", latex );
   for ( auto latexOpt : m_latexOpt ) drawOpt.AddOption( "latexOpt", latexOpt );

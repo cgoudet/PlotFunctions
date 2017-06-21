@@ -352,19 +352,23 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
   const vector< vector<string> > &varErrY = inputCompare.GetVarErrY();
   const vector< vector<string> > &varWeight = inputCompare.GetVarWeight();
   const unsigned doLabels = atoi(inputCompare.GetOption("doLabels").c_str());
+  const int inputType = atoi(inputCompare.GetOption("inputType").c_str());
 
   double totWeight=1;
   if ( outMode!=OutMode::graphErrors ) for_each( varWeight[iPlot].begin(), varWeight[iPlot].end(), [&totWeight, &mapBranch]( const string &s ) { totWeight*=stod(mapBranch.GetLabel(s));} );
   int foundIndex=-1;
   if ( outMode==OutMode::histEvent ) foundIndex = FillCompareEvent( inputCompare, IDValues, mapBranch, iPlot, iEntry );
 
+
   for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); ++iHist ) {
     string label;
     if ( doLabels ) label = ReplaceString( "\\_", "_" )(mapBranch.GetLabel( varName[iPlot][iHist] ));
     if ( outMode==OutMode::histEvent && ( !iPlot || foundIndex != -1 ) ) varValues[foundIndex][iHist*varName.size()+iPlot] = stod(mapBranch.GetLabel( varName[iPlot][iHist] ));
-    if ( !vectObject[iHist][iPlot] ) {
-      vectObject[iHist][iPlot]=InitHist( inputCompare, iPlot, iHist );
-      TH1 *hist = static_cast<TH1*>(vectObject[iHist][iPlot]);
+
+    unsigned histIndex = inputType==2 ? 0 : iHist;
+    if ( !vectObject[histIndex][iPlot] ) { //Defines the histograms
+      vectObject[histIndex][iPlot]=InitHist( inputCompare, iPlot, histIndex );
+      TH1 *hist = static_cast<TH1*>(vectObject[histIndex][iPlot]);
       if ( doLabels && IsTH1(outMode) ) {
         hist->GetXaxis()->SetBinLabel(1, label.c_str());
         hist->GetXaxis()->LabelsOption("u");

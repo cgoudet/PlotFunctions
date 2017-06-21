@@ -37,12 +37,33 @@ namespace ChrisLib {
   /**\brief Fills the bin of an histogram with a function of its content and totweight.
 
      # Code
-     0 : Weighted sum (like usual histogram)
-     1 : Weight quadratic sum. f(old, add, weight)=\sqrt{old^2+weight add^2}
+     - 0 : Weighted sum (like usual histogram)
+
+     - 1 : Weight quadratic sum. f(old, add, weight)=\sqrt{old^2+weight add^2}
    */
   void FillFunctionHisto( TH1* filledHist, const unsigned int bin, const double value, const double weight =1, const unsigned code = 0);
   int FillCompareEvent( const InputCompare &inputCompare, boost::multi_array<long long,2> &IDValues, const MapBranches &mapBranch, const int iPlot, const int iEvent );
   TObject* InitHist( const InputCompare &inputCompare, unsigned iPlot, unsigned iHist );
+
+  /**\brief Test the mandatory variables for each option file reading options (0<inputType<6).
+
+     The code consists of a bitset for which each bin consists in a mandatory variable :
+     - 0 : A binning option
+
+     - 1 : eventID
+
+     - 2 : Requires varYName
+
+     - 3 : varName and varYName must have same size
+
+     - 4 : requires varName
+
+     - 5 : requires non null nEvent
+
+     Each possible OutMode switches on its own requirements (see ChrisLib::InputCompare )
+
+     Some other requirements are coded into the function which use them.
+   */
   void TestInputs( const InputCompare &inputCompare );
   void DrawVect( std::vector<std::vector<TObject*>> &vectGraph, const InputCompare &inputCompare );
   void SetTGraphsTitle( const InputCompare &inputCompare, const unsigned iPlot, std::vector<std::vector<TGraphErrors*>> &vectGraph );

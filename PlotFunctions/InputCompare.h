@@ -135,7 +135,7 @@ namespace ChrisLib {
      \n
      Mandatory variables : varName
      \n
-     Optional variables : varWeight, doTabular, saveRoot, Binning, objName
+     Optional variables : varWeight, doTabular, saveRoot, Binning, objName, function
 
      - 3 : Compare the same event values across different datasets. Values are printed into a csv file.
      \n

@@ -314,6 +314,7 @@ void ChrisLib::TestInputs( const InputCompare &inputCompare ) {
   if ( outMode==OutMode::profile ) { errors.set(0); errors.set(2); errors.set(3);}
   if ( outMode==OutMode::graphErrors ) { errors.set(2); errors.set(3); }
   if ( outMode!=OutMode::none ) errors.set(4);
+  if ( outMode == OutMode::histMultipleBranch ) { errors.set(4);}
   if ( doLabels && IsTH1( outMode ) ) errors.set(0,0);
 
   if ( errors.test(0) && xBinning.empty() && ( varMin.empty() || varMax.empty()) ) throw invalid_argument( "TestInput : No information for binning provided" );

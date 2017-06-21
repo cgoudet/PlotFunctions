@@ -36,9 +36,11 @@ namespace ChrisLib {
 
   /**\brief Fills the bin of an histogram with a function of its content and totweight.
 
-
+     # Code
+     0 : Weighted sum (like usual histogram)
+     1 : Weight quadratic sum. f(old, add, weight)=\sqrt{old^2+weight add^2}
    */
-  void FillFunctionHisto( TH1* filledHist, const unsigned int bin, const double value, const unsigned code = 0);
+  void FillFunctionHisto( TH1* filledHist, const unsigned int bin, const double value, const double weight =1, const unsigned code = 0);
   int FillCompareEvent( const InputCompare &inputCompare, boost::multi_array<long long,2> &IDValues, const MapBranches &mapBranch, const int iPlot, const int iEvent );
   TObject* InitHist( const InputCompare &inputCompare, unsigned iPlot, unsigned iHist );
   void TestInputs( const InputCompare &inputCompare );

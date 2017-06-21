@@ -231,7 +231,7 @@ TObject* ChrisLib::InitHist( const InputCompare &inputCompare, unsigned iPlot, u
     else if ( xBinning.empty() || xBinning[iHist].empty() ) object = new TH1D( name.str().c_str(), name.str().c_str(), nBins, varMin[iHist], varMax[iHist] );
     else object = new TH1D( name.str().c_str(), name.str().c_str(), static_cast<int>(xBinning[iHist].size())-1, &xBinning[iHist][0] );
   }
-  else if ( outMode == OutMode::histMultiBranch ) object = new TH1D( name.str().c_str(), name.str().c_str(), varName[0].size(), -0.5, 0.5+varName[0].size() );
+  else if ( outMode == OutMode::histMultiBranch ) object = new TH1D( name.str().c_str(), name.str().c_str(), varName[0].size(), -0.5, varName[0].size()-0.5 );
   else throw runtime_error( "ChrisLib::InitHist : wrong outMode " + std::to_string( static_cast<int>(outMode)));
 
   if ( DEBUG ) cout << "Object created" << endl;
@@ -254,7 +254,7 @@ TObject* ChrisLib::InitHist( const InputCompare &inputCompare, unsigned iPlot, u
 
     if ( outMode == OutMode::histMultiBranch ) {
       for ( unsigned iName=0; iName<varName[0].size(); ++iName )
-        outHist->GetXaxis()->SetBinLabel( iName, varName[0][iName].c_str() );
+        outHist->GetXaxis()->SetBinLabel( iName+1, varName[0][iName].c_str() );
           }
     else outHist->Sumw2();
 
@@ -408,16 +408,15 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
       if ( doLabels ) static_cast<TProfile*>(vectObject[iHist][iPlot])->Fill( iBin, yVal , totWeight );
       else static_cast<TProfile*>(vectObject[iHist][iPlot])->Fill( xVal, yVal, totWeight );
     }
-    else if ( ( ( outMode==OutMode::hist || outMode==OutMode::histMultiBranch) && totWeight )
+    else if ( ( outMode==OutMode::hist && totWeight )
               || ( outMode==OutMode::histEvent && foundIndex!=-1 )
               ) {
-      TH1D *filledHist = static_cast<TH1D*>(vectObject[histIndex][iPlot]);
-      cout << xVal << " " << filledHist->GetXaxis()->GetXmin() <<  " " << filledHist->GetXaxis()->GetXmax() << endl;
-      if ( outMode==OutMode::histMultiBranch ) iBin = iHist;
-      else if ( !doLabels ) iBin = filledHist->FindFixBin( xVal);
-      cout << "filledHist " << filledHist << " " << filledHist->GetBinContent(50) << endl;
-      cout << "iBin " << iBin << endl;
-      FillFunctionHisto( filledHist, iBin, totWeight, function);
+      if ( doLabels ) static_cast<TH1D*>(vectObject[iHist][iPlot])->Fill( iBin-1, totWeight );
+      else static_cast<TH1D*>(vectObject[iHist][iPlot])->Fill( xVal , totWeight );
+    }
+    else if ( outMode==OutMode::histMultiBranch ) {
+      TH1D *filledHist = static_cast<TH1D*>(vectObject[0][iPlot]);
+      FillFunctionHisto( filledHist, iHist+1, xVal, totWeight, function);
     }
 
   }// End iHist
@@ -509,7 +508,6 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
           ++nEntries;
         }
         FillObject( inputCompare, mapBranch, vectHist, IDValues, varValues, iPlot, iEvent );
-        cout << "vectHist : " << static_cast<TH1D*>(vectHist[0][0])->GetBinContent(50) << endl;
         ++countEvent;
       }//end iEvent
 
@@ -632,20 +630,13 @@ void ChrisLib::PlotMatrix( const InputCompare &inputCompare, vector<vector<TObje
  }
 
  //==============================================
-void ChrisLib::FillFunctionHisto( TH1* filledHist, const unsigned int bin, const double value, const unsigned code ) {
+void ChrisLib::FillFunctionHisto( TH1* filledHist, const unsigned int bin, const double value, const double weight, const unsigned code ) {
   if ( !filledHist ) throw runtime_error( "ChrisLib::FillFunctionHisto : empty filledHist");
 
-  if ( code==0 ) {
-    cout << "filling " << bin << " " << filledHist->GetBinContent(0) << " " << filledHist->GetBinContent(50) << " ";
-    filledHist->Fill( filledHist->GetBinCenter(bin), value);
-    cout << " " << filledHist->GetBinContent(0) << " " << filledHist->GetBinContent(50) << endl;
-    return;
-  }
-
   double oldValue = filledHist->GetBinContent(bin);
-  if ( code==1 ) oldValue = sqrt(oldValue*oldValue+value*value);
+  if ( code==0 ) oldValue += weight*value;
+  else if ( code==1 ) oldValue = sqrt(oldValue*oldValue+weight*value*value);
   else throw runtime_error( "ChrisLib::FillFunctionHisto : code (" + std::to_string(code) + ") does not correspond to any possibility.");
 
   filledHist->SetBinContent(bin, oldValue);
-
 }

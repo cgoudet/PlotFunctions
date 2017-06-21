@@ -91,6 +91,7 @@ void ChrisLib::DrawOptions::AddOption( const string &key, const string &value ) 
     m_latexPos.push_back( vector<double>() );
     ParseVector( value, m_latexPos.back() );
   }
+  else if ( key == "labels") ParseVector( value, m_labels );
   else cout << "DrawPlotOption : " << key << " not known" << endl;
 }
 
@@ -113,10 +114,14 @@ void ChrisLib::DrawOptions::SetHistProperties( TH1* hist ) {
     if ( strcmp( hist->GetFunction( obj->GetName() )->ClassName(), "TF1" ) ) continue;
     hist->GetFunction( obj->GetName() )->SetLineColor( hist->GetLineColor() );
   }
+
   if ( hist->GetNbinsX()>30 ) hist->GetXaxis()->LabelsOption("v");
 }
 //================================================
 void ChrisLib::DrawOptions::SetProperties( TObject* obj, int iHist ) {
+
+  const vector<string> labels = GetLabels();
+
   TH1* hist=0;
   TGraphErrors *graph=0;
   if (  !IsHist( obj ) ) graph = static_cast<TGraphErrors*>(obj);
@@ -133,8 +138,15 @@ void ChrisLib::DrawOptions::SetProperties( TObject* obj, int iHist ) {
         else axis = iAxis ? graph->GetYaxis() : graph->GetXaxis();
         axis->SetTitle( title.c_str() );
         axis->SetTitleOffset( GetTitleOffset(iAxis) );
-      }
 
+        if ( !labels.empty() && hist && !iAxis ) {
+          if ( axis->GetNbins() != static_cast<int>(labels.size()) ) cout << "ChrisLib::DrawOptions::SetProperties : label and bins size do not match." <<endl;
+          else {
+            for ( unsigned iBin=0; iBin<labels.size(); ++iBin )
+              axis->SetBinLabel( iBin+1, labels[iBin].c_str());
+          }
+        }
+      }
     }
     if ( graph && GetOrderX() ) graph->Sort();
   }
@@ -424,8 +436,6 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
   }
   else refYAxis->SetRangeUser( rangeUserY.front(), rangeUserY.back() );
 
-  cout << "dumHist : " << dumHist << endl;
-  cout << refXAxis->GetTitle() << endl;
 
   //Plotting histograms
   for ( unsigned int iHist = refHist; iHist < inHist.size(); ++iHist ) {

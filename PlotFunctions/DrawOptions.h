@@ -138,8 +138,10 @@ namespace ChrisLib {
 
     const std::vector<std::string> &GetLegends() const { return m_legends; }
     const std::vector<std::string> &GetLatex() const { return m_latex; }
+    const std::vector<std::string> &GetLabels() const { return m_labels; }
 
     const std::vector<std::vector<double>> &GetLatexPos() const { return m_latexPos; }
+
 
     void SetDebug( bool debug ) { m_debug = debug; }
 
@@ -201,8 +203,10 @@ namespace ChrisLib {
     std::vector<std::string> m_legends;
     std::vector<std::string> m_tmpLegends;
     std::vector<std::string> m_latex;
+    std::vector<std::string> m_labels;
 
     std::vector<std::vector<double>> m_latexPos;
+
 
     bool m_debug;
 

@@ -226,12 +226,13 @@ TObject* ChrisLib::InitHist( const InputCompare &inputCompare, unsigned iPlot, u
     else if ( xBinning.empty() || xBinning[iHist].empty() ) object = new TProfile( name.str().c_str(), name.str().c_str(), nBins, varMin[iHist], varMax[iHist] );
     else object = new TProfile( name.str().c_str(), name.str().c_str(), static_cast<int>(xBinning[iPlot].size())-1, &xBinning[iPlot][0] );
   }
-  else {
+  else if ( outMode == OutMode::hist ){
     if ( doLabels ) object = new TH1D( name.str().c_str(), name.str().c_str(), 1, -0.5, 0.5 );
     else if ( xBinning.empty() || xBinning[iHist].empty() ) object = new TH1D( name.str().c_str(), name.str().c_str(), nBins, varMin[iHist], varMax[iHist] );
     else object = new TH1D( name.str().c_str(), name.str().c_str(), static_cast<int>(xBinning[iHist].size())-1, &xBinning[iHist][0] );
   }
-
+  else if ( outMode == OutMode::histMultiBranch ) object = new TH1D( name.str().c_str(), name.str().c_str(), varName[0].size(), -0.5, 0.5+varName[0].size() );
+  else throw runtime_error( "ChrisLib::InitHist : wrong outMode " + std::to_string( static_cast<int>(outMode)));
 
   if ( DEBUG ) cout << "Object created" << endl;
   if ( outMode==OutMode::graphErrors ) {
@@ -250,7 +251,12 @@ TObject* ChrisLib::InitHist( const InputCompare &inputCompare, unsigned iPlot, u
     outHist->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
     outHist->GetYaxis()->SetTitle( outMode==OutMode::profile ?  varYName[iPlot][iHist].c_str() : "#Events" );
     outHist->SetDirectory( 0 );
-    outHist->Sumw2();
+
+    if ( outMode == OutMode::histMultiBranch ) {
+      for ( unsigned iName=0; iName<varName[0].size(); ++iName )
+        outHist->GetXaxis()->SetBinLabel( iName, varName[0][iName].c_str() );
+          }
+    else outHist->Sumw2();
 
   }
 

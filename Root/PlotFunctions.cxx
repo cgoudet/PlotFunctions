@@ -412,8 +412,11 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
               || ( outMode==OutMode::histEvent && foundIndex!=-1 )
               ) {
       TH1D *filledHist = static_cast<TH1D*>(vectObject[histIndex][iPlot]);
+      cout << xVal << " " << filledHist->GetXaxis()->GetXmin() <<  " " << filledHist->GetXaxis()->GetXmax() << endl;
       if ( outMode==OutMode::histMultiBranch ) iBin = iHist;
       else if ( !doLabels ) iBin = filledHist->FindFixBin( xVal);
+      cout << "filledHist " << filledHist << " " << filledHist->GetBinContent(50) << endl;
+      cout << "iBin " << iBin << endl;
       FillFunctionHisto( filledHist, iBin, totWeight, function);
     }
 
@@ -506,6 +509,7 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
           ++nEntries;
         }
         FillObject( inputCompare, mapBranch, vectHist, IDValues, varValues, iPlot, iEvent );
+        cout << "vectHist : " << static_cast<TH1D*>(vectHist[0][0])->GetBinContent(50) << endl;
         ++countEvent;
       }//end iEvent
 
@@ -518,6 +522,8 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
     }//end iAdd
 
   }//end iPlot
+
+
 
   if ( outMode==OutMode::histEvent ) {
     string outName = inputCompare.GetOption( "plotDirectory" ) + inputCompare.GetOutName() + "_compareEvents";
@@ -627,11 +633,12 @@ void ChrisLib::PlotMatrix( const InputCompare &inputCompare, vector<vector<TObje
 
  //==============================================
 void ChrisLib::FillFunctionHisto( TH1* filledHist, const unsigned int bin, const double value, const unsigned code ) {
-
   if ( !filledHist ) throw runtime_error( "ChrisLib::FillFunctionHisto : empty filledHist");
 
   if ( code==0 ) {
-    filledHist->Fill( bin, value);
+    cout << "filling " << bin << " " << filledHist->GetBinContent(0) << " " << filledHist->GetBinContent(50) << " ";
+    filledHist->Fill( filledHist->GetBinCenter(bin), value);
+    cout << " " << filledHist->GetBinContent(0) << " " << filledHist->GetBinContent(50) << endl;
     return;
   }
 

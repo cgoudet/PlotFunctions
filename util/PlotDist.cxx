@@ -60,9 +60,9 @@ int main( int argc, char* argv[] ) {
     try {
       if ( rootFilesName.empty() ) throw invalid_argument( "PlotTree : No input file." );
       if ( inputType==0 ) PlotHist( input, vectObj );
-      else if ( inputType<5 ) PlotTree( input, vectObj );
-      else if ( inputType==5 ) SplitTree( input );
-      else if ( inputType==6 ) PlotMatrix( input, vectObj );
+      else if ( inputType<6 ) PlotTree( input, vectObj );
+      else if ( inputType==6 ) SplitTree( input );
+      else if ( inputType==7 ) PlotMatrix( input, vectObj );
       else throw invalid_argument( "CompareHist : No valid inputType provided." );
 
       if ( !vectObj.empty() ) DrawVect( vectObj, input );

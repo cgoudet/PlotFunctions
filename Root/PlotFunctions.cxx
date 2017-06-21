@@ -156,41 +156,41 @@ void ChrisLib::SplitTree( const InputCompare &inputCompare ) {
       dumFile->cd();
 
       for ( unsigned int iPass = 0; iPass < 2; ++iPass ) {
-	cout<<iPass<<endl;
-	
-	treeName= iPass ? "RejSelTree" : "PassSelTree" ;
-	cout<<iPass<<treeName<<endl;
-	
+        cout<<iPass<<endl;
+
+        treeName= iPass ? "RejSelTree" : "PassSelTree" ;
+        cout<<iPass<<treeName<<endl;
+
         selection = selectionCut.size()>iPlot ? selectionCut[iPlot] : "";
-	if ( selection == "" ) throw invalid_argument( "SplitTree : Selection is empty." );
-	if ( iPass ) selection = "!(" + selection + ")";
-	cout<<selection<<endl;
+        if ( selection == "" ) throw invalid_argument( "SplitTree : Selection is empty." );
+        if ( iPass ) selection = "!(" + selection + ")";
+        cout<<selection<<endl;
 
-	
 
-	if ( iAdd ) {
-	  //          AddTree( *selTree, dumTree  );
-	  AddTree( selTree, inTree->CopyTree( selection.c_str(), "Overwrite" )  );
-	  //          delete dumTree; dumTree=0;
-	}
-	else {
-	  //*selTree = dumTree;
-	  selTree = inTree->CopyTree( selection.c_str(), "Overwrite" );
-	  selTree->SetName( treeName.c_str() );
-	  selTree->SetTitle( treeName.c_str() );
-	  
-	}
 
-	//        delete inTree; inTree = 0;
-	if ( iAdd == rootFilesName[iPlot].size()-1 ) {
-	  //	  dumFile->cd();
-	  selTree->Write( "", TObject::kOverwrite );
-	  cout<<"Writting: "<<dumFile->GetName()<<endl;
-	  cout<<selTree->GetName()<< " "<<selTree->GetEntries()<<endl;
-	  //SaveTree( *selTree, plotDirectory );
-	  
-	}
-	cout<<iPass<<endl;
+        if ( iAdd ) {
+          //          AddTree( *selTree, dumTree  );
+          AddTree( selTree, inTree->CopyTree( selection.c_str(), "Overwrite" )  );
+          //          delete dumTree; dumTree=0;
+        }
+        else {
+          //*selTree = dumTree;
+          selTree = inTree->CopyTree( selection.c_str(), "Overwrite" );
+          selTree->SetName( treeName.c_str() );
+          selTree->SetTitle( treeName.c_str() );
+
+        }
+
+        //        delete inTree; inTree = 0;
+        if ( iAdd == rootFilesName[iPlot].size()-1 ) {
+          //      dumFile->cd();
+          selTree->Write( "", TObject::kOverwrite );
+          cout<<"Writting: "<<dumFile->GetName()<<endl;
+          cout<<selTree->GetName()<< " "<<selTree->GetEntries()<<endl;
+          //SaveTree( *selTree, plotDirectory );
+
+        }
+        cout<<iPass<<endl;
       }//end iPass
       treeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( inFile );
       dumFile->Delete(treeName.c_str());
@@ -454,25 +454,25 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
       if ( isRoot ) {
 
         inFile = new TFile( inFileName.c_str() );
-      if ( inFile->IsZombie() ) throw invalid_argument( "ChrisLib::PlotTree : Input file does not exist " + inFileName );
-      string inTreeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( inFile, "TTree" );
-      inTree = static_cast<TTree*>(inFile->Get( inTreeName.c_str() ) );
-      if ( !inTree ) throw invalid_argument( "PlotTree : " + inTreeName + " not found in " + string(inFile->GetName()) );
-      //inTree->SetDirectory(0);
-      if ( selectionCut.size()>iPlot && selectionCut[iPlot]!="" ) CopyTreeSelection( &inTree, selectionCut[iPlot] );
-      nEntries = inTree->GetEntries();
-      //create a vector to store all branches names to be linked
-      list<string> linkedVariables;
-      copy( varName[iPlot].begin(), varName[iPlot].end(), back_inserter(linkedVariables) );
-      if ( !varYName.empty() ) copy( varYName[iPlot].begin(), varYName[iPlot].end(), back_inserter(linkedVariables) );
-      copy( varErrX[iPlot].begin(), varErrX[iPlot].end(), back_inserter(linkedVariables) );
-      copy( varErrY[iPlot].begin(), varErrY[iPlot].end(), back_inserter(linkedVariables) );
-      copy( eventID.begin(), eventID.end(), back_inserter(linkedVariables) );
-      copy( varWeight[iPlot].begin(), varWeight[iPlot].end(), back_inserter(linkedVariables) );
-      copy( varWeight[0].begin(), varWeight[0].end(), back_inserter(linkedVariables) );
-      linkedVariables.sort();
-      linkedVariables.erase( unique(linkedVariables.begin(), linkedVariables.end() ), linkedVariables.end() );
-      mapBranch.LinkTreeBranches( inTree, 0, linkedVariables );
+        if ( inFile->IsZombie() ) throw invalid_argument( "ChrisLib::PlotTree : Input file does not exist " + inFileName );
+        string inTreeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( inFile, "TTree" );
+        inTree = static_cast<TTree*>(inFile->Get( inTreeName.c_str() ) );
+        if ( !inTree ) throw invalid_argument( "PlotTree : " + inTreeName + " not found in " + string(inFile->GetName()) );
+
+        if ( selectionCut.size()>iPlot && selectionCut[iPlot]!="" ) CopyTreeSelection( &inTree, selectionCut[iPlot] );
+        nEntries = inTree->GetEntries();
+        //create a vector to store all branches names to be linked
+        list<string> linkedVariables;
+        copy( varName[iPlot].begin(), varName[iPlot].end(), back_inserter(linkedVariables) );
+        if ( !varYName.empty() ) copy( varYName[iPlot].begin(), varYName[iPlot].end(), back_inserter(linkedVariables) );
+        copy( varErrX[iPlot].begin(), varErrX[iPlot].end(), back_inserter(linkedVariables) );
+        copy( varErrY[iPlot].begin(), varErrY[iPlot].end(), back_inserter(linkedVariables) );
+        copy( eventID.begin(), eventID.end(), back_inserter(linkedVariables) );
+        copy( varWeight[iPlot].begin(), varWeight[iPlot].end(), back_inserter(linkedVariables) );
+        copy( varWeight[0].begin(), varWeight[0].end(), back_inserter(linkedVariables) );
+        linkedVariables.sort();
+        linkedVariables.erase( unique(linkedVariables.begin(), linkedVariables.end() ), linkedVariables.end() );
+        mapBranch.LinkTreeBranches( inTree, 0, linkedVariables );
       }
       else {
         inputStream.open( inFileName );
@@ -484,7 +484,7 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
         if ( nEvents && countEvent==nEvents ) break;
         if ( isRoot ) inTree->GetEntry( iEvent );
         else {
-	  if ( !mapBranch.ReadCSVEntry( inputStream ) ) break;
+          if ( !mapBranch.ReadCSVEntry( inputStream ) ) break;
           ++nEntries;
         }
         FillObject( inputCompare, mapBranch, vectHist, IDValues, varValues, iPlot, iEvent );
@@ -514,10 +514,8 @@ OutMode ChrisLib::GetOutMode( const InputCompare &inputCompare ) {
 
   int inputType = atoi(inputCompare.GetOption("inputType").c_str());
   if ( inputType==0 ) return OutMode::none;
-  else if ( inputType < 5 ) return static_cast<OutMode>(inputType);
-  else if ( inputType < 9 ) return static_cast<OutMode>(inputType-4);
-  else if ( inputType==9 ) return OutMode::none;
-  else if ( inputType==10 ) return OutMode::none;
+  else if ( inputType<3 ) return OutMode::hist;
+  else if ( inputType < 6 ) return static_cast<OutMode>(inputType-1);
   else throw runtime_error( "GetOutMode : OutMode not planned for inputType above 5" );
 }
 

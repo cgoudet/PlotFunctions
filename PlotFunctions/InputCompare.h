@@ -96,6 +96,10 @@ namespace ChrisLib {
 
      - doLabels=number : Boolean value changing histograms xAxis from numbers to string labels.
 
+     - labels= label1 label2 ... : (Multitoken) Force the x axis to have the desired labels.
+     If the number of labels does not match the number of bins of the first histogram, an error message is printed and this option is switched off.
+     When inputType imply several plots, different labels can be set for different plots.
+
      - saveRoot=number : Boolean value saving the output objects in a rootFile.
 
      - doTabular=mode : Saves the content of output objects into csv file.
@@ -191,17 +195,20 @@ namespace ChrisLib {
     InputCompare();
     InputCompare( std::string fileName );
 
-    //new style
     const std::vector< std::string > &GetEventID() const { return m_eventID; }
-    const std::vector< std::vector< std::string > > &GetObjName() const { return m_objName; }
-    const std::vector<std::vector<std::string>> &GetRootFilesName() const { return m_rootFilesName; }
+    const std::vector< std::string > &GetLabels() const { return m_labels; }
     const std::vector< std::string > &GetSelectionCut() const { return m_selectionCut;}
+
     const std::vector< double > &GetVarMin() const { return m_varMin; }
     const std::vector< double > &GetVarMax() const { return m_varMax; }
+
+    const std::vector<std::vector< double >> &GetXBinning() const { return m_xBinning; }
+
+    const std::vector< std::vector< std::string > > &GetObjName() const { return m_objName; }
+    const std::vector< std::vector<std::string>> &GetRootFilesName() const { return m_rootFilesName; }
     const std::vector< std::vector<std::string> > &GetVarName() const { return m_varName; }
     const std::vector< std::vector<std::string> > &GetVarYName() const { return m_varYName; }
     const std::vector< std::vector<std::string> > &GetVarWeight() const { return m_varWeight; }
-    const std::vector<std::vector< double >> &GetXBinning() const { return m_xBinning; }
     const std::vector< std::vector<std::string> > &GetVarErrX() const { return m_varErrX; }
     const std::vector< std::vector<std::string> > &GetVarErrY() const { return m_varErrY; }
 
@@ -214,7 +221,6 @@ namespace ChrisLib {
 
   private :
     std::vector< std::vector< std::string > > m_rootFilesName;
-
     std::vector< std::vector< std::string > > m_objName;
 
     std::vector< std::string > m_legend;
@@ -223,6 +229,7 @@ namespace ChrisLib {
     std::vector< std::vector<std::string> > m_varYName;
     std::vector< std::vector<std::string> > m_varErrX;
     std::vector< std::vector<std::string> > m_varErrY;
+
     std::vector< std::string > m_latex;
 
     std::vector< double > m_varMin;
@@ -234,6 +241,7 @@ namespace ChrisLib {
     std::vector< std::string > m_selectionCut;
 
     std::vector< std::string > m_eventID;
+    std::vector<std::string> m_labels;
 
     std::vector< std::vector<std::string> > m_varWeight;
     std::vector< std::string > m_loadFiles;

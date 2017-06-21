@@ -99,6 +99,7 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
     ( "function", po::value<string>(&m_mapOptions["function"])->default_value("0"))
     ( "xTitleOffset", po::value<string>(&m_mapOptions["xTitleOffset"]))
     ( "yTitleOffset", po::value<string>(&m_mapOptions["yTitleOffset"]))
+    ( "labels", po::value< vector<string> >(&m_labels)->multitoken())
     ;
 
   po::variables_map vm;
@@ -134,8 +135,8 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
     if ( m_varName.back().size() != m_varName[0].size() ) throw runtime_error( "InputConpare::LoadFiles : varName structure not identical for all files." );
   }
   while ( m_varName.size() && m_varName.size() < nPlots ) m_varName.push_back( m_varName.back() );
-  if ( m_debug ) cout << "varYName" << endl;
 
+  if ( m_debug ) cout << "varYName" << endl;
   for ( unsigned int iYName = 0; iYName < varYName.size(); ++iYName ) {
     m_varYName.push_back( vector<string>() );
     ParseVector( varYName[iYName], m_varYName.back(), 0 );

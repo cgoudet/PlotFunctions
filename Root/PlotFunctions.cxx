@@ -408,11 +408,12 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
       if ( doLabels ) static_cast<TProfile*>(vectObject[iHist][iPlot])->Fill( iBin, yVal , totWeight );
       else static_cast<TProfile*>(vectObject[iHist][iPlot])->Fill( xVal, yVal, totWeight );
     }
-    else if ( ( outMode==OutMode::hist && totWeight )
+    else if ( ( ( outMode==OutMode::hist || outMode==OutMode::histMultiBranch) && totWeight )
               || ( outMode==OutMode::histEvent && foundIndex!=-1 )
               ) {
-      TH1D *filledHist = static_cast<TH1D*>(vectObject[iHist][iPlot]);
-      if ( !doLabels ) iBin = filledHist->FindFixBin( xVal);
+      TH1D *filledHist = static_cast<TH1D*>(vectObject[histIndex][iPlot]);
+      if ( outMode==OutMode::histMultiBranch ) iBin = iHist;
+      else if ( !doLabels ) iBin = filledHist->FindFixBin( xVal);
       FillFunctionHisto( filledHist, iBin, totWeight, function);
     }
 

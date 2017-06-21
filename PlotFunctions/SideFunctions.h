@@ -145,6 +145,8 @@ namespace ChrisLib {
      Accepted keywords and modifications : \n
    - __HASHTAG -> #
    - __ETA_CALO -> #eta_{CALO}
+   - __ATLAS -> Official ATLAS text
+   - __EMPTY -> null string
 
    Following options are replaced by an empty string : __FILL __NOPOINT __ATLAS __STACK
    */

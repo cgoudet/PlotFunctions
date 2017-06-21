@@ -97,6 +97,8 @@ void  ChrisLib::InputCompare::LoadFile( string fileName ) {
     ( "topMargin", po::value<string>( &m_mapOptions["topMargin"]), "" )
     ( "bottomMargin", po::value<string>( &m_mapOptions["bottomMargin"]), "" )
     ( "function", po::value<string>(&m_mapOptions["function"])->default_value("0"))
+    ( "xTitleOffset", po::value<string>(&m_mapOptions["xTitleOffset"]))
+    ( "yTitleOffset", po::value<string>(&m_mapOptions["yTitleOffset"]))
     ;
 
   po::variables_map vm;

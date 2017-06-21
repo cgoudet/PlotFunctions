@@ -47,6 +47,8 @@ ChrisLib::DrawOptions::DrawOptions() : m_legendCoord {0.7,0.9}, m_debug(0),
   for ( auto vKey : keys ) m_doubles[vKey]=-99;
   m_doubles["extendUp"]=0;
   m_doubles["offset"]=0;
+  m_doubles["xTitleOffset"]=1;
+  m_doubles["yTitleOffset"]=1;
 
   keys = { "xTitle", "yTitle" };
   for ( auto vKey : keys ) m_strings[vKey]="";
@@ -130,7 +132,9 @@ void ChrisLib::DrawOptions::SetProperties( TObject* obj, int iHist ) {
         if ( hist ) axis = iAxis ? hist->GetYaxis() : hist->GetXaxis();
         else axis = iAxis ? graph->GetYaxis() : graph->GetXaxis();
         axis->SetTitle( title.c_str() );
+        axis->SetTitleOffset( GetTitleOffset(iAxis) );
       }
+
     }
     if ( graph && GetOrderX() ) graph->Sort();
   }
@@ -368,7 +372,6 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
 
     SetProperties( inHist[iHist], iHist-refHist );
 
-
     GetMaxValue( inHist[iHist], minVal, maxVal, minX, maxX, 1, static_cast<int>(iHist)==refHist );
 
     if ( hist && GetDoChi2() && m_legends.size() && iHist ){
@@ -403,15 +406,16 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
   else rangeUserX = { minX, maxX };
 
   TH1F* dumHist = 0;
-  if ( !strcmp( refXAxis->GetBinLabel(1), "" ) ) {
+  if ( !strcmp( refXAxis->GetBinLabel(1), "" ) ) {//If no label
     if ( doRatio ) dumHist = padUp.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
     else dumHist = canvas.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
 
     dumHist->SetLineColorAlpha( 0, 0 );
     dumHist->SetMarkerColorAlpha( 0, 0 );
-
     dumHist->GetXaxis()->SetTitle( refXAxis->GetTitle() );
     dumHist->GetYaxis()->SetTitle( refYAxis->GetTitle() );
+    dumHist->GetXaxis()->SetTitleOffset( refXAxis->GetTitleOffset() );
+    dumHist->GetYaxis()->SetTitleOffset( refYAxis->GetTitleOffset() );
 
     if (doRatio) {
       dumHist->GetYaxis()->SetTitleOffset( 0.75 );
@@ -420,6 +424,8 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
   }
   else refYAxis->SetRangeUser( rangeUserY.front(), rangeUserY.back() );
 
+  cout << "dumHist : " << dumHist << endl;
+  cout << refXAxis->GetTitle() << endl;
 
   //Plotting histograms
   for ( unsigned int iHist = refHist; iHist < inHist.size(); ++iHist ) {

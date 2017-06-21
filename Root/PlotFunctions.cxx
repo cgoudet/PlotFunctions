@@ -234,6 +234,8 @@ TObject* ChrisLib::InitHist( const InputCompare &inputCompare, unsigned iPlot, u
   else if ( outMode == OutMode::histMultiBranch ) object = new TH1D( name.str().c_str(), name.str().c_str(), varName[0].size(), -0.5, varName[0].size()-0.5 );
   else throw runtime_error( "ChrisLib::InitHist : wrong outMode " + std::to_string( static_cast<int>(outMode)));
 
+
+
   if ( DEBUG ) cout << "Object created" << endl;
   if ( outMode==OutMode::graphErrors ) {
     TGraphErrors *outGraph=static_cast<TGraphErrors*>(object);
@@ -248,7 +250,7 @@ TObject* ChrisLib::InitHist( const InputCompare &inputCompare, unsigned iPlot, u
   }
   else {
     TH1* outHist=static_cast<TH1D*>(object);
-    outHist->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
+    outHist->GetXaxis()->SetTitle( outMode==OutMode::histMultiBranch || doLabels ? "" : varName[iPlot][iHist].c_str() );
     outHist->GetYaxis()->SetTitle( outMode==OutMode::profile ?  varYName[iPlot][iHist].c_str() : "#Events" );
     outHist->SetDirectory( 0 );
 

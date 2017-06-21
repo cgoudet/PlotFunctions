@@ -423,7 +423,13 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
   const vector< vector<string> > &varWeight = inputCompare.GetVarWeight();
   const vector<string> &selectionCut = inputCompare.GetSelectionCut();
 
-  vectHist = vector<vector<TObject*>>( varName[0].size(), vector<TObject*>(rootFilesName.size(), 0) );
+  vectHist = vector<vector<TObject*>>( varName[0].size(), vector<TObject*>(rootFilesName.size(), 0) );  //InputCompare ensures that varName[i] all have the same size.
+
+  //The mode 2 merges all varNames into a single histogram.
+  int inputType = atoi(inputCompare.GetOption("inputType").c_str());
+  if ( inputType==2 ) vectHist = vector<vector<TObject*>>( 1, vector<TObject*>(rootFilesName.size(), 0) );
+
+
   unsigned nEvents = atoi(inputCompare.GetOption("nEvents").c_str());
 
   int nCols = rootFilesName.size()*varName[0].size();

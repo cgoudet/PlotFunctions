@@ -1,8 +1,6 @@
-/**	
+/**
 
 \mainpage
-
-
 
 \author Christophe Goudet goudetchristophe@gmail.com
 \date 11/16/2016
@@ -21,4 +19,4 @@ PlotFunctions is a library designed in the ROOT framework to :
 - A framework to scan a likelihood.
 
 # Versions
-- v2.4 : Adding the function MapBranch::GetSize() 
+- v2.4 : Adding the function MapBranch::GetSize()

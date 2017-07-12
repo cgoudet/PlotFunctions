@@ -430,8 +430,7 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
     dumHist->GetYaxis()->SetTitleOffset( refYAxis->GetTitleOffset() );
 
     if (doRatio) {
-      dumHist->GetYaxis()->SetLabelSize( 0.05 );
-      dumHist->GetXaxis()->SetLabelSize( 0 );
+      dumHist->GetXaxis()->SetLabelSize(0);
       dumHist->GetYaxis()->SetTitleOffset( 0.75 );
       dumHist->GetYaxis()->SetTitleSize( 0.06 );
     }
@@ -537,10 +536,10 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
         ratio.front()->GetXaxis()->SetTitle( refXAxis->GetTitle() );
         ratio.front()->GetXaxis()->SetLabelSize( 0.09 );
         ratio.front()->GetXaxis()->SetTitleSize( 0.13 );
+        ratio.front()->GetXaxis()->SetTitleOffset( 0.95 );
         ratio.front()->GetYaxis()->SetLabelSize( 0.065 );
         ratio.front()->GetYaxis()->SetTitleSize( 0.13 );
         ratio.front()->GetYaxis()->SetTitleOffset( 0.35 );
-        ratio.front()->GetXaxis()->SetTitleOffset( 0.95 );
         ratio.front()->SetTitle("");
         ratio.front()->GetYaxis()->SetTitle( yTitle.c_str() );
         setTitle = 1;

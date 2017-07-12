@@ -43,12 +43,11 @@ using namespace ChrisLib;
 
     - outFileName (string, default=InversionStudy): Name of the root file in which results will be saved.
 
-    - mode :
-
     - fitMethod (int, multitoken) : list of the inversion procedures of ChriLib::InvertMatrix.
     The inserted number will be ordered by increasing order.
     If one provides -1, the expected values are taken from the proper histogram within inFileName.
 
+    - binTemplate (string) : Name of the histogram in the input file from which the binning must be taken.
  */
 int main( int argc, char* argv[] ) {
 

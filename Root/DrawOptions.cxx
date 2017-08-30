@@ -313,7 +313,7 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
   if ( m_debug ) cout << "ChrisLib::DrawOptions::Draw" << endl;
   SetAtlasStyle();
 
-  if ( inHist.size() && TString(inHist.front()->ClassName()).Contains("TH2")) {
+  if ( inHist.size() && inHist.front() && TString(inHist.front()->ClassName()).Contains("TH2")) {
     Draw( static_cast<TH2*>(inHist.front()) );
     return;
   }

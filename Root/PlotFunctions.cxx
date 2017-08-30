@@ -42,7 +42,7 @@ using std::bitset;
 using std::ifstream;
 using std::ostream_iterator;
 
-#define DEBUG 1
+#define DEBUG 0
 //=====================================================
 void ChrisLib::PlotHist( const InputCompare &inputCompare, vector<vector<TObject*>> &vectHist ) {
   if ( DEBUG ) cout << "ChrisLib::PlotHist" << endl;
@@ -444,7 +444,7 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
   const vector< vector<string> > &varWeight = inputCompare.GetVarWeight();
   const vector<string> &selectionCut = inputCompare.GetSelectionCut();
 
-  //vectHist = vector<vector<TObject*>>( varName[0].size(), vector<TObject*>(rootFilesName.size(), 0) );  //InputCompare ensures that varName[i] all have the same size.
+  vectHist = vector<vector<TObject*>>( varName[0].size(), vector<TObject*>(rootFilesName.size(), 0) );  //InputCompare ensures that varName[i] all have the same size.
 
   unsigned nEvents = atoi(inputCompare.GetOption("nEvents").c_str());
 

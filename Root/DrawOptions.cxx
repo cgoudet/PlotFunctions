@@ -24,6 +24,7 @@ using std::list;
 using std::invalid_argument;
 using std::runtime_error;
 using std::cout;
+using std::cerr;
 using std::endl;
 using std::vector;
 using std::string;
@@ -310,7 +311,7 @@ void ChrisLib::DrawOptions::Draw( const vector< TGraphErrors* > &inHist ) {
 //==============================================
 void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
 
-  if ( m_debug ) cout << "ChrisLib::DrawOptions::Draw" << endl;
+  if ( m_debug ) cout << "ChrisLib::DrawOptions::Draw( vector< TObject* > )" << endl;
   SetAtlasStyle();
 
   if ( inHist.size() && inHist.front() && TString(inHist.front()->ClassName()).Contains("TH2")) {
@@ -370,8 +371,11 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
 
 
   for ( unsigned int iHist = 0; iHist < inHist.size(); ++iHist ) {
-    cout << "iHist : " << iHist << endl;
-    if ( !inHist[iHist] ) continue;
+    if ( !inHist[iHist] ) {
+      cerr << "ChrisLib::DrawOptions::Draw( vector< TObject* > ) : skipping null histogra " << iHist << endl;
+      continue;
+    }
+
     TH1* hist=0;
     TGraphErrors *graph=0;
     if ( !IsHist(inHist[iHist] ) ) graph = static_cast<TGraphErrors*>(inHist[iHist]);
@@ -406,6 +410,8 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
     }
 
   }//end for iHist
+
+  if (refHist==-1) throw runtime_error( "ChrisLib::DrawOptions::Draw( vector< TObject* > ) : all histograms are null." );
 
   if ( m_debug ) cout << "setting range" << endl;
   vector<double> rangeUserY { GetRangeUserY() };

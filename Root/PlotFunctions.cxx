@@ -24,6 +24,7 @@ using namespace ChrisLib;
 using std::vector;
 using std::string;
 using std::cout;
+using std::cerr;
 using std::endl;
 using std::exception;
 using std::runtime_error;
@@ -41,7 +42,7 @@ using std::bitset;
 using std::ifstream;
 using std::ostream_iterator;
 
-#define DEBUG 0
+#define DEBUG 1
 //=====================================================
 void ChrisLib::PlotHist( const InputCompare &inputCompare, vector<vector<TObject*>> &vectHist ) {
   if ( DEBUG ) cout << "ChrisLib::PlotHist" << endl;
@@ -443,9 +444,7 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
   const vector< vector<string> > &varWeight = inputCompare.GetVarWeight();
   const vector<string> &selectionCut = inputCompare.GetSelectionCut();
 
-  vectHist = vector<vector<TObject*>>( varName[0].size(), vector<TObject*>(rootFilesName.size(), 0) );  //InputCompare ensures that varName[i] all have the same size.
-
-
+  //vectHist = vector<vector<TObject*>>( varName[0].size(), vector<TObject*>(rootFilesName.size(), 0) );  //InputCompare ensures that varName[i] all have the same size.
 
   unsigned nEvents = atoi(inputCompare.GetOption("nEvents").c_str());
 
@@ -487,6 +486,8 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
 
         if ( selectionCut.size()>iPlot && selectionCut[iPlot]!="" ) CopyTreeSelection( &inTree, selectionCut[iPlot] );
         nEntries = inTree->GetEntries();
+        if ( !nEntries ) cerr << "ChrisLib::PlotTree : Warning! TTree " << inTreeName << " has no entries." << endl;
+
         //create a vector to store all branches names to be linked
         list<string> linkedVariables;
         copy( varName[iPlot].begin(), varName[iPlot].end(), back_inserter(linkedVariables) );

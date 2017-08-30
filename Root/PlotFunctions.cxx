@@ -486,7 +486,7 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
 
         if ( selectionCut.size()>iPlot && selectionCut[iPlot]!="" ) CopyTreeSelection( &inTree, selectionCut[iPlot] );
         nEntries = inTree->GetEntries();
-        if ( !nEntries ) cerr << "ChrisLib::PlotTree : Warning! TTree " << inTreeName << " has no entries." << endl;
+        if ( !nEntries ) cerr << "ChrisLib::PlotTree : Warning! TTree " << inTreeName << " has no entry." << endl;
 
         //create a vector to store all branches names to be linked
         list<string> linkedVariables;

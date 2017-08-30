@@ -370,6 +370,7 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
 
 
   for ( unsigned int iHist = 0; iHist < inHist.size(); ++iHist ) {
+    cout << "iHist : " << iHist << endl;
     if ( !inHist[iHist] ) continue;
     TH1* hist=0;
     TGraphErrors *graph=0;

@@ -191,8 +191,8 @@ void ChrisLib::InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, 
     outMatrix = TMatrixD( nBins, nCols );
     outErrMatrix = TMatrixD( nBins, nCols );
     //FillThe result Matrix
-    for (unsigned int iLine = 0; iLine < nBins; iLine ++) {
-      for ( unsigned int iCol = 0; iCol < nCols; iCol++ ) {
+    for (unsigned int iLine = 0; iLine < nBins; ++iLine) {
+      for ( unsigned int iCol = 0; iCol < nCols; ++iCol ) {
         if ( inversionProcedure%10 == 2  ) {
           outMatrix(iLine, iCol) = SignSquare( alphaBin[iLine][iCol]->getVal() );
           outErrMatrix(iLine, iCol) = ErrC( outMatrix(iLine, iCol), alphaBin[iLine][iCol]->getError() );

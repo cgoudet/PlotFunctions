@@ -97,7 +97,7 @@ void ChrisLib::DrawOptions::AddOption( const string &key, const string &value ) 
 }
 
 //==========================================================
-void ChrisLib::DrawOptions::FillOptions( const vector<string> &options ) {
+void ChrisLib::DrawOptions::AddOption( const vector<string> &options ) {
   std::for_each( options.begin(), options.end(), [this](const string &s ){AddOption(s);});
 }
 
@@ -372,7 +372,7 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
 
   for ( unsigned int iHist = 0; iHist < inHist.size(); ++iHist ) {
     if ( !inHist[iHist] ) {
-      cerr << "ChrisLib::DrawOptions::Draw( vector< TObject* > ) : skipping null histogra " << iHist << endl;
+      cerr << "ChrisLib::DrawOptions::Draw( vector< TObject* > ) : skipping null histogram " << iHist << endl;
       continue;
     }
 

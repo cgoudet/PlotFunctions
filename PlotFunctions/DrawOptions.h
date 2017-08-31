@@ -150,7 +150,7 @@ namespace ChrisLib {
 
     /**\brief Fill the class options
      */
-    void FillOptions( const std::vector<std::string> &options );
+    void AddOption( const std::vector<std::string> &options );
 
     /**\brief Add an option to the object
      */

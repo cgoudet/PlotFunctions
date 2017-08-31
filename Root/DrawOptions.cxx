@@ -363,7 +363,8 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
     vector<TH1*> hists;
     for ( auto it=inHist.begin(); it!=inHist.end(); ++it ) hists.push_back( static_cast<TH1*>(*it));
     CleanHist( hists, GetClean() );
-    copy( hists.begin(), hists.end(), inHist.begin() );
+    inHist.clear();
+    copy( hists.begin(), hists.end(), std::back_inserter(inHist) );
   }
 
   if ( !m_legends.empty() && m_legends.size() != inHist.size() ) throw invalid_argument( "DrawPlot : Number of legend must match the one of histograms." );

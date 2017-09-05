@@ -132,13 +132,15 @@ void ChrisLib::DrawOptions::SetProperties( TObject* obj, int iHist ) {
   if ( !iHist ) {
     for ( unsigned iAxis=0; iAxis<2; ++iAxis ) {
       string title = iAxis ? GetYTitle() : GetXTitle();
-      if ( title!= "" ) {
-        title = ParseLegend( title );
-        TAxis *axis = 0;
+      TAxis *axis = 0;
         if ( hist ) axis = iAxis ? hist->GetYaxis() : hist->GetXaxis();
         else axis = iAxis ? graph->GetYaxis() : graph->GetXaxis();
-        axis->SetTitle( title.c_str() );
-        axis->SetTitleOffset( GetTitleOffset(iAxis) );
+    
+	if ( title!= "" ) {
+	  title = ParseLegend( title );
+	  axis->SetTitle( title.c_str() );
+	  axis->SetTitleOffset( GetTitleOffset(iAxis) );
+	}
 
         if ( !labels.empty() && hist && !iAxis ) {
           if ( axis->GetNbins() != static_cast<int>(labels.size()) ) cout << "ChrisLib::DrawOptions::SetProperties : label and bins size do not match." <<endl;
@@ -146,7 +148,6 @@ void ChrisLib::DrawOptions::SetProperties( TObject* obj, int iHist ) {
             for ( unsigned iBin=0; iBin<labels.size(); ++iBin )
               axis->SetBinLabel( iBin+1, labels[iBin].c_str());
           }
-        }
       }
     }
     if ( graph && GetOrderX() ) graph->Sort();

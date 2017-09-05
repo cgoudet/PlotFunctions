@@ -639,12 +639,10 @@ void ChrisLib::PlotMatrix( const InputCompare &inputCompare, vector<vector<TObje
  //==============================================
 void ChrisLib::FillFunctionHisto( TH1* filledHist, const unsigned int bin, const double value, const double weight, const unsigned code ) {
   if ( !filledHist ) throw runtime_error( "ChrisLib::FillFunctionHisto : empty filledHist");
-
   double oldValue = filledHist->GetBinContent(bin);
   if ( code==0 ) oldValue += weight*value;
   else if ( code==1 ) oldValue = sqrt(oldValue*oldValue+weight*value*value);
   else throw runtime_error( "ChrisLib::FillFunctionHisto : code (" + std::to_string(code) + ") does not correspond to any possibility.");
-
   filledHist->SetBinContent(bin, oldValue);
   filledHist->SetBinError(bin, 0);
 }

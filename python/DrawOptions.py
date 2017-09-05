@@ -9,7 +9,7 @@ class DrawOptions :
                  "doRatio", "drawStyle", "shiftColor", "grid", 'extendUp', 'offset', 'inputType', 'selectionCut',
                  'eventID', 'nEvents', 'nBins', 'triangular', 'xBinning', 'yBinning', 'xTitle', 'yTitle', 'doTabular',
                  'logy', 'removeVal', 'orderX', 'forceStyle', 'extension', 'outName', 'saveRoot', 'doLabels',
-                 'plotDirectory']
+                 'plotDirectory', 'function' ]
         self.__singleOptions = { vKey:'' for vKey in keys }
 
         keys = ['rootFileName', 'objName', 'varName', 'varWeight', 'latex', 'latexOpt', 'legend', 'varYName', 

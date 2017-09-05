@@ -24,6 +24,7 @@ using std::list;
 using std::invalid_argument;
 using std::runtime_error;
 using std::cout;
+using std::cerr;
 using std::endl;
 using std::vector;
 using std::string;
@@ -47,6 +48,8 @@ ChrisLib::DrawOptions::DrawOptions() : m_legendCoord {0.7,0.9}, m_debug(0),
   for ( auto vKey : keys ) m_doubles[vKey]=-99;
   m_doubles["extendUp"]=0;
   m_doubles["offset"]=0;
+  m_doubles["xTitleOffset"]=1;
+  m_doubles["yTitleOffset"]=1;
 
   keys = { "xTitle", "yTitle" };
   for ( auto vKey : keys ) m_strings[vKey]="";
@@ -89,11 +92,12 @@ void ChrisLib::DrawOptions::AddOption( const string &key, const string &value ) 
     m_latexPos.push_back( vector<double>() );
     ParseVector( value, m_latexPos.back() );
   }
+  else if ( key == "labels") ParseVector( value, m_labels );
   else cout << "DrawPlotOption : " << key << " not known" << endl;
 }
 
 //==========================================================
-void ChrisLib::DrawOptions::FillOptions( const vector<string> &options ) {
+void ChrisLib::DrawOptions::AddOption( const vector<string> &options ) {
   std::for_each( options.begin(), options.end(), [this](const string &s ){AddOption(s);});
 }
 
@@ -111,10 +115,14 @@ void ChrisLib::DrawOptions::SetHistProperties( TH1* hist ) {
     if ( strcmp( hist->GetFunction( obj->GetName() )->ClassName(), "TF1" ) ) continue;
     hist->GetFunction( obj->GetName() )->SetLineColor( hist->GetLineColor() );
   }
+
   if ( hist->GetNbinsX()>30 ) hist->GetXaxis()->LabelsOption("v");
 }
 //================================================
 void ChrisLib::DrawOptions::SetProperties( TObject* obj, int iHist ) {
+
+  const vector<string> labels = GetLabels();
+
   TH1* hist=0;
   TGraphErrors *graph=0;
   if (  !IsHist( obj ) ) graph = static_cast<TGraphErrors*>(obj);
@@ -130,6 +138,15 @@ void ChrisLib::DrawOptions::SetProperties( TObject* obj, int iHist ) {
         if ( hist ) axis = iAxis ? hist->GetYaxis() : hist->GetXaxis();
         else axis = iAxis ? graph->GetYaxis() : graph->GetXaxis();
         axis->SetTitle( title.c_str() );
+        axis->SetTitleOffset( GetTitleOffset(iAxis) );
+
+        if ( !labels.empty() && hist && !iAxis ) {
+          if ( axis->GetNbins() != static_cast<int>(labels.size()) ) cout << "ChrisLib::DrawOptions::SetProperties : label and bins size do not match." <<endl;
+          else {
+            for ( unsigned iBin=0; iBin<labels.size(); ++iBin )
+              axis->SetBinLabel( iBin+1, labels[iBin].c_str());
+          }
+        }
       }
     }
     if ( graph && GetOrderX() ) graph->Sort();
@@ -294,10 +311,10 @@ void ChrisLib::DrawOptions::Draw( const vector< TGraphErrors* > &inHist ) {
 //==============================================
 void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
 
-  if ( m_debug ) cout << "ChrisLib::DrawOptions::Draw" << endl;
+  if ( m_debug ) cout << "ChrisLib::DrawOptions::Draw( vector< TObject* > )" << endl;
   SetAtlasStyle();
 
-  if ( inHist.size() && TString(inHist.front()->ClassName()).Contains("TH2")) {
+  if ( inHist.size() && inHist.front() && TString(inHist.front()->ClassName()).Contains("TH2")) {
     Draw( static_cast<TH2*>(inHist.front()) );
     return;
   }
@@ -346,7 +363,8 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
     vector<TH1*> hists;
     for ( auto it=inHist.begin(); it!=inHist.end(); ++it ) hists.push_back( static_cast<TH1*>(*it));
     CleanHist( hists, GetClean() );
-    copy( hists.begin(), hists.end(), inHist.begin() );
+    inHist.clear();
+    copy( hists.begin(), hists.end(), std::back_inserter(inHist) );
   }
 
   if ( !m_legends.empty() && m_legends.size() != inHist.size() ) throw invalid_argument( "DrawPlot : Number of legend must match the one of histograms." );
@@ -354,7 +372,11 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
 
 
   for ( unsigned int iHist = 0; iHist < inHist.size(); ++iHist ) {
-    if ( !inHist[iHist] ) continue;
+    if ( !inHist[iHist] ) {
+      cerr << "ChrisLib::DrawOptions::Draw( vector< TObject* > ) : skipping null histogram " << iHist << endl;
+      continue;
+    }
+
     TH1* hist=0;
     TGraphErrors *graph=0;
     if ( !IsHist(inHist[iHist] ) ) graph = static_cast<TGraphErrors*>(inHist[iHist]);
@@ -367,7 +389,6 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
     }
 
     SetProperties( inHist[iHist], iHist-refHist );
-
 
     GetMaxValue( inHist[iHist], minVal, maxVal, minX, maxX, 1, static_cast<int>(iHist)==refHist );
 
@@ -391,6 +412,8 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
 
   }//end for iHist
 
+  if (refHist==-1) throw runtime_error( "ChrisLib::DrawOptions::Draw( vector< TObject* > ) : all histograms are null." );
+
   if ( m_debug ) cout << "setting range" << endl;
   vector<double> rangeUserY { GetRangeUserY() };
   while ( rangeUserY.size() < 2 ) rangeUserY.push_back( pow(-1, rangeUserY.size()+1)*0.99 );
@@ -403,17 +426,19 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
   else rangeUserX = { minX, maxX };
 
   TH1F* dumHist = 0;
-  if ( !strcmp( refXAxis->GetBinLabel(1), "" ) ) {
+  if ( !strcmp( refXAxis->GetBinLabel(1), "" ) ) {//If no label
     if ( doRatio ) dumHist = padUp.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
     else dumHist = canvas.DrawFrame( rangeUserX.front(), rangeUserY.front(), rangeUserX.back(), rangeUserY.back() );
 
     dumHist->SetLineColorAlpha( 0, 0 );
     dumHist->SetMarkerColorAlpha( 0, 0 );
-
     dumHist->GetXaxis()->SetTitle( refXAxis->GetTitle() );
     dumHist->GetYaxis()->SetTitle( refYAxis->GetTitle() );
+    dumHist->GetXaxis()->SetTitleOffset( refXAxis->GetTitleOffset() );
+    dumHist->GetYaxis()->SetTitleOffset( refYAxis->GetTitleOffset() );
 
     if (doRatio) {
+      dumHist->GetXaxis()->SetLabelSize(0);
       dumHist->GetYaxis()->SetTitleOffset( 0.75 );
       dumHist->GetYaxis()->SetTitleSize( 0.06 );
     }
@@ -517,12 +542,12 @@ void ChrisLib::DrawOptions::Draw( vector< TObject* > &inHist ) {
       //Set graphics properties of first hitogram
       if ( !setTitle ) {
         ratio.front()->GetXaxis()->SetTitle( refXAxis->GetTitle() );
-        ratio.front()->GetXaxis()->SetLabelSize( 0.1 );
-        ratio.front()->GetXaxis()->SetTitleSize( 0.15 );
+        ratio.front()->GetXaxis()->SetLabelSize( 0.09 );
+        ratio.front()->GetXaxis()->SetTitleSize( 0.13 );
+        ratio.front()->GetXaxis()->SetTitleOffset( 0.95 );
         ratio.front()->GetYaxis()->SetLabelSize( 0.065 );
-        ratio.front()->GetYaxis()->SetTitleSize( 0.15 );
-        ratio.front()->GetYaxis()->SetTitleOffset( 0.3 );
-        ratio.front()->GetXaxis()->SetTitleOffset( 0.85 );
+        ratio.front()->GetYaxis()->SetTitleSize( 0.13 );
+        ratio.front()->GetYaxis()->SetTitleOffset( 0.35 );
         ratio.front()->SetTitle("");
         ratio.front()->GetYaxis()->SetTitle( yTitle.c_str() );
         setTitle = 1;

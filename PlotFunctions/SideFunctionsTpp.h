@@ -68,11 +68,11 @@ Tested.
   */
   template< typename Type1 > void ParseVector( const std::string &s, std::vector< Type1 > &outVector, char delim = ' ' );
   template< typename Type1 > void ParseVector( const std::string &s, std::vector< Type1 > &outVector, char delim ) {
-    
+    if ( s.size() > 10000 ) throw std::runtime_error( "ParseVector : string too long to parse" );
     std::istream_iterator<Type1> end;
-    char line[500];
+    char line[10000];
     std::stringstream ss {s};
-    while( ss.getline(line, 500, delim ) ) {
+    while( ss.getline(line, 10000, delim ) ) {
       std::stringstream ss2( line );
       std::istream_iterator<Type1> it(ss2);
       std::copy( it, end, back_inserter(outVector) );

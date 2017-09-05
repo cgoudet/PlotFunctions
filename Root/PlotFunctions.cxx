@@ -24,6 +24,7 @@ using namespace ChrisLib;
 using std::vector;
 using std::string;
 using std::cout;
+using std::cerr;
 using std::endl;
 using std::exception;
 using std::runtime_error;
@@ -109,12 +110,15 @@ void ChrisLib::DrawVect( vector<vector<TObject*>> &vectObj, const InputCompare &
 
   const string plotPath = inputCompare.GetOption( "plotDirectory" ) + inputCompare.GetOutName();
   const vector< vector<string> > varName = inputCompare.GetVarName();
+  const vector<string> labels = inputCompare.GetLabels();
+
   DrawOptions drawOpt = inputCompare.CreateDrawOptions();
 
   for ( unsigned iHist=0; iHist<vectObj.size(); ++iHist ) {
     string outPlotName = plotPath;
     if ( !varName.empty() && varName.size()>iHist ) outPlotName += "_" + varName[0][iHist];
     drawOpt.AddOption( "outName", outPlotName );
+    drawOpt.AddOption( "labels", labels.size()>iHist ? labels[iHist] : "" );
     drawOpt.Draw( vectObj[iHist] );
 
     const int doTabular = atoi(inputCompare.GetOption("doTabular").c_str());
@@ -156,41 +160,41 @@ void ChrisLib::SplitTree( const InputCompare &inputCompare ) {
       dumFile->cd();
 
       for ( unsigned int iPass = 0; iPass < 2; ++iPass ) {
-	cout<<iPass<<endl;
-	
-	treeName= iPass ? "RejSelTree" : "PassSelTree" ;
-	cout<<iPass<<treeName<<endl;
-	
+        cout<<iPass<<endl;
+
+        treeName= iPass ? "RejSelTree" : "PassSelTree" ;
+        cout<<iPass<<treeName<<endl;
+
         selection = selectionCut.size()>iPlot ? selectionCut[iPlot] : "";
-	if ( selection == "" ) throw invalid_argument( "SplitTree : Selection is empty." );
-	if ( iPass ) selection = "!(" + selection + ")";
-	cout<<selection<<endl;
+        if ( selection == "" ) throw invalid_argument( "SplitTree : Selection is empty." );
+        if ( iPass ) selection = "!(" + selection + ")";
+        cout<<selection<<endl;
 
-	
 
-	if ( iAdd ) {
-	  //          AddTree( *selTree, dumTree  );
-	  AddTree( selTree, inTree->CopyTree( selection.c_str(), "Overwrite" )  );
-	  //          delete dumTree; dumTree=0;
-	}
-	else {
-	  //*selTree = dumTree;
-	  selTree = inTree->CopyTree( selection.c_str(), "Overwrite" );
-	  selTree->SetName( treeName.c_str() );
-	  selTree->SetTitle( treeName.c_str() );
-	  
-	}
 
-	//        delete inTree; inTree = 0;
-	if ( iAdd == rootFilesName[iPlot].size()-1 ) {
-	  //	  dumFile->cd();
-	  selTree->Write( "", TObject::kOverwrite );
-	  cout<<"Writting: "<<dumFile->GetName()<<endl;
-	  cout<<selTree->GetName()<< " "<<selTree->GetEntries()<<endl;
-	  //SaveTree( *selTree, plotDirectory );
-	  
-	}
-	cout<<iPass<<endl;
+        if ( iAdd ) {
+          //          AddTree( *selTree, dumTree  );
+          AddTree( selTree, inTree->CopyTree( selection.c_str(), "Overwrite" )  );
+          //          delete dumTree; dumTree=0;
+        }
+        else {
+          //*selTree = dumTree;
+          selTree = inTree->CopyTree( selection.c_str(), "Overwrite" );
+          selTree->SetName( treeName.c_str() );
+          selTree->SetTitle( treeName.c_str() );
+
+        }
+
+        //        delete inTree; inTree = 0;
+        if ( iAdd == rootFilesName[iPlot].size()-1 ) {
+          //      dumFile->cd();
+          selTree->Write( "", TObject::kOverwrite );
+          cout<<"Writting: "<<dumFile->GetName()<<endl;
+          cout<<selTree->GetName()<< " "<<selTree->GetEntries()<<endl;
+          //SaveTree( *selTree, plotDirectory );
+
+        }
+        cout<<iPass<<endl;
       }//end iPass
       treeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( inFile );
       dumFile->Delete(treeName.c_str());
@@ -226,11 +230,14 @@ TObject* ChrisLib::InitHist( const InputCompare &inputCompare, unsigned iPlot, u
     else if ( xBinning.empty() || xBinning[iHist].empty() ) object = new TProfile( name.str().c_str(), name.str().c_str(), nBins, varMin[iHist], varMax[iHist] );
     else object = new TProfile( name.str().c_str(), name.str().c_str(), static_cast<int>(xBinning[iPlot].size())-1, &xBinning[iPlot][0] );
   }
-  else {
+  else if ( outMode == OutMode::hist ){
     if ( doLabels ) object = new TH1D( name.str().c_str(), name.str().c_str(), 1, -0.5, 0.5 );
     else if ( xBinning.empty() || xBinning[iHist].empty() ) object = new TH1D( name.str().c_str(), name.str().c_str(), nBins, varMin[iHist], varMax[iHist] );
     else object = new TH1D( name.str().c_str(), name.str().c_str(), static_cast<int>(xBinning[iHist].size())-1, &xBinning[iHist][0] );
   }
+  else if ( outMode == OutMode::histMultiBranch ) object = new TH1D( name.str().c_str(), name.str().c_str(), varName[0].size(), -0.5, varName[0].size()-0.5 );
+  else throw runtime_error( "ChrisLib::InitHist : wrong outMode " + std::to_string( static_cast<int>(outMode)));
+
 
 
   if ( DEBUG ) cout << "Object created" << endl;
@@ -247,10 +254,15 @@ TObject* ChrisLib::InitHist( const InputCompare &inputCompare, unsigned iPlot, u
   }
   else {
     TH1* outHist=static_cast<TH1D*>(object);
-    outHist->GetXaxis()->SetTitle( varName[iPlot][iHist].c_str() );
+    outHist->GetXaxis()->SetTitle( outMode==OutMode::histMultiBranch || doLabels ? "" : varName[iPlot][iHist].c_str() );
     outHist->GetYaxis()->SetTitle( outMode==OutMode::profile ?  varYName[iPlot][iHist].c_str() : "#Events" );
     outHist->SetDirectory( 0 );
-    outHist->Sumw2();
+
+    if ( outMode == OutMode::histMultiBranch ) {
+      for ( unsigned iName=0; iName<varName[0].size(); ++iName )
+        outHist->GetXaxis()->SetBinLabel( iName+1, varName[0][iName].c_str() );
+          }
+    else outHist->Sumw2();
 
   }
 
@@ -308,6 +320,7 @@ void ChrisLib::TestInputs( const InputCompare &inputCompare ) {
   if ( outMode==OutMode::profile ) { errors.set(0); errors.set(2); errors.set(3);}
   if ( outMode==OutMode::graphErrors ) { errors.set(2); errors.set(3); }
   if ( outMode!=OutMode::none ) errors.set(4);
+  if ( outMode == OutMode::histMultiBranch ) { errors.set(4);}
   if ( doLabels && IsTH1( outMode ) ) errors.set(0,0);
 
   if ( errors.test(0) && xBinning.empty() && ( varMin.empty() || varMax.empty()) ) throw invalid_argument( "TestInput : No information for binning provided" );
@@ -352,19 +365,23 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
   const vector< vector<string> > &varErrY = inputCompare.GetVarErrY();
   const vector< vector<string> > &varWeight = inputCompare.GetVarWeight();
   const unsigned doLabels = atoi(inputCompare.GetOption("doLabels").c_str());
+  const unsigned function = atoi(inputCompare.GetOption("function").c_str());
 
   double totWeight=1;
   if ( outMode!=OutMode::graphErrors ) for_each( varWeight[iPlot].begin(), varWeight[iPlot].end(), [&totWeight, &mapBranch]( const string &s ) { totWeight*=stod(mapBranch.GetLabel(s));} );
   int foundIndex=-1;
   if ( outMode==OutMode::histEvent ) foundIndex = FillCompareEvent( inputCompare, IDValues, mapBranch, iPlot, iEntry );
 
-  for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); iHist++ ) {
+
+  for ( unsigned int iHist = 0; iHist < varName[iPlot].size(); ++iHist ) {
     string label;
     if ( doLabels ) label = ReplaceString( "\\_", "_" )(mapBranch.GetLabel( varName[iPlot][iHist] ));
     if ( outMode==OutMode::histEvent && ( !iPlot || foundIndex != -1 ) ) varValues[foundIndex][iHist*varName.size()+iPlot] = stod(mapBranch.GetLabel( varName[iPlot][iHist] ));
-    if ( !vectObject[iHist][iPlot] ) {
-      vectObject[iHist][iPlot]=InitHist( inputCompare, iPlot, iHist );
-      TH1 *hist = static_cast<TH1*>(vectObject[iHist][iPlot]);
+
+    unsigned histIndex = outMode==OutMode::histMultiBranch ? 0 : iHist;
+    if ( !vectObject[histIndex][iPlot] ) { //Defines the histograms
+      vectObject[histIndex][iPlot]=InitHist( inputCompare, iPlot, histIndex );
+      TH1 *hist = static_cast<TH1*>(vectObject[histIndex][iPlot]);
       if ( doLabels && IsTH1(outMode) ) {
         hist->GetXaxis()->SetBinLabel(1, label.c_str());
         hist->GetXaxis()->LabelsOption("u");
@@ -377,7 +394,7 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
 
     int iBin = -1;
     if ( doLabels && IsTH1( outMode ) ) {
-      TH1* hist = static_cast< TH1* >(vectObject[iHist][iPlot]);
+      TH1* hist = static_cast< TH1* >(vectObject[histIndex][iPlot]);
       iBin = hist->GetXaxis()->FindBin( label.c_str() );
       if ( iBin==-1 ) throw runtime_error( "FillObject : FindBin error." );
     }
@@ -404,6 +421,10 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
       if ( doLabels ) static_cast<TH1D*>(vectObject[iHist][iPlot])->Fill( iBin-1, totWeight );
       else static_cast<TH1D*>(vectObject[iHist][iPlot])->Fill( xVal , totWeight );
     }
+    else if ( outMode==OutMode::histMultiBranch ) {
+      TH1D *filledHist = static_cast<TH1D*>(vectObject[0][iPlot]);
+      FillFunctionHisto( filledHist, iHist+1, xVal, totWeight, function);
+    }
 
   }// End iHist
 //  if ( DEBUG ) cout << "ChrisLib::FillObject end" << endl;
@@ -423,7 +444,8 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
   const vector< vector<string> > &varWeight = inputCompare.GetVarWeight();
   const vector<string> &selectionCut = inputCompare.GetSelectionCut();
 
-  vectHist = vector<vector<TObject*>>( varName[0].size(), vector<TObject*>(rootFilesName.size(), 0) );
+  vectHist = vector<vector<TObject*>>( varName[0].size(), vector<TObject*>(rootFilesName.size(), 0) );  //InputCompare ensures that varName[i] all have the same size.
+
   unsigned nEvents = atoi(inputCompare.GetOption("nEvents").c_str());
 
   int nCols = rootFilesName.size()*varName[0].size();
@@ -436,6 +458,9 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
     varValues.resize( extents[nEvents][nCols] );
     IDValues.resize( extents[nEvents][nCols] );
   }
+  else if ( outMode==OutMode::histMultiBranch ) //The mode 2 merges all varNames into a single histogram.
+    vectHist = vector<vector<TObject*>>( 1, vector<TObject*>(rootFilesName.size(), 0) );
+
 
   for ( unsigned int iPlot = 0; iPlot < rootFilesName.size(); ++iPlot ) {
     unsigned countEvent=0;
@@ -454,25 +479,27 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
       if ( isRoot ) {
 
         inFile = new TFile( inFileName.c_str() );
-      if ( inFile->IsZombie() ) throw invalid_argument( "ChrisLib::PlotTree : Input file does not exist " + inFileName );
-      string inTreeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( inFile, "TTree" );
-      inTree = static_cast<TTree*>(inFile->Get( inTreeName.c_str() ) );
-      if ( !inTree ) throw invalid_argument( "PlotTree : " + inTreeName + " not found in " + string(inFile->GetName()) );
-      //inTree->SetDirectory(0);
-      if ( selectionCut.size()>iPlot && selectionCut[iPlot]!="" ) CopyTreeSelection( &inTree, selectionCut[iPlot] );
-      nEntries = inTree->GetEntries();
-      //create a vector to store all branches names to be linked
-      list<string> linkedVariables;
-      copy( varName[iPlot].begin(), varName[iPlot].end(), back_inserter(linkedVariables) );
-      if ( !varYName.empty() ) copy( varYName[iPlot].begin(), varYName[iPlot].end(), back_inserter(linkedVariables) );
-      copy( varErrX[iPlot].begin(), varErrX[iPlot].end(), back_inserter(linkedVariables) );
-      copy( varErrY[iPlot].begin(), varErrY[iPlot].end(), back_inserter(linkedVariables) );
-      copy( eventID.begin(), eventID.end(), back_inserter(linkedVariables) );
-      copy( varWeight[iPlot].begin(), varWeight[iPlot].end(), back_inserter(linkedVariables) );
-      copy( varWeight[0].begin(), varWeight[0].end(), back_inserter(linkedVariables) );
-      linkedVariables.sort();
-      linkedVariables.erase( unique(linkedVariables.begin(), linkedVariables.end() ), linkedVariables.end() );
-      mapBranch.LinkTreeBranches( inTree, 0, linkedVariables );
+        if ( inFile->IsZombie() ) throw invalid_argument( "ChrisLib::PlotTree : Input file does not exist " + inFileName );
+        string inTreeName = ( inputObjName.size()>iPlot && inputObjName[iPlot].size()>iAdd ) ? inputObjName[iPlot][iAdd] : FindDefaultTree( inFile, "TTree" );
+        inTree = static_cast<TTree*>(inFile->Get( inTreeName.c_str() ) );
+        if ( !inTree ) throw invalid_argument( "PlotTree : " + inTreeName + " not found in " + string(inFile->GetName()) );
+
+        if ( selectionCut.size()>iPlot && selectionCut[iPlot]!="" ) CopyTreeSelection( &inTree, selectionCut[iPlot] );
+        nEntries = inTree->GetEntries();
+        if ( !nEntries ) cerr << "ChrisLib::PlotTree : Warning! TTree " << inTreeName << " has no entry." << endl;
+
+        //create a vector to store all branches names to be linked
+        list<string> linkedVariables;
+        copy( varName[iPlot].begin(), varName[iPlot].end(), back_inserter(linkedVariables) );
+        if ( !varYName.empty() ) copy( varYName[iPlot].begin(), varYName[iPlot].end(), back_inserter(linkedVariables) );
+        copy( varErrX[iPlot].begin(), varErrX[iPlot].end(), back_inserter(linkedVariables) );
+        copy( varErrY[iPlot].begin(), varErrY[iPlot].end(), back_inserter(linkedVariables) );
+        copy( eventID.begin(), eventID.end(), back_inserter(linkedVariables) );
+        copy( varWeight[iPlot].begin(), varWeight[iPlot].end(), back_inserter(linkedVariables) );
+        copy( varWeight[0].begin(), varWeight[0].end(), back_inserter(linkedVariables) );
+        linkedVariables.sort();
+        linkedVariables.erase( unique(linkedVariables.begin(), linkedVariables.end() ), linkedVariables.end() );
+        mapBranch.LinkTreeBranches( inTree, 0, linkedVariables );
       }
       else {
         inputStream.open( inFileName );
@@ -484,7 +511,7 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
         if ( nEvents && countEvent==nEvents ) break;
         if ( isRoot ) inTree->GetEntry( iEvent );
         else {
-	  if ( !mapBranch.ReadCSVEntry( inputStream ) ) break;
+          if ( !mapBranch.ReadCSVEntry( inputStream ) ) break;
           ++nEntries;
         }
         FillObject( inputCompare, mapBranch, vectHist, IDValues, varValues, iPlot, iEvent );
@@ -501,6 +528,8 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
 
   }//end iPlot
 
+
+
   if ( outMode==OutMode::histEvent ) {
     string outName = inputCompare.GetOption( "plotDirectory" ) + inputCompare.GetOutName() + "_compareEvents";
     PrintOutputCompareEvents( varValues, IDValues, eventID, vectHist, outName );
@@ -514,10 +543,7 @@ OutMode ChrisLib::GetOutMode( const InputCompare &inputCompare ) {
 
   int inputType = atoi(inputCompare.GetOption("inputType").c_str());
   if ( inputType==0 ) return OutMode::none;
-  else if ( inputType < 5 ) return static_cast<OutMode>(inputType);
-  else if ( inputType < 9 ) return static_cast<OutMode>(inputType-4);
-  else if ( inputType==9 ) return OutMode::none;
-  else if ( inputType==10 ) return OutMode::none;
+  else if ( inputType < 6 ) return static_cast<OutMode>(inputType);
   else throw runtime_error( "GetOutMode : OutMode not planned for inputType above 5" );
 }
 
@@ -526,6 +552,7 @@ string ChrisLib::WriteOutMode ( const OutMode outMode ) {
   switch( outMode ) {
   case OutMode::none : return "none";
   case OutMode::hist : return "hist";
+  case OutMode::histMultiBranch : return "histMultiBranch";
   case OutMode::histEvent : return "histEvent";
   case OutMode::profile : return "profile";
   case OutMode::graphErrors : return "graphErrors";
@@ -610,3 +637,14 @@ void ChrisLib::PlotMatrix( const InputCompare &inputCompare, vector<vector<TObje
  }
 
  //==============================================
+void ChrisLib::FillFunctionHisto( TH1* filledHist, const unsigned int bin, const double value, const double weight, const unsigned code ) {
+  if ( !filledHist ) throw runtime_error( "ChrisLib::FillFunctionHisto : empty filledHist");
+
+  double oldValue = filledHist->GetBinContent(bin);
+  if ( code==0 ) oldValue += weight*value;
+  else if ( code==1 ) oldValue = sqrt(oldValue*oldValue+weight*value*value);
+  else throw runtime_error( "ChrisLib::FillFunctionHisto : code (" + std::to_string(code) + ") does not correspond to any possibility.");
+
+  filledHist->SetBinContent(bin, oldValue);
+  filledHist->SetBinError(bin, 0);
+}

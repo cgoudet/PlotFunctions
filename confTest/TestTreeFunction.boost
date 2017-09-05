@@ -1,10 +1,7 @@
-inputType=1
+inputType=2
 rootFileName=/home/goudet/Documents/Programs/Packages/PlotFunctions/confTest/mapResult.csv
 rootFileName=/home/goudet/Documents/Programs/Packages/PlotFunctions/confTest/mapResult.csv
 
-varName=mean_down
-varName=mean_up
 
-varMin=124
-varMax=126
-nBins=100
+varName=mean_up sigma_up
+varName=mean_down sigma_down

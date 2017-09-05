@@ -14,13 +14,13 @@ namespace ChrisLib {
 
    ### inversionProcedure
    - 0X : Inversion is performed analytically
-   - 1X : Inversion is performed as likelihood maximization 
-   
+   - 1X : Inversion is performed as likelihood maximization
+
    Formulas :
    - X0 : alpha_ij = ( alpha_i + alpha_j )/2
    - X1 : alpha_ij^2 = ( (alpha^2)_i^2 + alpha_j^2 ) /2
    - X2 : alpha_ij = sqrt( alpha_i^2 + alpha_j^2 ) /2
-
+   - X3 and X4 : tests to deal with multi dimensional scales. Not validated.
 */
 void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixD &outMatrix, TMatrixD &outErrMatrix, unsigned int inversionProcedure = 0 );
 

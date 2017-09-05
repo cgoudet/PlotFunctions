@@ -452,6 +452,7 @@ string ChrisLib::ParseLegend( const string &legend ) {
   dumString.ReplaceAll("__ATLAS", "" );
   dumString.ReplaceAll("__STACK", "" );
   dumString.ReplaceAll("__ETA_CALO", "#eta_{CALO}" );
+  dumString.ReplaceAll("__EMPTY", "");
   return static_cast<string>( dumString );
 }
 

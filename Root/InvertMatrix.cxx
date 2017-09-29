@@ -224,3 +224,7 @@ void ChrisLib::InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, 
     throw runtime_error( "InvertMatrix : input inversionProcedure/10 do not corresponds do any case available : " + inversionProcedure );
   }//end switch inversionProcedure
 }
+
+
+double ChrisLib::SignSquare( double inVal )  { return copysign( sqrt( fabs( inVal ) ), inVal ); }
+double ChrisLib::ErrC( double c, double errC2 ) { return sqrt( c*c + errC2 ) - fabs(c); }

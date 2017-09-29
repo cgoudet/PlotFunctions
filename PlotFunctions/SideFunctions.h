@@ -294,6 +294,15 @@ namespace ChrisLib {
   /**\brief REverse errors and content value
    */
   void ReverseErrVal( TH1* hist );
+
+  /** brief Perform function on pair of columns and store the result in a column inserted after the two
+
+      Applicable functions :
+      - 0 : difference
+      - 1 : relative difference
+   */
+  boost::multi_array<double,2> CompareArrayColumns( const boost::multi_array<double,2> &inputArray, int function=0 );
+
 }
 
 #endif

@@ -533,6 +533,8 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
 
   if ( outMode==OutMode::histEvent ) {
     string outName = inputCompare.GetOption( "plotDirectory" ) + inputCompare.GetOutName() + "_compareEvents";
+    int function = std::stod(inputCompare.GetOption( "function" ));
+    if ( function ) CompareArrayColumns( varValues, function-1 );
     PrintOutputCompareEvents( varValues, IDValues, eventID, vectHist, outName );
   }
   if ( DEBUG ) cout << "ChrisLib::PlotTree end" << endl;

@@ -18,7 +18,7 @@ using std::string;
 using std::invalid_argument;
 using std::vector;
 using std::runtime_error;
-
+using boost::multi_array;
 BOOST_AUTO_TEST_SUITE( SideFunctionsSuite )
 //====================================================
 BOOST_AUTO_TEST_CASE( StripStringTest ) {
@@ -483,4 +483,33 @@ BOOST_AUTO_TEST_CASE( AddSlashTest ) {
   in = "dodo/";
   BOOST_CHECK_EQUAL( AddSlash(in), in );
 }
+
+//============================
+BOOST_AUTO_TEST_CASE( CompareArrayColumnsTest ) {
+  multi_array<double, 2> diffArr(boost::extents[5][6]), throwArr(boost::extents[5][5]);
+  multi_array<double, 2> diffRelArr(diffArr), initArr(boost::extents[5][4]);
+  
+  for ( int j=0; j<4; ++ j ) {
+    int shift = j / 2;
+    for ( int i=0; i<5; ++i ) {
+      initArr[i][j] = i*10 + j+1;
+      diffArr[i][j+shift] = initArr[i][j];
+      diffRelArr[i][j+shift] = initArr[i][j];
+      if ( j%2 ) {
+	diffArr[i][j+1+shift] = initArr[i][j-1] - initArr[i][j];
+	diffRelArr[i][j+1+shift] = ( initArr[i][j-1] - initArr[i][j] )/ initArr[i][j-1];
+      }
+    }
+  }
+  
+  BOOST_CHECK_THROW( CompareArrayColumns(throwArr ), runtime_error );
+  
+  multi_array<double, 2> outArr = CompareArrayColumns(initArr, 0);
+  BOOST_CHECK( outArr == diffArr );
+
+  outArr = CompareArrayColumns( initArr, 1 );
+  BOOST_CHECK( outArr == diffRelArr );
+}
+
+
 BOOST_AUTO_TEST_SUITE_END()

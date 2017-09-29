@@ -110,9 +110,13 @@ namespace ChrisLib {
 
      - triangular=number : Boolean allowing to plot only triangular matrix.
 
-     - function=number : Code for the function to be used to combine new entry of histogram with its content.
-     Default=0=sum.
+     - function=number (default=0) : option used both for event level comparison and filling of histograms with slightly different definition.
+     For filled histogram, 'function' is the code for the function to be used to combine new entry of histogram with its content.
      Description of available options is in ChrisLib::FillFunctionHisto.
+   
+     For event comparison, it the function to apply on variable of two different columns to compare them.
+     'function -1' is passed to ChrisLib::CompareArrayColumns. 
+     'function=0' means no comparison.
 
      ### inputType Description
      The PlotDist framework allows for variouts operation on various types of input data.

@@ -1058,3 +1058,23 @@ void ChrisLib::ReverseErrVal( TH1* hist ) {
     hist->SetBinError( iBin, val );
   }
 }
+//==============================================
+multi_array<double,2> ChrisLib::CompareArrayColumns( const multi_array<double,2> &inputArray, int function ) {
+  if ( inputArray[0].size() % 2 ) throw runtime_error( "ChrisLib::CompareArrayColumns : inputArray has odd number of columns" );
+  multi_array<double, 2> outputArray(boost::extents[inputArray.size()][inputArray[0].size()/2*3]);
+
+  for ( unsigned iCol = 0; iCol<inputArray[0].size(); ++iCol ) {
+    unsigned shift = iCol / 2;
+    for ( unsigned iLine = 0; iLine<inputArray.size(); ++iLine ) {
+      outputArray[iLine][iCol+shift] = inputArray[iLine][iCol];
+      if ( iCol %2 ) {
+	if ( function == 0 or function == 1 ) {
+	  outputArray[iLine][iCol+1+shift] = inputArray[iLine][iCol-1] - inputArray[iLine][iCol];
+	  if ( function == 1 ) outputArray[iLine][iCol+1+shift] /= inputArray[iLine][iCol-1];
+	}
+      }
+    }
+  }
+  return outputArray;
+}
+

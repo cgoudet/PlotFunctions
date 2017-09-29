@@ -26,11 +26,11 @@ void InvertMatrix( TMatrixD &combinMatrix, TMatrixD &combinErrMatrix, TMatrixD &
 
 /**\brief return square root of |inVal| with the same sign as inVal
  */
- double SignSquare( double inVal )  { return copysign( sqrt( fabs( inVal ) ), inVal ); }
+ double SignSquare( double inVal );
 
 /**\brief compute uncertainty of C from C2 uncertainty
  */
- double ErrC( double c, double errC2 ) { return sqrt( c*c + errC2 ) - fabs(c); }
+ double ErrC( double c, double errC2 );
 
 }
 #endif

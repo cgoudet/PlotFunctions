@@ -28,11 +28,12 @@ namespace ChrisLib {
   OutMode GetOutMode( const InputCompare &inputCompare );
   std::string WriteOutMode ( const OutMode outMode );
 
+
   void PrintOutputCompareEvents( const boost::multi_array<double,2> &varValues,
-                                 const boost::multi_array<long long,2> &IDValues,
-                                 const std::vector<std::string> &eventID,
-                                 const std::vector<std::vector<TObject*>> &vectHist,
-                                 const std::string &outName );
+                                 const boost::multi_array<string,2> &IDValues,
+                                 const ChrisLib::InputCompare &inputCompare,
+                                 const std::vector<std::vector<TObject*>> &vectHist
+				 );
 
   /**\brief Fills the bin of an histogram with a function of its content and totweight.
 
@@ -47,7 +48,7 @@ namespace ChrisLib {
 
   /**\brief  Fill the variable identifying all events of interest and return the index of the event with the same properties as the current
    */
-  int FillCompareEvent( const InputCompare &inputCompare, boost::multi_array<long long,2> &IDValues, const MapBranches &mapBranch, const int iPlot, const int iEvent );
+  int FillCompareEvent( const InputCompare &inputCompare, boost::multi_array<string,2> &IDValues, const MapBranches &mapBranch, const int iPlot, const int iEvent );
   TObject* InitHist( const InputCompare &inputCompare, unsigned iPlot, unsigned iHist );
 
   /**\brief Test the mandatory variables for each option file reading options (0<inputType<6).
@@ -76,7 +77,7 @@ namespace ChrisLib {
   void FillObject( const InputCompare &inputCompare,
                    const MapBranches &mapBranch,
                    std::vector<std::vector<TObject*>> &vectObject,
-                   boost::multi_array<long long,2> &IDValues,
+                   boost::multi_array<string,2> &IDValues,
                    boost::multi_array<double,2> &varValues,
                    const unsigned iPlot,
                    const unsigned iEntry

@@ -74,34 +74,52 @@ void ChrisLib::PlotHist( const InputCompare &inputCompare, vector<vector<TObject
 }//end PlotHist
 
 //====================================================================
-void ChrisLib::PrintOutputCompareEvents( const multi_array<double,2> &varValues, const multi_array<long long,2> &IDValues, const vector<string> &eventID, const vector<vector<TObject*>> &vectHist, const string &outName ) {
+void ChrisLib::PrintOutputCompareEvents( const multi_array<double,2> &varValues, const multi_array<string,2> &IDValues, const InputCompare &inputCompare, const vector<vector<TObject*>> &vectHist ) {
   if ( vectHist.empty() ) return;
 
-  unsigned nBins = varValues.size();
+  const vector< string > &eventID = inputCompare.GetEventID();
+  string outName = inputCompare.GetOption( "plotDirectory" ) + inputCompare.GetOutName() + "_compareEvents.csv";
+
+  int function = stoi(inputCompare.GetOption("function"));
+  multi_array<double,2> comparedValues(CompareArrayColumns( varValues, function -1 ));;
+
+  //Only varValues will be printed. The first column, consisting of lines names, be must hand made
+  unsigned nBins = function ? comparedValues.size() : varValues.size();
   vector<string> linesTitle(nBins, "" );
-  vector<string> colsTitle(eventID.size()*vectHist[0].size()+1, "" );
+  vector<string> colsTitle( (function ? comparedValues[0].size() : varValues[0].size())+1, "" );
   for ( unsigned iLine=0; iLine<nBins; ++iLine ) {
     stringstream ss;
     for ( unsigned iID = 0; iID<eventID.size(); ++iID ) {
       ss << IDValues[iLine][iID] << " ";
-      if ( !iID ) colsTitle[0]+= eventID[iID] + " ";
+      if ( !iLine ) colsTitle[0]+= eventID[iID] + " ";
     }
     linesTitle[iLine] = ss.str();
   }
+
   vector<unsigned> levelsSizes;
-  levelsSizes.push_back(vectHist[0].size());
   levelsSizes.push_back(vectHist.size());
-  for ( unsigned iCol=1; iCol<colsTitle.size(); ++iCol ) {
-    if ( iCol < eventID.size()+1 ) colsTitle[iCol] = eventID[iCol-1];
-    else {
-      //varValues[foundIndex][iHist*rootFilesName.size()+iPlot] = mapBranch.GetVal( varName[iPlot][iHist] );
-      vector<unsigned> coords;
-      unsigned renormCol = iCol-eventID.size()-1;
-      GetCoordFromLinear( levelsSizes, renormCol, coords );
-      colsTitle[iCol] = static_cast<TNamed*>(vectHist[coords[0]][coords[1]])->GetTitle();
-    }
-  }
-  PrintArray( outName, varValues, linesTitle, colsTitle );
+  levelsSizes.push_back(vectHist[0].size());
+
+
+  for ( unsigned iCol=0; iCol<varValues[0].size(); ++iCol ) {
+    cout << "iCol : " << iCol << endl;
+    int shift  = function ? iCol/2 : 0;
+    cout << "shift : " << shift << endl;
+    vector<unsigned> coords;
+    GetCoordFromLinear( levelsSizes, iCol, coords );
+    cout << "coord : " << coords[0] << " " << coords[1] << endl;
+    cout << "size : " << vectHist.size() << " " << vectHist[coords[0]].size() << endl;
+    cout << "adress : " << vectHist[coords[0]][coords[1]] << endl;
+    vectHist[coords[0]][coords[1]]->Print();
+    cout << iCol+shift << " " << colsTitle.size() << endl;
+    colsTitle[iCol+shift+1] = static_cast<TNamed*>(vectHist[coords[0]][coords[1]])->GetTitle();
+  cout << "colsTitle" << endl;
+
+  if ( function && iCol%2 ) colsTitle[iCol+shift+2] = colsTitle[iCol+shift] + "_diff" + std::to_string(function);
+
+}
+cout << "printting" << endl;
+PrintArray( outName, function ? comparedValues : varValues, linesTitle, colsTitle );
 }
 
 //==============================================================
@@ -230,7 +248,7 @@ TObject* ChrisLib::InitHist( const InputCompare &inputCompare, unsigned iPlot, u
     else if ( xBinning.empty() || xBinning[iHist].empty() ) object = new TProfile( name.str().c_str(), name.str().c_str(), nBins, varMin[iHist], varMax[iHist] );
     else object = new TProfile( name.str().c_str(), name.str().c_str(), static_cast<int>(xBinning[iPlot].size())-1, &xBinning[iPlot][0] );
   }
-  else if ( outMode == OutMode::hist ){
+  else if ( outMode == OutMode::hist or outMode == OutMode::histEvent ){
     if ( doLabels ) object = new TH1D( name.str().c_str(), name.str().c_str(), 1, -0.5, 0.5 );
     else if ( xBinning.empty() || xBinning[iHist].empty() ) object = new TH1D( name.str().c_str(), name.str().c_str(), nBins, varMin[iHist], varMax[iHist] );
     else object = new TH1D( name.str().c_str(), name.str().c_str(), static_cast<int>(xBinning[iHist].size())-1, &xBinning[iHist][0] );
@@ -271,14 +289,14 @@ TObject* ChrisLib::InitHist( const InputCompare &inputCompare, unsigned iPlot, u
 }
 
 //=======================================================
-int ChrisLib::FillCompareEvent( const InputCompare &inputCompare, multi_array<long long,2> &IDValues, const MapBranches &mapBranch, const int iPlot, const int iEvent ) {
+int ChrisLib::FillCompareEvent( const InputCompare &inputCompare, multi_array<string,2> &IDValues, const MapBranches &mapBranch, const int iPlot, const int iEvent ) {
 
   const vector< string > &eventID = inputCompare.GetEventID();
 
   int foundIndex=-1;
   if ( !iPlot ) { // For the first dataset, fill the list of the events of interest
     // idex i will run over all variables which enter into the event identification
-    for ( unsigned i=0; i<eventID.size(); ++i ) IDValues[iEvent][i] = mapBranch.GetLongLong( eventID[i] );
+    for ( unsigned i=0; i<eventID.size(); ++i ) IDValues[iEvent][i] = mapBranch.GetLabel( eventID[i] );
     foundIndex=iEvent;
   }
   else {//Searches for the index of the same event
@@ -286,7 +304,7 @@ int ChrisLib::FillCompareEvent( const InputCompare &inputCompare, multi_array<lo
     for ( unsigned int iSavedEvent = 0; iSavedEvent < nBins; ++iSavedEvent ) {
       bool foundEvent=true;
       for ( unsigned int iID = 0; iID < eventID.size(); ++iID ) {
-        if ( IDValues[iSavedEvent][iID] == mapBranch.GetLongLong(eventID[iID]) ) continue;
+        if ( IDValues[iSavedEvent][iID] == mapBranch.GetLabel(eventID[iID]) ) continue;
         foundEvent = false;
         break;
       }
@@ -352,7 +370,7 @@ void ChrisLib::SetTGraphsTitle( const InputCompare &inputCompare, const unsigned
 void ChrisLib::FillObject( const InputCompare &inputCompare,
                            const MapBranches &mapBranch,
                            vector<vector<TObject*>> &vectObject,
-                           multi_array<long long,2> &IDValues,
+                           multi_array<string,2> &IDValues,
                            multi_array<double,2> &varValues,
                            const unsigned iPlot,
                            const unsigned iEntry
@@ -392,7 +410,6 @@ void ChrisLib::FillObject( const InputCompare &inputCompare,
 
     double yVal = varYName.size() ? stod(mapBranch.GetLabel(varYName[iPlot][iHist])) : 0;
     double xVal = !doLabels ? stod(mapBranch.GetLabel(varName[iPlot][iHist] )) : 0;
-
     int iBin = -1;
     if ( doLabels && IsTH1( outMode ) ) {
       TH1* hist = static_cast< TH1* >(vectObject[histIndex][iPlot]);
@@ -451,7 +468,7 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
 
   int nCols = rootFilesName.size()*varName[0].size();
   multi_array<double,2> varValues;
-  multi_array<long long, 2> IDValues;
+  multi_array<string,2> IDValues;
 
   const OutMode outMode = GetOutMode( inputCompare );
   if ( outMode==OutMode::histEvent ) {
@@ -529,14 +546,8 @@ void ChrisLib::PlotTree( const InputCompare &inputCompare, vector<vector<TObject
 
   }//end iPlot
 
+  if ( outMode==OutMode::histEvent ) PrintOutputCompareEvents( varValues, IDValues, inputCompare, vectHist );
 
-
-  if ( outMode==OutMode::histEvent ) {
-    string outName = inputCompare.GetOption( "plotDirectory" ) + inputCompare.GetOutName() + "_compareEvents";
-    int function = std::stod(inputCompare.GetOption( "function" ));
-    if ( function ) CompareArrayColumns( varValues, function-1 );
-    PrintOutputCompareEvents( varValues, IDValues, eventID, vectHist, outName );
-  }
   if ( DEBUG ) cout << "ChrisLib::PlotTree end" << endl;
 }
 

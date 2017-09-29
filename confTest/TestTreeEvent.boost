@@ -1,14 +1,18 @@
-inputType=2
+inputType=3
 
-rootFileName = /sps/atlas/c/cgoudet/Calibration/DataxAOD/MC_13TeV_Zee_50ns_Lkh1_0_PairEvents_PassSel.root
-rootFileName = /sps/atlas/c/cgoudet/Calibration/DataxAOD/MC_13TeV_Zee_50ns_Lkh1_0_PairEvents_PassSel.root
+rootFileName = mapResult.csv
+rootFileName = mapResult.csv
 
-varName=m12
+varName=sigma_down
+varName=sigma_up
 
-varMin=0
-varMax=500
+varMin=1.5
+varMax=1.8
 
-nBins=20
-nEvents=10
+nBins=100
+nEvents=20
 
-eventID=eventNumber
+eventID=Systematic_Category
+doRatio=1
+
+function=2

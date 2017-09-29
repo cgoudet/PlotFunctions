@@ -39,9 +39,14 @@ namespace ChrisLib {
      # Code
      - 0 : Weighted sum (like usual histogram)
 
-     - 1 : Weight quadratic sum. f(old, add, weight)=\sqrt{old^2+weight add^2}
+     - 1 : Weighted Oplus f(old, add, weight)=\sqrt{old^2+weight add^2}
+
+     - 2 : Weighted quadartic sum
    */
   void FillFunctionHisto( TH1* filledHist, const unsigned int bin, const double value, const double weight =1, const unsigned code = 0);
+
+  /**\brief  Fill the variable identifying all events of interest and return the index of the event with the same properties as the current
+   */
   int FillCompareEvent( const InputCompare &inputCompare, boost::multi_array<long long,2> &IDValues, const MapBranches &mapBranch, const int iPlot, const int iEvent );
   TObject* InitHist( const InputCompare &inputCompare, unsigned iPlot, unsigned iHist );
 

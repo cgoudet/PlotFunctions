@@ -276,11 +276,12 @@ int ChrisLib::FillCompareEvent( const InputCompare &inputCompare, multi_array<lo
   const vector< string > &eventID = inputCompare.GetEventID();
 
   int foundIndex=-1;
-  if ( !iPlot ) {
+  if ( !iPlot ) { // For the first dataset, fill the list of the events of interest
+    // idex i will run over all variables which enter into the event identification
     for ( unsigned i=0; i<eventID.size(); ++i ) IDValues[iEvent][i] = mapBranch.GetLongLong( eventID[i] );
     foundIndex=iEvent;
   }
-  else {
+  else {//Searches for the index of the same event
     unsigned nBins = IDValues.size();
     for ( unsigned int iSavedEvent = 0; iSavedEvent < nBins; ++iSavedEvent ) {
       bool foundEvent=true;
@@ -641,7 +642,10 @@ void ChrisLib::FillFunctionHisto( TH1* filledHist, const unsigned int bin, const
   if ( !filledHist ) throw runtime_error( "ChrisLib::FillFunctionHisto : empty filledHist");
   double oldValue = filledHist->GetBinContent(bin);
   if ( code==0 ) oldValue += weight*value;
-  else if ( code==1 ) oldValue = sqrt(oldValue*oldValue+weight*value*value);
+  else if ( code==1 || code==2 ) {
+    oldValue = oldValue*oldValue+weight*value*value;
+    if ( code==1 ) oldValue = sqrt(oldValue);
+  }
   else throw runtime_error( "ChrisLib::FillFunctionHisto : code (" + std::to_string(code) + ") does not correspond to any possibility.");
   filledHist->SetBinContent(bin, oldValue);
   filledHist->SetBinError(bin, 0);

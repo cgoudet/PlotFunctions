@@ -150,6 +150,8 @@ namespace ChrisLib {
      Mandatory variables : Binning, varName, eventID
      \n
      Optionnal variables : varWeight, doTabular, saveRoot, doLabels, objName
+     \n
+     Example confTest/TestTreeEvent.boost
 
      - 4 : Fill a TProfile with varName as Xaxis, varYName as Yaxis.
      \n
